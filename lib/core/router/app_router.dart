@@ -1,4 +1,6 @@
+import 'package:dropline/features/auth/presentation/pages/loginpage.dart';
 import 'package:dropline/features/dashboard/presentation/pages/dashboard_page.dart';
+
 import 'package:dropline/features/event/domain/entities/location_node.dart';
 import 'package:dropline/features/event/domain/repositories/location_repository.dart';
 import 'package:dropline/features/event/presentation/cubit/location_list_cubit.dart';
@@ -13,7 +15,7 @@ import 'package:dropline/features/event/presentation/pages/main_area_page.dart';
 import 'package:dropline/features/event/presentation/pages/select_location_page.dart';
 import 'package:dropline/features/event/presentation/pages/specific_location_page.dart';
 import 'package:dropline/features/event/presentation/pages/sub_area_page.dart';
-import 'package:dropline/features/login/presentation/loginpage.dart';
+
 import 'package:dropline/features/punch/presentation/pages/punch_out.dart';
 
 import 'package:dropline/features/splash.dart';
@@ -186,19 +188,18 @@ class AppRouter {
         },
       ),
 
-
       GoRoute(
-  path: AppRouter.selectLocation,
-  name: 'selectLocation',
-  builder: (context, state) {
-    return BlocProvider(
-      create: (context) => SelectLocationCubit(
-        repository: context.read<LocationRepository>(),
-      )..loadMainAreas(),
-      child: const SelectLocationPage(),
-    );
-  },
-),
+        path: AppRouter.selectLocation,
+        name: 'selectLocation',
+        builder: (context, state) {
+          return BlocProvider(
+            create: (context) => SelectLocationCubit(
+              repository: context.read<LocationRepository>(),
+            )..loadMainAreas(),
+            child: const SelectLocationPage(),
+          );
+        },
+      ),
     ],
   );
 }
