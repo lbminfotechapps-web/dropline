@@ -1,6 +1,7 @@
 import 'dart:async';
 
-import 'package:dropline/features/login/presentation/loginpage.dart';
+import 'package:dropline/core/router/app_router.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -37,14 +38,11 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    // Navigate to HomeScreen after 2 seconds
+    // Navigate to sign in after 2 seconds.
     Timer(const Duration(seconds: 2), () {
       if (!mounted) return;
 
-      // Navigator.pushReplacement(
-      //   context,
-      //   MaterialPageRoute(builder: (_) => const LoginScreen()),
-      // );
+      context.go(AppRouter.login);
     });
   }
 
