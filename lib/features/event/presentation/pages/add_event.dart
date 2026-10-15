@@ -1,7 +1,10 @@
 import 'dart:math' as math;
 import 'dart:io';
 
-import 'widgets/audio_recorder_dialog.dart';
+import 'package:dropline/core/router/app_router.dart';
+import 'package:go_router/go_router.dart';
+
+import '../widgets/audio_recorder_dialog.dart';
 import 'package:cross_file/cross_file.dart';
 
 import 'package:dropline/core/theme/app_text_styles.dart';
@@ -95,17 +98,18 @@ class _AddEventPageState extends State<AddEventPage> {
   }
 
   void _completeEvent() {
-    if (_noteController.text.trim().isEmpty && _attachments.isEmpty) {
-      _noteFocus.requestFocus();
-      return;
-    }
-    FocusScope.of(context).unfocus();
-    // Return the draft to the caller for persistence.
-    Navigator.of(context).maybePop({
-      'note': _noteController.text.trim(),
-      'time': _timeLabel(_selectedTime),
-      'attachments': List<XFile>.of(_attachments),
-    });
+    // if (_noteController.text.trim().isEmpty && _attachments.isEmpty) {
+    //   _noteFocus.requestFocus();
+    //   return;
+    // }
+    // FocusScope.of(context).unfocus();
+
+    context.push(AppRouter.mainAreas);
+    // Navigator.of(context).maybePop({
+    //   'note': _noteController.text.trim(),
+    //   'time': _timeLabel(_selectedTime),
+    //   'attachments': List<XFile>.of(_attachments),
+    // });
   }
 
   @override
