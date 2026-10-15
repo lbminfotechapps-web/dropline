@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dropline/features/login/presentation/loginpage.dart';
 import 'package:flutter/material.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -57,8 +58,34 @@ class _SplashScreenState extends State<SplashScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Center(
-        child:Text('splashh')
+      body: DecoratedBox(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/splash.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Center(
+          child: AnimatedBuilder(
+            animation: _controller,
+            builder: (context, child) {
+              return Opacity(
+                opacity: _opacityAnimation.value,
+                child: Transform.scale(
+                  scale: _scaleAnimation.value,
+                  child: child,
+                ),
+              );
+            },
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Image.asset('assets/images/glow.png', fit: BoxFit.contain),
+                Image.asset('assets/images/app_logo.png', fit: BoxFit.contain),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
