@@ -171,7 +171,7 @@ class _AddEventPageState extends State<AddEventPage> {
                             Text(
                               widget.projectName,
                               style: AppTextStyles.titleSmall.copyWith(
-                                fontSize: 16 * scale,
+                                fontSize:20 * scale,
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: 1.2,
                               ),
