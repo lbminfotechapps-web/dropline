@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import 'package:dropline/features/home.dart';
-import 'package:dropline/features/login/presentation/loginpage.dart';
 import 'package:flutter/material.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -42,10 +40,10 @@ class _SplashScreenState extends State<SplashScreen>
     Timer(const Duration(seconds: 2), () {
       if (!mounted) return;
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-      );
+      // Navigator.pushReplacement(
+      //   context,
+      //   MaterialPageRoute(builder: (_) => const LoginScreen()),
+      // );
     });
   }
 
@@ -60,19 +58,7 @@ class _SplashScreenState extends State<SplashScreen>
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
-        child: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, child) {
-            return Opacity(
-              opacity: _opacityAnimation.value,
-              child: Transform.scale(
-                scale: _scaleAnimation.value,
-                child: child,
-              ),
-            );
-          },
-          child: Image.asset('assets/images/splash.png', fit: BoxFit.contain),
-        ),
+        child:Text('splashh')
       ),
     );
   }
