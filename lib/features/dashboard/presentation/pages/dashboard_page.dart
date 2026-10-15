@@ -1,6 +1,6 @@
-
 import 'dart:async';
 
+import 'package:dropline/core/utility/widgets/app_background.dart';
 import 'package:flutter/material.dart';
 
 import '../widgets/dashboard_background.dart';
@@ -33,25 +33,22 @@ class _DashboardPageState extends State<DashboardPage> {
 
     _currentTime = DateTime.now();
 
-    _clockTimer = Timer.periodic(
-      const Duration(seconds: 1),
-      (_) {
-        if (!mounted) return;
+    _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
 
-        final now = DateTime.now();
+      final now = DateTime.now();
 
-        // Update when minute or date changes.
-        if (now.minute != _currentTime.minute ||
-            now.hour != _currentTime.hour ||
-            now.day != _currentTime.day ||
-            now.month != _currentTime.month ||
-            now.year != _currentTime.year) {
-          setState(() {
-            _currentTime = now;
-          });
-        }
-      },
-    );
+      // Update when minute or date changes.
+      if (now.minute != _currentTime.minute ||
+          now.hour != _currentTime.hour ||
+          now.day != _currentTime.day ||
+          now.month != _currentTime.month ||
+          now.year != _currentTime.year) {
+        setState(() {
+          _currentTime = now;
+        });
+      }
+    });
   }
 
   @override
@@ -79,8 +76,7 @@ class _DashboardPageState extends State<DashboardPage> {
   // =========================================
 
   void _onSlideCompleted() {
-    // TODO: Dispatch Punch In/Out BLoC event.
-    // Update _isClockedIn only after API success.
+
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -93,22 +89,18 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  // =========================================
-  // BUILD
-  // =========================================
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: DashboardBackground(
+      body: AppBackground(
         child: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
               return SingleChildScrollView(
                 child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight,
-                  ),
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
                   child: IntrinsicHeight(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -116,8 +108,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         vertical: 24,
                       ),
                       child: Column(
-                        crossAxisAlignment:
-                            CrossAxisAlignment.stretch,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           // Greeting
                           DashboardGreeting(
@@ -127,14 +118,12 @@ class _DashboardPageState extends State<DashboardPage> {
 
                           const SizedBox(height: 76),
 
-                          // Date card
-                          DashboardDateCard(
-                            date: _currentTime,
-                          ),
+                        
+                          DashboardDateCard(date: _currentTime),
 
                           const SizedBox(height: 38),
 
-                          // Select project
+                        
                           DashboardProjectCard(
                             selectedProject: _selectedProject,
                             onTap: _onSelectProject,
@@ -142,16 +131,14 @@ class _DashboardPageState extends State<DashboardPage> {
 
                           const SizedBox(height: 48),
 
-                          // Live clock
-                          DashboardClockCard(
-                            dateTime: _currentTime,
-                          ),
+                        
+                          DashboardClockCard(dateTime: _currentTime),
 
                           const Spacer(),
 
                           const SizedBox(height: 55),
 
-                          // Slide to Clock Out / In
+                       
                           DashboardSlideButton(
                             isClockedIn: _isClockedIn,
                             onCompleted: _onSlideCompleted,
