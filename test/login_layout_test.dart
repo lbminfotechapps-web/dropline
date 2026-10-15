@@ -1,8 +1,43 @@
 import 'package:dropline/features/login/presentation/loginpage.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
+    testWidgets('Terms dialog uses native controls on $platform', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(platform: platform),
+          home: const LoginScreen(),
+        ),
+      );
+      final link = find.text('Terms & Conditions');
+      await tester.ensureVisible(link);
+      await tester.tap(link);
+      await tester.pumpAndSettle();
+      expect(
+        find.byType(
+          platform == TargetPlatform.iOS ? CupertinoAlertDialog : AlertDialog,
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('I agree').hitTestable(), findsOneWidget);
+      await tester.tap(find.text('I agree'));
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.byType(CupertinoAlertDialog), findsNothing);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
+
   for (final size in [const Size(360, 640), const Size(390, 844)]) {
     testWidgets('Login remains reachable with the keyboard at $size', (
       tester,
@@ -22,6 +57,14 @@ void main() {
 
       expect(tester.getSize(title).height, titleHeight);
       expect(tester.takeException(), isNull);
+      expect(find.byType(TextField), findsNWidgets(2));
+      final mobile = find.byType(TextField).at(1);
+      await tester.enterText(mobile, '071234567');
+      await tester.pump();
+      expect(find.byType(TextField), findsNWidgets(2));
+      await tester.enterText(mobile, '0712345678');
+      await tester.pumpAndSettle();
+      expect(find.byType(TextField), findsNWidgets(6));
       final scrollable = find.byType(Scrollable).first;
       for (var i = 0; i < 6; i++) {
         final field = find.byType(TextField).at(i);
@@ -38,6 +81,9 @@ void main() {
       expect(action.hitTestable(), findsOneWidget);
       expect(tester.getBottomRight(action).dy, lessThan(size.height - 300));
       expect(tester.takeException(), isNull);
+      await tester.enterText(mobile, '071234567');
+      await tester.pumpAndSettle();
+      expect(find.byType(TextField), findsNWidgets(2));
       await tester.pumpWidget(const SizedBox.shrink());
     });
   }

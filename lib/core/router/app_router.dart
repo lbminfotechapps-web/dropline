@@ -1,4 +1,5 @@
 import 'package:dropline/features/dashboard/presentation/pages/dashboard_page.dart';
+import 'package:dropline/features/event/presentation/add_event.dart';
 import 'package:dropline/features/login/presentation/loginpage.dart';
 import 'package:dropline/features/punch/presentation/pages/punch_out.dart';
 
@@ -11,6 +12,7 @@ class AppRouter {
   static const String splash = '/splash';
   static const String login = '/login';
   static const String dashboard = '/dashboard';
+  static const String addEvent = '/add-event';
   static const String punchOut = '/punchOut';
 
   static final GoRouter router = GoRouter(
@@ -18,6 +20,11 @@ class AppRouter {
     initialLocation: splash,
 
     routes: [
+      GoRoute(
+        path: addEvent,
+        name: 'addEvent',
+        builder: (context, state) => const AddEventPage(),
+      ),
       GoRoute(
         path: splash,
         name: 'splash',
