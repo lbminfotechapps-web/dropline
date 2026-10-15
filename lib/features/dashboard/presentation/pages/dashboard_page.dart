@@ -1,9 +1,10 @@
 import 'dart:async';
 
+import 'package:dropline/core/router/app_router.dart';
 import 'package:dropline/core/utility/widgets/app_background.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
-import '../widgets/dashboard_background.dart';
 import '../widgets/dashboard_greeting.dart';
 import '../widgets/dashboard_date_card.dart';
 import '../widgets/dashboard_project_card.dart';
@@ -25,7 +26,7 @@ class _DashboardPageState extends State<DashboardPage> {
   // Later these will come from authentication/dashboard BLoC.
   final String _userName = 'Leo';
   String? _selectedProject;
-  bool _isClockedIn = true;
+  final bool _isClockedIn = true;
 
   @override
   void initState() {
@@ -61,35 +62,31 @@ class _DashboardPageState extends State<DashboardPage> {
   // SELECT PROJECT
   // =========================================
 
-  void _onSelectProject() {
-    // TODO: Open project selection using Project BLoC/API.
+  // ==========================================
+  // SEARCH PROJECT
+  // ==========================================
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Project selection will be connected next.'),
-      ),
-    );
+  void _onProjectSearch(String query) {
+    final project = query.trim();
+    if (_selectedProject != null || project.isEmpty) return;
+    setState(() => _selectedProject = project);
   }
-
   // =========================================
   // CLOCK IN / CLOCK OUT
   // =========================================
 
   void _onSlideCompleted() {
-
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          _isClockedIn
-              ? 'Clock Out API integration pending'
-              : 'Clock In API integration pending',
-        ),
-      ),
-    );
+    context.push(AppRouter.punchOut);
+    // ScaffoldMessenger.of(context).showSnackBar(
+    //   SnackBar(
+    //     content: Text(
+    //       _isClockedIn
+    //           ? 'Clock Out API integration pending'
+    //           : 'Clock In API integration pending',
+    //     ),
+    //   ),
+    // );
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -98,55 +95,60 @@ class _DashboardPageState extends State<DashboardPage> {
         child: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
+              final scale = constraints.maxWidth / 591;
               return SingleChildScrollView(
                 child: ConstrainedBox(
                   constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: IntrinsicHeight(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 28,
-                        vertical: 24,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // Greeting
-                          DashboardGreeting(
-                            name: _userName,
-                            dateTime: _currentTime,
-                          ),
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      42 * scale,
+                      52 * scale,
+                      42 * scale,
+                      40 * scale,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            // Greeting
+                            DashboardGreeting(
+                              name: _userName,
+                              dateTime: _currentTime,
+                            ),
 
-                          const SizedBox(height: 76),
+                            SizedBox(height: 100 * scale),
 
-                        
-                          DashboardDateCard(date: _currentTime),
+                            DashboardDateCard(date: _currentTime),
 
-                          const SizedBox(height: 38),
+                            SizedBox(height: 51 * scale),
 
-                        
-                          DashboardProjectCard(
-                            selectedProject: _selectedProject,
-                            onTap: _onSelectProject,
-                          ),
+                            DashboardProjectCard(
+                              selectedProject: _selectedProject,
+                              onSearch: _onProjectSearch,
+                              onRemoveProject: () =>
+                                  setState(() => _selectedProject = null),
+                            ),
 
-                          const SizedBox(height: 48),
+                            SizedBox(height: 62 * scale),
 
-                        
-                          DashboardClockCard(dateTime: _currentTime),
+                            DashboardClockCard(dateTime: _currentTime),
+                          ],
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            SizedBox(height: 80 * scale),
 
-                          const Spacer(),
-
-                          const SizedBox(height: 55),
-
-                       
-                          DashboardSlideButton(
-                            isClockedIn: _isClockedIn,
-                            onCompleted: _onSlideCompleted,
-                          ),
-
-                          const SizedBox(height: 18),
-                        ],
-                      ),
+                            DashboardSlideButton(
+                              isClockedIn: _isClockedIn,
+                              onCompleted: _onSlideCompleted,
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
