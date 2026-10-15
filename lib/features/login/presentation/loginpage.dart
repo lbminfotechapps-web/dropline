@@ -1,6 +1,9 @@
 import 'dart:math' as math;
 import 'package:dropline/core/router/app_router.dart';
+import 'package:dropline/core/theme/appcolors.dart';
+import 'package:dropline/core/theme/app_text_styles.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -18,6 +21,139 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _agreed = true;
   bool _isNavigating = false;
   double _slide = 0;
+
+  Future<void> _showTermsAndConditions() async {
+    FocusScope.of(context).unfocus();
+    final accepted = await showAdaptiveDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        final platform = Theme.of(dialogContext).platform;
+        final isApple =
+            platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
+        final textColour = isApple
+            ? CupertinoColors.label.resolveFrom(dialogContext)
+            : Theme.of(dialogContext).colorScheme.onSurface;
+        final content = DefaultTextStyle(
+          style: AppTextStyles.bodyMedium.copyWith(color: textColour),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              Text(
+                'DROPLINE • UNITED KINGDOM',
+                style: AppTextStyles.caption.copyWith(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.8,
+                  color: isApple
+                      ? CupertinoColors.secondaryLabel.resolveFrom(
+                          dialogContext,
+                        )
+                      : Theme.of(dialogContext).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Please read these terms before continuing. '
+                'These are sample terms for the demo app.',
+              ),
+              const SizedBox(height: 20),
+              for (final section in const [
+                (
+                  '1. Using Dropline',
+                  'Use the app lawfully and responsibly. Do not misuse the '
+                      'service or try to access another person’s account.',
+                ),
+                (
+                  '2. Your account',
+                  'Provide accurate details and keep your sign-in codes '
+                      'private. You are responsible for activity on your account.',
+                ),
+                (
+                  '3. Your content',
+                  'Only share files and information you own or are authorised '
+                      'to use. Keep a copy of important documents.',
+                ),
+                (
+                  '4. Privacy',
+                  'The final Privacy Notice will explain how personal data is '
+                      'collected, used and stored. Avoid entering sensitive '
+                      'personal information in this demo.',
+                ),
+                (
+                  '5. Service availability',
+                  'Demo features may change or be unavailable from time to '
+                      'time. Sample data may be reset.',
+                ),
+                (
+                  '6. Final terms',
+                  'These sample terms must be replaced with the service’s '
+                      'final terms and Privacy Notice before launch. They do '
+                      'not limit your statutory rights.',
+                ),
+              ]) ...[
+                Text(
+                  section.$1,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: textColour,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(section.$2),
+                const SizedBox(height: 18),
+              ],
+            ],
+          ),
+        );
+
+        if (isApple) {
+          return CupertinoAlertDialog(
+            title: const Text('Terms & Conditions'),
+            // CupertinoAlertDialog keeps its actions visible while its
+            // content scrolls on smaller screens and with larger text.
+            content: content,
+            actions: [
+              CupertinoDialogAction(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('Close'),
+              ),
+              CupertinoDialogAction(
+                isDefaultAction: true,
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: const Text('I agree'),
+              ),
+            ],
+          );
+        }
+
+        return AlertDialog(
+          title: const Text('Terms & Conditions'),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          scrollable: true,
+          content: SizedBox(width: 400, child: content),
+          actionsPadding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Close'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('I agree'),
+            ),
+          ],
+        );
+      },
+    );
+    if (accepted == true && mounted) {
+      setState(() => _agreed = true);
+    }
+  }
 
   void _continueLogin() {
     if (_isNavigating) return;
@@ -53,8 +189,8 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light.copyWith(
-        statusBarColor: Colors.transparent,
-        systemNavigationBarColor: const Color(0xFF4B5869),
+        statusBarColor: AppColors.transparent,
+        systemNavigationBarColor: AppColors.loginNavigationBar,
       ),
       child: Scaffold(
         resizeToAvoidBottomInset: true,
@@ -95,6 +231,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 onSubmitted: (_) => FocusScope.of(context).nextFocus(),
                 onChanged: phone
                     ? (value) {
+                        setState(() {
+                          for (final codeController in _codeControllers) {
+                            codeController.clear();
+                          }
+                        });
                         if (value.length == 10) {
                           FocusScope.of(context).unfocus();
                         }
@@ -104,8 +245,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 textCapitalization: phone
                     ? TextCapitalization.none
                     : TextCapitalization.words,
-                style: TextStyle(color: Colors.white, fontSize: 27 * s),
-                cursorColor: Colors.white,
+                style: AppTextStyles.inputText.copyWith(fontSize: 27 * s),
+                cursorColor: AppColors.white,
                 inputFormatters: phone
                     ? [
                         FilteringTextInputFormatter.digitsOnly,
@@ -114,18 +255,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     : null,
                 decoration: InputDecoration(
                   hintText: hint,
-                  hintStyle: TextStyle(
-                    color: const Color(0xFFCDD2D8),
+                  hintStyle: AppTextStyles.inputHint.copyWith(
+                    color: AppColors.loginHint,
                     fontSize: 27 * s,
                     fontWeight: FontWeight.w400,
                   ),
                   filled: false,
                   contentPadding: EdgeInsets.only(bottom: 30 * s),
                   enabledBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF8A94A2)),
+                    borderSide: BorderSide(color: AppColors.loginInputBorder),
                   ),
                   focusedBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white),
+                    borderSide: BorderSide(color: AppColors.white),
                   ),
                 ),
               );
@@ -162,8 +303,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       49,
                       Text(
                         'Sign in',
-                        style: TextStyle(
-                          color: Colors.white,
+                        style: AppTextStyles.displaySmall.copyWith(
                           fontSize: 36 * s,
                           fontWeight: FontWeight.w700,
                           letterSpacing: -1.2 * s,
@@ -178,7 +318,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       67,
                       field('Mobile', _mobileController, phone: true),
                     ),
-                    for (var i = 0; i < 4; i++)
+                    for (
+                      var i = 0;
+                      i < (_mobileController.text.length == 10 ? 4 : 0);
+                      i++
+                    )
                       place(
                         51 + i * 123,
                         803,
@@ -187,10 +331,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         Container(
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.025),
+                            color: AppColors.white.withValues(alpha: 0.025),
                             borderRadius: BorderRadius.circular(32 * s),
                             border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.16),
+                              color: AppColors.white.withValues(alpha: 0.16),
                               width: 1.5 * s,
                             ),
                           ),
@@ -198,7 +342,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             controller: _codeControllers[i],
                             textAlign: TextAlign.center,
                             textAlignVertical: TextAlignVertical.center,
-                            cursorColor: Colors.white,
+                            cursorColor: AppColors.white,
                             scrollPadding: EdgeInsets.fromLTRB(
                               32,
                               32,
@@ -213,8 +357,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               FilteringTextInputFormatter.digitsOnly,
                               LengthLimitingTextInputFormatter(1),
                             ],
-                            style: TextStyle(
-                              color: Colors.white,
+                            style: AppTextStyles.displayMedium.copyWith(
+                              height: 1,
                               fontSize: 48 * s,
                               fontWeight: FontWeight.w700,
                             ),
@@ -249,17 +393,17 @@ class _LoginScreenState extends State<LoginScreen> {
                                 height: 34 * s,
                                 decoration: BoxDecoration(
                                   color: _agreed
-                                      ? const Color(0xFF82FF27)
-                                      : Colors.transparent,
+                                      ? AppColors.loginAgreement
+                                      : AppColors.transparent,
                                   borderRadius: BorderRadius.circular(10 * s),
                                   border: Border.all(
-                                    color: const Color(0xFF82FF27),
+                                    color: AppColors.loginAgreement,
                                   ),
                                 ),
                                 child: _agreed
                                     ? Icon(
                                         Icons.check_rounded,
-                                        color: const Color(0xFF233D22),
+                                        color: AppColors.loginAgreementIcon,
                                         size: 25 * s,
                                       )
                                     : null,
@@ -268,18 +412,23 @@ class _LoginScreenState extends State<LoginScreen> {
                             SizedBox(width: 17 * s),
                             Text(
                               'I agree to the',
-                              style: TextStyle(
-                                color: const Color(0xFFD1D6DF),
+                              style: AppTextStyles.inputText.copyWith(
+                                color: AppColors.textSecondary,
                                 fontSize: 20 * s,
                               ),
                             ),
                             SizedBox(width: 18 * s),
-                            Text(
-                              'Terms & Conditionsefs',
-                              style: TextStyle(
-                                color: const Color(0xFF49C4E5),
-                                fontSize: 20 * s,
-                                fontWeight: FontWeight.w600,
+                            InkWell(
+                              onTap: _showTermsAndConditions,
+                              child: Text(
+                                'Terms & Conditions',
+                                style: AppTextStyles.link.copyWith(
+                                  color: AppColors.loginLink,
+                                  fontSize: 20 * s,
+                                  fontWeight: FontWeight.w600,
+                                  decoration: TextDecoration.underline,
+                                  decorationColor: AppColors.loginLink,
+                                ),
                               ),
                             ),
                           ],
@@ -306,21 +455,18 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: Container(
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(60 * s),
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    Color(0xFF496A91),
-                                    Color(0xFF4D5C6C),
-                                  ],
-                                ),
+                                gradient: AppColors.loginButtonGradient,
                                 border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.18),
+                                  color: AppColors.white.withValues(
+                                    alpha: 0.18,
+                                  ),
                                   width: 1.5 * s,
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: const Color(
-                                      0xFFDFD6A3,
-                                    ).withValues(alpha: 0.1),
+                                    color: AppColors.loginButtonGlow.withValues(
+                                      alpha: 0.1,
+                                    ),
                                     blurRadius: 10 * s,
                                     offset: Offset(0, 3 * s),
                                   ),
@@ -333,8 +479,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     left: 160 * s,
                                     child: Text(
                                       'SLIDE TO SIGN IN',
-                                      style: TextStyle(
-                                        color: Colors.white,
+                                      style: AppTextStyles.buttonLarge.copyWith(
                                         fontSize: 28 * s,
                                         fontWeight: FontWeight.w800,
                                         letterSpacing: -0.6 * s,
@@ -367,23 +512,22 @@ class _LoginScreenState extends State<LoginScreen> {
                                         height: knobSize,
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
-                                          color: const Color(0xFF5B6B7C),
+                                          color: AppColors.loginSliderKnob,
                                           border: Border.all(
-                                            color: Colors.white,
+                                            color: AppColors.white,
                                             width: 1.5 * s,
                                           ),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: const Color(
-                                                0xFFB9DEEE,
-                                              ).withValues(alpha: 0.25),
+                                              color: AppColors.loginKnobGlow
+                                                  .withValues(alpha: 0.25),
                                               blurRadius: 15 * s,
                                             ),
                                           ],
                                         ),
                                         child: Icon(
                                           Icons.keyboard_double_arrow_right,
-                                          color: Colors.white,
+                                          color: AppColors.white,
                                           size: 40 * s,
                                         ),
                                       ),

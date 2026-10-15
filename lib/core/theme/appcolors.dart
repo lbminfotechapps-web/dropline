@@ -32,20 +32,13 @@ class AppColors {
   static const LinearGradient backgroundGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [
-      backgroundTop,
-      backgroundMiddle,
-      backgroundBottom,
-    ],
+    colors: [backgroundTop, backgroundMiddle, backgroundBottom],
   );
 
   static const LinearGradient buttonGradient = LinearGradient(
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
-    colors: [
-      Color(0xFF526B8B),
-      Color(0xFF465568),
-    ],
+    colors: [Color(0xFF526B8B), Color(0xFF465568)],
   );
 
   // ==========================================
@@ -117,6 +110,33 @@ class AppColors {
   static const Color warning = Color(0xFFFFC46B);
 
   static const Color info = Color(0xFF81B5E8);
+
+  // Event composer palette.
+  static const Color eventBackgroundTop = Color(0xFF909EAD);
+  static const Color eventBackgroundBottom = Color(0xFF4C586A);
+  static const Color eventNoteSurface = Color(0xFF637183);
+  static const Color eventTileLight = Color(0xFFF0F3FB);
+  static const Color eventTilePeach = Color(0xFFF9E1D3);
+  static const Color eventTimeSelected = Color(0xFF51CB71);
+  static const Color eventToolBlue = Color(0xFF9ECFFF);
+  static const Color eventToolMint = Color(0xFFA3E6C4);
+  static const Color eventToolPurple = Color(0xFFC1A4F1);
+  static const Color eventToolOrange = Color(0xFFF9BF9D);
+  static const Color eventToolCyan = Color(0xFF9EE4E9);
+
+  // Login accents used over the splash artwork.
+  static const Color loginNavigationBar = Color(0xFF4B5869);
+  static const Color loginHint = Color(0xFFCDD2D8);
+  static const Color loginInputBorder = Color(0xFF8A94A2);
+  static const Color loginAgreement = Color(0xFF82FF27);
+  static const Color loginAgreementIcon = Color(0xFF233D22);
+  static const Color loginLink = Color(0xFF49C4E5);
+  static const Color loginSliderKnob = Color(0xFF5B6B7C);
+  static const Color loginButtonGlow = Color(0xFFDFD6A3);
+  static const Color loginKnobGlow = Color(0xFFB9DEEE);
+  static const LinearGradient loginButtonGradient = LinearGradient(
+    colors: [Color(0xFF496A91), Color(0xFF4D5C6C)],
+  );
 
   // ==========================================
   // COMMON COLORS

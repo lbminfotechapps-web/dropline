@@ -1,9 +1,10 @@
 import 'dart:async';
 
+import 'package:dropline/core/router/app_router.dart';
 import 'package:dropline/core/utility/widgets/app_background.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
-import '../widgets/dashboard_background.dart';
 import '../widgets/dashboard_greeting.dart';
 import '../widgets/dashboard_date_card.dart';
 import '../widgets/dashboard_project_card.dart';
@@ -76,8 +77,10 @@ class _DashboardPageState extends State<DashboardPage> {
   // =========================================
 
   void _onSlideCompleted() {
-
-
+    if (_isClockedIn) {
+      context.push(AppRouter.addEvent);
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
