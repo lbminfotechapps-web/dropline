@@ -195,9 +195,6 @@ class DashboardPage extends StatelessWidget {
 
                     const SizedBox(height: 15),
 
-                    // ==================================================
-                    // VIEW REPORT
-                    // ==================================================
                     _DashboardMenuCard(
                       icon: Icons.bar_chart_rounded,
                       title: 'View Report',
@@ -250,9 +247,9 @@ class DashboardPage extends StatelessWidget {
                                 size: 23,
                               ),
                             ),
-  
+
                             const SizedBox(width: 13),
-  
+
                             const Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -276,7 +273,7 @@ class DashboardPage extends StatelessWidget {
                                 ],
                               ),
                             ),
-  
+
                             Container(
                               height: 30,
                               width: 30,
