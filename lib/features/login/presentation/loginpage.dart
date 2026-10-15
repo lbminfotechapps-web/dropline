@@ -1,11 +1,11 @@
 import 'dart:math' as math;
-
-import 'package:dropline/features/otp/presentation/otp_page.dart';
+import 'package:dropline/core/router/app_router.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-// class LoginScreen extends StatefulWidget {
-//   const LoginScreen({super.key});
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -19,7 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isNavigating = false;
   double _slide = 0;
 
-  Future<void> _continueLogin() async {
+  void _continueLogin() {
     if (_isNavigating) return;
     if (_nameController.text.trim().isEmpty ||
         _mobileController.text.length != 10 ||
@@ -36,18 +36,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
     _isNavigating = true;
     FocusScope.of(context).unfocus();
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => OtpScreen(mobileNumber: '+1${_mobileController.text}'),
-      ),
-    );
-    if (mounted) {
-      setState(() {
-        _isNavigating = false;
-        _slide = 0;
-      });
-    }
+    context.go(AppRouter.dashboard);
   }
 
   @override
@@ -257,7 +246,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         SizedBox(width: 18 * s),
                         Text(
-                          'Terms & Conditions',
+                          'Terms & Conditionsefs',
                           style: TextStyle(
                             color: const Color(0xFF49C4E5),
                             fontSize: 20 * s,
@@ -283,88 +272,91 @@ class _LoginScreenState extends State<LoginScreen> {
                         0.0,
                         sliderConstraints.maxWidth - knobSize - 34 * s,
                       );
-                      return Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(60 * s),
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF496A91), Color(0xFF4D5C6C)],
-                          ),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.18),
-                            width: 1.5 * s,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(
-                                0xFFDFD6A3,
-                              ).withValues(alpha: 0.1),
-                              blurRadius: 10 * s,
-                              offset: Offset(0, 3 * s),
+                      return GestureDetector(
+                        onTap: _continueLogin,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(60 * s),
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF496A91), Color(0xFF4D5C6C)],
                             ),
-                          ],
-                        ),
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Positioned(
-                              left: 160 * s,
-                              child: Text(
-                                'SLIDE TO SIGN IN',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 28 * s,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: -0.6 * s,
-                                ),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.18),
+                              width: 1.5 * s,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(
+                                  0xFFDFD6A3,
+                                ).withValues(alpha: 0.1),
+                                blurRadius: 10 * s,
+                                offset: Offset(0, 3 * s),
                               ),
-                            ),
-                            Positioned(
-                              left: 16 * s + _slide * travel,
-                              child: GestureDetector(
-                                onHorizontalDragUpdate: (details) {
-                                  if (travel > 0) {
-                                    setState(
-                                      () => _slide =
-                                          (_slide + details.delta.dx / travel)
-                                              .clamp(0.0, 1.0),
-                                    );
-                                  }
-                                },
-                                onHorizontalDragEnd: (_) {
-                                  if (_slide >= 0.85) {
-                                    _continueLogin();
-                                  } else {
-                                    setState(() => _slide = 0);
-                                  }
-                                },
-                                child: Container(
-                                  width: knobSize,
-                                  height: knobSize,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: const Color(0xFF5B6B7C),
-                                    border: Border.all(
-                                      color: Colors.white,
-                                      width: 1.5 * s,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: const Color(
-                                          0xFFB9DEEE,
-                                        ).withValues(alpha: 0.25),
-                                        blurRadius: 15 * s,
-                                      ),
-                                    ],
-                                  ),
-                                  child: Icon(
-                                    Icons.keyboard_double_arrow_right,
+                            ],
+                          ),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Positioned(
+                                left: 160 * s,
+                                child: Text(
+                                  'SLIDE TO SIGN IN',
+                                  style: TextStyle(
                                     color: Colors.white,
-                                    size: 40 * s,
+                                    fontSize: 28 * s,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: -0.6 * s,
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
+                              Positioned(
+                                left: 16 * s + _slide * travel,
+                                child: GestureDetector(
+                                  onHorizontalDragUpdate: (details) {
+                                    if (travel > 0) {
+                                      setState(
+                                        () => _slide =
+                                            (_slide + details.delta.dx / travel)
+                                                .clamp(0.0, 1.0),
+                                      );
+                                    }
+                                  },
+                                  onHorizontalDragEnd: (_) {
+                                    if (_slide >= 0.85) {
+                                      _continueLogin();
+                                    } else {
+                                      setState(() => _slide = 0);
+                                    }
+                                  },
+                                  child: Container(
+                                    width: knobSize,
+                                    height: knobSize,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: const Color(0xFF5B6B7C),
+                                      border: Border.all(
+                                        color: Colors.white,
+                                        width: 1.5 * s,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color(
+                                            0xFFB9DEEE,
+                                          ).withValues(alpha: 0.25),
+                                          blurRadius: 15 * s,
+                                        ),
+                                      ],
+                                    ),
+                                    child: Icon(
+                                      Icons.keyboard_double_arrow_right,
+                                      color: Colors.white,
+                                      size: 40 * s,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       );
                     },

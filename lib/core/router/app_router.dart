@@ -1,4 +1,5 @@
 import 'package:dropline/features/dashboard/presentation/pages/dashboard_page.dart';
+import 'package:dropline/features/login/presentation/loginpage.dart';
 
 import 'package:dropline/features/splash.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +13,7 @@ class AppRouter {
 
   static final GoRouter router = GoRouter(
     navigatorKey: navigatorKey,
-    initialLocation: dashboard,
+    initialLocation: splash,
 
     routes: [
       GoRoute(
@@ -23,13 +24,11 @@ class AppRouter {
         },
       ),
 
-      // GoRoute(
-      //   path: login,
-      //   name: 'login',
-      //   builder: (context, state) {
-      //     return const LoginScreen();
-      //   },
-      // ),
+      GoRoute(
+        path: login,
+        name: 'login',
+        builder: (context, state) => const LoginScreen(),
+      ),
 
       GoRoute(
         path: dashboard,
