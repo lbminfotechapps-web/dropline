@@ -4,8 +4,8 @@ import 'package:dropline/features/otp/presentation/otp_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+// class LoginScreen extends StatefulWidget {
+//   const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
