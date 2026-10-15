@@ -1,5 +1,7 @@
+import 'package:dropline/core/router/app_router.dart';
 import 'package:dropline/core/utility/widgets/app_background.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../widgets/punch_header.dart';
 import '../widgets/punch_time_card.dart';
@@ -23,9 +25,10 @@ class _PunchOutPageState extends State<PunchOutPage> {
   final String workType = 'EVENT';
 
   void _onAddWorkDetails() {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Add Work Details clicked')));
+      context.push(AppRouter.addEvent);
+    // ScaffoldMessenger.of(
+    //   context,
+    // ).showSnackBar(const SnackBar(content: Text('Add Work Details clicked')));
   }
 
   void _onClockOut() {
