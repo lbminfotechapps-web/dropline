@@ -12,7 +12,7 @@ class DashboardSlideButton extends StatefulWidget {
     super.key,
     required this.onCompleted,
     this.isLoading = false,
-    this.isClockedIn = true,
+    this.isClockedIn = false,
   });
 
   @override
@@ -22,9 +22,10 @@ class DashboardSlideButton extends StatefulWidget {
 class _DashboardSlideButtonState extends State<DashboardSlideButton> {
   double _dragPosition = 0;
 
-  static const double _height = 76;
-  static const double _handleSize = 64;
-  static const double _padding = 6;
+  double get _scale => MediaQuery.sizeOf(context).width / 591;
+  double get _height => 98 * _scale;
+  double get _handleSize => 80 * _scale;
+  double get _padding => 9 * _scale;
 
   void _reset() {
     if (!mounted) return;
@@ -75,7 +76,10 @@ class _DashboardSlideButtonState extends State<DashboardSlideButton> {
                 // Button label
                 Center(
                   child: Padding(
-                    padding: const EdgeInsets.only(left: 58, right: 12),
+                    padding: EdgeInsets.only(
+                      left: 112 * _scale,
+                      right: 28 * _scale,
+                    ),
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
                       child: Text(
@@ -83,7 +87,7 @@ class _DashboardSlideButtonState extends State<DashboardSlideButton> {
                             ? 'SLIDE TO CLOCK OUT'
                             : 'SLIDE TO CLOCK IN',
                         style: AppTextStyles.buttonLarge.copyWith(
-                          fontSize: 17,
+                          fontSize: 28 * _scale,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
@@ -127,8 +131,8 @@ class _DashboardSlideButtonState extends State<DashboardSlideButton> {
                         border: Border.all(color: AppColors.white, width: 1.4),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.shadow,
-                            blurRadius: 10,
+                            color: const Color(0x665BA8E8),
+                            blurRadius: 16 * _scale,
                             offset: const Offset(0, 3),
                           ),
                         ],
@@ -143,10 +147,10 @@ class _DashboardSlideButtonState extends State<DashboardSlideButton> {
                                   color: AppColors.white,
                                 ),
                               )
-                            : const Icon(
+                            : Icon(
                                 Icons.keyboard_double_arrow_right,
                                 color: AppColors.white,
-                                size: 34,
+                                size: 40 * _scale,
                               ),
                       ),
                     ),
