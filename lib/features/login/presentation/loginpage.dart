@@ -1,4 +1,5 @@
-import 'package:dropline/core/theme/appcolors.dart';
+import 'dart:math' as math;
+
 import 'package:dropline/features/otp/presentation/otp_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,492 +12,367 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _mobileController = TextEditingController();
-  final FocusNode _mobileFocusNode = FocusNode();
-
-  bool _isValid = false;
+  final _nameController = TextEditingController();
+  final _mobileController = TextEditingController();
+  final _codeControllers = List.generate(4, (_) => TextEditingController());
+  bool _agreed = true;
   bool _isNavigating = false;
+  double _slide = 0;
 
-  // ============================================================
-  // COLORS
-  // ============================================================
-
-  static const Color primary = Appcolors.primaryColor;
-  static const Color primaryDark = Appcolors.primaryDark;
-
-  static const Color dark = Appcolors.backgroundColor;
-
-  // Clean light grey background
-  static const Color background = Color(0xFFF3F4F3);
-
-  static const Color textGrey = Color(0xFF737A76);
-
-  // ============================================================
-  // INIT
-  // ============================================================
-
-  @override
-  void initState() {
-    super.initState();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _mobileFocusNode.requestFocus();
-      }
-    });
-
-    _mobileController.addListener(_onMobileChanged);
-  }
-
-  // ============================================================
-  // MOBILE CHANGE
-  // ============================================================
-
-  void _onMobileChanged() {
-    final value = _mobileController.text.replaceAll(' ', '');
-
-    final valid = value.length == 10;
-
-    if (_isValid != valid) {
-      setState(() {
-        _isValid = valid;
-      });
+  Future<void> _continueLogin() async {
+    if (_isNavigating) return;
+    if (_nameController.text.trim().isEmpty ||
+        _mobileController.text.length != 10 ||
+        !_agreed) {
+      setState(() => _slide = 0);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Enter your name and 10-digit mobile number, and agree to the terms.',
+          ),
+        ),
+      );
+      return;
     }
-
-    if (valid && !_isNavigating) {
-      _continueLogin();
-    }
-  }
-
-  // ============================================================
-  // CONTINUE LOGIN
-  // ============================================================
-
-  void _continueLogin() {
-    if (!_isValid || _isNavigating) return;
-
-    setState(() {
-      _isNavigating = true;
-    });
-
+    _isNavigating = true;
     FocusScope.of(context).unfocus();
-
-    final mobileNumber = '+1${_mobileController.text.replaceAll(' ', '')}';
-
-    debugPrint('Mobile Number: $mobileNumber');
-
-    Navigator.push(
+    await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => OtpScreen(mobileNumber: mobileNumber),
+        builder: (_) => OtpScreen(mobileNumber: '+1${_mobileController.text}'),
       ),
-    ).then((_) {
-      if (mounted) {
-        setState(() {
-          _isNavigating = false;
-        });
-      }
-    });
+    );
+    if (mounted) {
+      setState(() {
+        _isNavigating = false;
+        _slide = 0;
+      });
+    }
   }
-
-  // ============================================================
-  // DISPOSE
-  // ============================================================
 
   @override
   void dispose() {
-    _mobileController.removeListener(_onMobileChanged);
+    _nameController.dispose();
     _mobileController.dispose();
-    _mobileFocusNode.dispose();
+    for (final controller in _codeControllers) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
-  // ============================================================
-  // BUILD
-  // ============================================================
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: background,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 22),
-          child: Column(
-            children: [
-              const SizedBox(height: 35),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+        systemNavigationBarColor: const Color(0xFF4B5869),
+      ),
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            final w = constraints.maxWidth;
+            final h = constraints.maxHeight;
+            final s = w / 591;
+            Widget place(
+              double x,
+              double y,
+              double width,
+              double height,
+              Widget child,
+            ) {
+              return Positioned(
+                left: x * s,
+                top: y / 1280 * h,
+                width: width * s,
+                height: height / 1280 * h,
+                child: child,
+              );
+            }
 
-              // ==================================================
-              // TOP BRAND
-              // ==================================================
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'DROPLINE-SITE',
+            Widget field(
+              String hint,
+              TextEditingController controller, {
+              bool phone = false,
+            }) {
+              return TextField(
+                controller: controller,
+                keyboardType: phone ? TextInputType.phone : TextInputType.name,
+                textCapitalization: phone
+                    ? TextCapitalization.none
+                    : TextCapitalization.words,
+                style: TextStyle(color: Colors.white, fontSize: 27 * s),
+                cursorColor: Colors.white,
+                inputFormatters: phone
+                    ? [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(10),
+                      ]
+                    : null,
+                decoration: InputDecoration(
+                  hintText: hint,
+                  hintStyle: TextStyle(
+                    color: const Color(0xFFCDD2D8),
+                    fontSize: 27 * s,
+                    fontWeight: FontWeight.w400,
+                  ),
+                  filled: false,
+                  contentPadding: EdgeInsets.only(bottom: 30 * s),
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF8A94A2)),
+                  ),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white),
+                  ),
+                ),
+              );
+            }
+
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.asset('assets/images/splash.png', fit: BoxFit.fill),
+                place(
+                  (591 - 360) / 2,
+                  168,
+                  360,
+                  47,
+                  Image.asset(
+                    'assets/images/app_logo.png',
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                place(
+                  43,
+                  423,
+                  505,
+                  49,
+                  Text(
+                    'Sign in',
                     style: TextStyle(
-                      fontSize: 21,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 2,
-                      color: Colors.black,
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 48),
-
-              // ==================================================
-              // HERO LOGO
-              // ==================================================
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  // Soft green circle
-                  Container(
-                    height: 112,
-                    width: 112,
-                    decoration: BoxDecoration(
-                      color: primary.withOpacity(0.10),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-
-                  // Logo container
-                  Container(
-                    height: 82,
-                    width: 82,
-                    decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(26),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.12),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    alignment: Alignment.center,
-                    child: Image.asset(
-                      'assets/images/dropline_launcher.png',
-                      width: 48,
-                      height: 48,
-                      fit: BoxFit.contain,
+                      fontSize: 36 * s,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -1.2 * s,
                     ),
                   ),
-                ],
-              ),
-
-              const SizedBox(height: 30),
-
-              // ==================================================
-              // TITLE
-              // ==================================================
-              const Text(
-                'Welcome back',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.black,
-                  letterSpacing: -0.8,
                 ),
-              ),
-
-              const SizedBox(height: 9),
-
-              const Text(
-                'Manage your projects.\n'
-                'Stay connected with your team.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 15, height: 1.5, color: textGrey),
-              ),
-
-              const SizedBox(height: 30),
-
-              // ==================================================
-              // LOGIN CARD
-              // ==================================================
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(18, 20, 18, 22),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: const Color(0xFFE4E7E5)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.055),
-                      blurRadius: 30,
-                      offset: const Offset(0, 12),
-                    ),
-                  ],
+                place(43, 522, 505, 67, field('Name', _nameController)),
+                place(
+                  43,
+                  642,
+                  505,
+                  67,
+                  field('Mobile', _mobileController, phone: true),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // ==================================================
-                    // CARD TITLE
-                    // ==================================================
-                    const Text(
-                      'Sign in with your mobile',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.black,
-                      ),
-                    ),
-
-                    const SizedBox(height: 5),
-
-                    const Text(
-                      'We’ll verify your number with a one-time code.',
-                      style: TextStyle(fontSize: 12.5, color: textGrey),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // ==================================================
-                    // PHONE FIELD
-                    // ==================================================
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      height: 62,
+                for (var i = 0; i < 4; i++)
+                  place(
+                    51 + i * 123,
+                    803,
+                    86,
+                    108,
+                    Container(
+                      alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF9FAF9),
-                        borderRadius: BorderRadius.circular(17),
+                        color: Colors.white.withValues(alpha: 0.025),
+                        borderRadius: BorderRadius.circular(32 * s),
                         border: Border.all(
-                          color: _isValid ? primary : const Color(0xFFE0E5E2),
-                          width: _isValid ? 1.6 : 1,
+                          color: Colors.white.withValues(alpha: 0.16),
+                          width: 1.5 * s,
                         ),
                       ),
-                      child: Row(
-                        children: [
-                          const SizedBox(width: 13),
-
-                          // ==================================================
-                          // FLAG
-                          // ==================================================
-                          Container(
-                            height: 36,
-                            width: 45,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: const Color(0xFFE6EAE7),
-                              ),
-                            ),
-                            child: const Text(
-                              '🇺🇸',
-                              style: TextStyle(fontSize: 20),
-                            ),
-                          ),
-
-                          const SizedBox(width: 10),
-
-                          // ==================================================
-                          // COUNTRY CODE
-                          // ==================================================
-                          const Text(
-                            '+1',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.black,
-                            ),
-                          ),
-
-                          const SizedBox(width: 11),
-
-                          // ==================================================
-                          // DIVIDER
-                          // ==================================================
-                          Container(
-                            height: 27,
-                            width: 1,
-                            color: const Color(0xFFDDE2DF),
-                          ),
-
-                          const SizedBox(width: 11),
-
-                          // ==================================================
-                          // PHONE INPUT
-                          // ==================================================
-                          Expanded(
-                            child: TextField(
-                              controller: _mobileController,
-                              focusNode: _mobileFocusNode,
-                              keyboardType: TextInputType.phone,
-                              textInputAction: TextInputAction.done,
-                              maxLength: 10,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black,
-                                letterSpacing: 0.4,
-                              ),
-                              decoration: const InputDecoration(
-                                hintText: 'Phone number',
-                                hintStyle: TextStyle(
-                                  color: Color(0xFFA4ABA7),
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                                border: InputBorder.none,
-                                counterText: '',
-                                contentPadding: EdgeInsets.zero,
-                              ),
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                              ],
-                              onSubmitted: (_) {
-                                _continueLogin();
-                              },
-                            ),
-                          ),
-
-                          // ==================================================
-                          // VALID SUCCESS ICON
-                          // ==================================================
-                          AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 200),
-                            child: _isValid
-                                ? const Padding(
-                                    padding: EdgeInsets.only(right: 15),
-                                    child: Icon(
-                                      Icons.check_circle_rounded,
-                                      color: primaryDark,
-                                      size: 24,
-                                    ),
-                                  )
-                                : const SizedBox(width: 15),
-                          ),
+                      child: TextField(
+                        controller: _codeControllers[i],
+                        textAlign: TextAlign.center,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(1),
                         ],
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 48 * s,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: ['2', '3', '5', '1'][i],
+                          hintStyle: TextStyle(
+                            color: Colors.white,
+                            fontSize: 48 * s,
+                            fontWeight: FontWeight.w700,
+                          ),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          filled: false,
+                          isCollapsed: true,
+                        ),
+                        onChanged: (value) {
+                          if (value.isNotEmpty && i < 3) {
+                            FocusScope.of(context).nextFocus();
+                          }
+                        },
                       ),
                     ),
-
-                    const SizedBox(height: 14),
-
-                    // ==================================================
-                    // SECURITY INFORMATION
-                    // ==================================================
-                    Row(
+                  ),
+                place(
+                  97,
+                  1067,
+                  384,
+                  36,
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
                       children: [
-                        Container(
-                          height: 28,
-                          width: 28,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFFF7E6),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(
-                            Icons.lock_outline_rounded,
-                            size: 15,
-                            color: primaryDark,
+                        GestureDetector(
+                          onTap: () => setState(() => _agreed = !_agreed),
+                          child: Container(
+                            width: 34 * s,
+                            height: 34 * s,
+                            decoration: BoxDecoration(
+                              color: _agreed
+                                  ? const Color(0xFF82FF27)
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(10 * s),
+                              border: Border.all(
+                                color: const Color(0xFF82FF27),
+                              ),
+                            ),
+                            child: _agreed
+                                ? Icon(
+                                    Icons.check_rounded,
+                                    color: const Color(0xFF233D22),
+                                    size: 25 * s,
+                                  )
+                                : null,
                           ),
                         ),
-
-                        const SizedBox(width: 9),
-
-                        const Expanded(
-                          child: Text(
-                            'Your number is encrypted and used only '
-                            'for account verification.',
-                            style: TextStyle(
-                              fontSize: 11.5,
-                              color: textGrey,
-                              height: 1.35,
-                            ),
+                        SizedBox(width: 17 * s),
+                        Text(
+                          'I agree to the',
+                          style: TextStyle(
+                            color: const Color(0xFFD1D6DF),
+                            fontSize: 20 * s,
+                          ),
+                        ),
+                        SizedBox(width: 18 * s),
+                        Text(
+                          'Terms & Conditions',
+                          style: TextStyle(
+                            color: const Color(0xFF49C4E5),
+                            fontSize: 20 * s,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-
-              const SizedBox(height: 28),
-
-              // ==================================================
-              // WORKSITE LABEL
-              // ==================================================
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    height: 6,
-                    width: 6,
-                    decoration: const BoxDecoration(
-                      color: primary,
-                      shape: BoxShape.circle,
-                    ),
+                place(
+                  43,
+                  1124,
+                  505,
+                  98,
+                  LayoutBuilder(
+                    builder: (context, sliderConstraints) {
+                      final knobSize = math.min(
+                        80 * s,
+                        sliderConstraints.maxHeight - 16 * s,
+                      );
+                      final travel = math.max(
+                        0.0,
+                        sliderConstraints.maxWidth - knobSize - 34 * s,
+                      );
+                      return Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(60 * s),
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF496A91), Color(0xFF4D5C6C)],
+                          ),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.18),
+                            width: 1.5 * s,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(
+                                0xFFDFD6A3,
+                              ).withValues(alpha: 0.1),
+                              blurRadius: 10 * s,
+                              offset: Offset(0, 3 * s),
+                            ),
+                          ],
+                        ),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Positioned(
+                              left: 160 * s,
+                              child: Text(
+                                'SLIDE TO SIGN IN',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 28 * s,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -0.6 * s,
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              left: 16 * s + _slide * travel,
+                              child: GestureDetector(
+                                onHorizontalDragUpdate: (details) {
+                                  if (travel > 0) {
+                                    setState(
+                                      () => _slide =
+                                          (_slide + details.delta.dx / travel)
+                                              .clamp(0.0, 1.0),
+                                    );
+                                  }
+                                },
+                                onHorizontalDragEnd: (_) {
+                                  if (_slide >= 0.85) {
+                                    _continueLogin();
+                                  } else {
+                                    setState(() => _slide = 0);
+                                  }
+                                },
+                                child: Container(
+                                  width: knobSize,
+                                  height: knobSize,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: const Color(0xFF5B6B7C),
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 1.5 * s,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(
+                                          0xFFB9DEEE,
+                                        ).withValues(alpha: 0.25),
+                                        blurRadius: 15 * s,
+                                      ),
+                                    ],
+                                  ),
+                                  child: Icon(
+                                    Icons.keyboard_double_arrow_right,
+                                    color: Colors.white,
+                                    size: 40 * s,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
-
-                  const SizedBox(width: 7),
-
-                  const Text(
-                    'BUILT FOR THE FIELD',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.4,
-                      color: Color(0xFF8B928E),
-                    ),
-                  ),
-
-                  const SizedBox(width: 7),
-
-                  Container(
-                    height: 6,
-                    width: 6,
-                    decoration: const BoxDecoration(
-                      color: primary,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 28),
-
-              // ==================================================
-              // TERMS
-              // ==================================================
-              Text.rich(
-                TextSpan(
-                  text: 'By continuing, you agree to our ',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: Color(0xFF929894),
-                  ),
-                  children: [
-                    const TextSpan(
-                      text: 'Terms of Service',
-                      style: TextStyle(
-                        color: primaryDark,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const TextSpan(text: ' and '),
-                    const TextSpan(
-                      text: 'Privacy Policy',
-                      style: TextStyle(
-                        color: primaryDark,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
                 ),
-                textAlign: TextAlign.center,
-              ),
-
-              const SizedBox(height: 22),
-            ],
-          ),
+              ],
+            );
+          },
         ),
       ),
     );
