@@ -11,6 +11,13 @@ class LoginResponseModel {
     required this.otp,
   });
 
+  Map<String, dynamic> toJson() => {
+    'status': status,
+    'message': message,
+    'result': result.map((user) => user.toJson()).toList(),
+    'otp': otp,
+  };
+
   factory LoginResponseModel.fromJson(Map<String, dynamic> json) {
     return LoginResponseModel(
       status: json['status'] == true || json['status']?.toString() == '1',
@@ -47,6 +54,18 @@ class LoginUserModel {
     required this.fcmId,
     required this.menuId,
   });
+
+  Map<String, dynamic> toJson() => {
+    'fld_user_id': userId,
+    'fld_name': name,
+    'fld_email': email,
+    'fld_mobile_no': mobileNo,
+    'fld_status': status,
+    'fld_address': address,
+    'fld_mobile_info': mobileInfo,
+    'fld_fcm_id': fcmId,
+    'fld_menu_id': menuId,
+  };
 
   factory LoginUserModel.fromJson(Map<String, dynamic> json) {
     return LoginUserModel(

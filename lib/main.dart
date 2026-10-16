@@ -6,11 +6,10 @@ import 'package:dropline/features/event/domain/repositories/location_repository.
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-void main() async{
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-
-    await initGlobalDi();
+  await initGlobalDi();
   runApp(
     RepositoryProvider<LocationRepository>(
       create: (_) => InMemoryLocationRepository(),

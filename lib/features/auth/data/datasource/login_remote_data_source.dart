@@ -1,3 +1,8 @@
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
+
+import 'package:dropline/core/api_constant/api_client.dart';
 import 'package:dio/dio.dart';
 import 'package:dropline/features/auth/data/model/login_response_model.dart';
 
@@ -26,7 +31,7 @@ class LoginRemoteDataSourceImpl implements LoginRemoteDataSource {
   }) async {
     try {
       final response = await dio.post(
-        'login',
+        ApiClient.login,
         data: {
           'name': name,
           'mobile_number': mobileNumber,
@@ -37,7 +42,13 @@ class LoginRemoteDataSourceImpl implements LoginRemoteDataSource {
         options: Options(contentType: Headers.formUrlEncodedContentType),
       );
 
-      final data = response.data;
+      if (kDebugMode) {
+        debugPrint('LOGIN RESPONSE (${response.statusCode}): ${response.data}');
+      }
+
+      final data = response.data is String
+          ? jsonDecode(response.data as String)
+          : response.data;
 
       if (data is! Map) {
         throw Exception('Invalid server response');

@@ -1,9 +1,12 @@
+import 'package:dropline/core/di/global_di.dart';
 import 'package:dropline/features/auth/presentation/pages/loginpage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  setUp(() async => initGlobalDi());
+  tearDown(() async => sl.reset());
   for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
     testWidgets('Terms dialog uses native controls on $platform', (
       tester,
