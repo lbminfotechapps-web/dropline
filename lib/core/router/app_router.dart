@@ -1,4 +1,5 @@
 import 'package:dropline/features/auth/presentation/pages/loginpage.dart';
+import 'package:dropline/features/auth/presentation/pages/choose_option.dart';
 import 'package:dropline/features/dashboard/presentation/pages/dashboard_page.dart';
 
 import 'package:dropline/features/event/domain/entities/location_node.dart';
@@ -27,6 +28,7 @@ class AppRouter {
   static final navigatorKey = GlobalKey<NavigatorState>();
   static const String splash = '/splash';
   static const String login = '/login';
+  static const String chooseOption = '/choose-option';
   static const String dashboard = '/dashboard';
   static const String addEvent = '/add-event';
   static const String punchOut = '/punchOut';
@@ -40,6 +42,10 @@ class AppRouter {
     initialLocation: splash,
 
     routes: [
+      GoRoute(
+        path: chooseOption,
+        builder: (context, state) => const ChooseOptionPage(),
+      ),
       GoRoute(
         path: addEvent,
         name: 'addEvent',

@@ -226,7 +226,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 duration: Duration(seconds: 3),
               ),
             );
-          context.go(AppRouter.dashboard);
+          context.go(AppRouter.chooseOption);
         } else if (state.status == LoginStatus.failure) {
           setState(() {
             _isNavigating = false;
@@ -388,7 +388,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             51 + i * 123,
                             803,
                             86,
-                            108,
+                            95,
                             Container(
                               alignment: Alignment.center,
                               decoration: BoxDecoration(

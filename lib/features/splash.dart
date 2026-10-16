@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:dropline/core/di/global_di.dart';
 import 'package:dropline/core/router/app_router.dart';
+import 'package:dropline/core/secure_storage/secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 
@@ -16,6 +18,7 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   late Animation<double> _opacityAnimation;
+  Timer? _navigationTimer;
 
   @override
   void initState() {
@@ -38,16 +41,28 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    // Navigate to sign in after 2 seconds.
-    Timer(const Duration(seconds: 2), () {
-      if (!mounted) return;
+    _navigationTimer = Timer(const Duration(seconds: 2), _navigate);
+  }
 
-      context.go(AppRouter.login);
-    });
+  Future<void> _navigate() async {
+    var destination = AppRouter.login;
+    try {
+      final response = await sl<SecureStorage>().readLoginResponse();
+      if (response != null &&
+          response.result.isNotEmpty &&
+          response.result.first.userId.trim().isNotEmpty) {
+        destination = AppRouter.dashboard;
+      }
+    } catch (_) {
+      // Unreadable saved details require signing in again.
+    }
+    if (!mounted) return;
+    context.go(destination);
   }
 
   @override
   void dispose() {
+    _navigationTimer?.cancel();
     _controller.dispose();
     super.dispose();
   }
