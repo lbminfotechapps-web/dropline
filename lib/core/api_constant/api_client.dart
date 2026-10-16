@@ -6,4 +6,6 @@ class ApiClient {
 
   static const String getProject = "/get_project";
   static const String getTimeSlot = '/get_time_slot';
+
+  static const String punchIn ="/submit_inpunch";
 }
