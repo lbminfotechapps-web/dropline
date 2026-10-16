@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+
+
 class ProjectEntity extends Equatable {
   final String projectId;
   final String projectName;
@@ -32,8 +34,8 @@ class ProjectResponseEntity extends Equatable {
 
   @override
   List<Object?> get props => [
-    status,
-    message,
-    result,
-  ];
+        status,
+        message,
+        result,
+      ];
 }

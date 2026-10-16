@@ -3,12 +3,15 @@ import 'package:dropline/features/dashboard/data/datasource/dashboard_datasource
 import 'package:dropline/features/dashboard/data/domain/dashboard_repo_imp.dart';
 import 'package:dropline/features/dashboard/domain/repository/dashboard_repo.dart';
 import 'package:dropline/features/dashboard/domain/usecase/dashboard_usecase.dart';
+import 'package:dropline/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:get_it/get_it.dart';
 
-final sl = GetIt.instance;
 
-Future<void> initDashboardDi() async {
-  sl.registerLazySingleton<DioClient>(() => DioClient());
+
+Future<void> initDashboardDi(GetIt sl) async {
+  if (!sl.isRegistered<DioClient>()) {
+    sl.registerLazySingleton<DioClient>(() => DioClient());
+  }
 
   sl.registerLazySingleton<DashboardDatasource>(
     () => DashboardDatasource(sl<DioClient>()),
@@ -20,5 +23,9 @@ Future<void> initDashboardDi() async {
 
   sl.registerLazySingleton<DashboardUsecase>(
     () => DashboardUsecase(sl<DashboardRepo>()),
+  );
+
+  sl.registerFactory<DashboardBloc>(
+    () => DashboardBloc(sl<DashboardUsecase>()),
   );
 }
