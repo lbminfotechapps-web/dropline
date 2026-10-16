@@ -1,3 +1,4 @@
+
 import 'location_node.dart';
 
 class SelectedLocation {
@@ -14,22 +15,37 @@ class SelectedLocation {
   });
 
   String get fullPath => [
-    mainArea.name,
-    subArea.name,
-    location.name,
-    specificLocation.name,
-  ].join(' > ');
+        mainArea.name,
+        subArea.name,
+        location.name,
+        specificLocation.name,
+      ].join(' > ');
 
-  Map<String, dynamic> toJson() {
-    return {
-      'main_area_id': mainArea.id,
-      'main_area_name': mainArea.name,
-      'sub_area_id': subArea.id,
-      'sub_area_name': subArea.name,
-      'location_id': location.id,
-      'location_name': location.name,
-      'specific_location_id': specificLocation.id,
-      'specific_location_name': specificLocation.name,
-    };
+  Map<String, dynamic> toJson() => {
+        'mainArea': mainArea.toJson(),
+        'subArea': subArea.toJson(),
+        'location': location.toJson(),
+        'specificLocation': specificLocation.toJson(),
+      };
+
+  factory SelectedLocation.fromJson(
+    Map<String, dynamic> json,
+  ) {
+    return SelectedLocation(
+      mainArea: LocationNode.fromJson(
+        Map<String, dynamic>.from(json['mainArea'] as Map),
+      ),
+      subArea: LocationNode.fromJson(
+        Map<String, dynamic>.from(json['subArea'] as Map),
+      ),
+      location: LocationNode.fromJson(
+        Map<String, dynamic>.from(json['location'] as Map),
+      ),
+      specificLocation: LocationNode.fromJson(
+        Map<String, dynamic>.from(
+          json['specificLocation'] as Map,
+        ),
+      ),
+    );
   }
 }

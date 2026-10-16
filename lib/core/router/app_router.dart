@@ -1,9 +1,13 @@
+import 'package:dropline/core/di/global_di.dart';
 import 'package:dropline/features/auth/presentation/pages/loginpage.dart';
 import 'package:dropline/features/auth/presentation/pages/choose_option.dart';
 import 'package:dropline/features/dashboard/presentation/pages/dashboard_page.dart';
+import 'package:dropline/features/event/domain/entities/location_flow_args.dart';
 
 import 'package:dropline/features/event/domain/entities/location_node.dart';
 import 'package:dropline/features/event/domain/repositories/location_repository.dart';
+import 'package:dropline/features/event/domain/repositories/location_repository_factory.dart';
+import 'package:dropline/features/event/domain/repositories/location_selection_repository.dart';
 import 'package:dropline/features/event/presentation/cubit/location_list_cubit.dart';
 import 'package:dropline/features/event/presentation/cubit/main_area_cubit.dart';
 import 'package:dropline/features/event/presentation/cubit/select_location_cubit.dart';
@@ -23,6 +27,24 @@ import 'package:dropline/features/splash.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+
+Widget locationRouteError() {
+  return const Scaffold(
+    body: Center(child: Text('Event location information not found')),
+  );
+}
+
+Widget provideLocationRepository({
+  required LocationFlowArgs args,
+  required Widget child,
+}) {
+  final repository = sl<LocationRepositoryFactory>().forScope(args.scope);
+
+  return RepositoryProvider<LocationRepository>.value(
+    value: repository,
+    child: child,
+  );
+}
 
 class AppRouter {
   static final navigatorKey = GlobalKey<NavigatorState>();
@@ -47,9 +69,16 @@ class AppRouter {
         builder: (context, state) => const ChooseOptionPage(),
       ),
       GoRoute(
-        path: addEvent,
+        path: AppRouter.addEvent,
         name: 'addEvent',
-        builder: (context, state) => const AddEventPage(),
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>? ?? {};
+
+          return AddEventPage(
+            projectId: extra['projectId']?.toString() ?? '',
+            projectName: extra['projectName']?.toString() ?? '',
+          );
+        },
       ),
       GoRoute(
         path: splash,
@@ -80,115 +109,115 @@ class AppRouter {
       ),
 
       GoRoute(
-        path: mainAreas,
+        path: AppRouter.mainAreas,
         name: 'mainAreas',
         builder: (context, state) {
-          return BlocProvider(
-            create: (context) =>
-                MainAreaCubit(context.read<LocationRepository>())..loadAreas(),
-            child: const MainAreaPage(),
+          final args = state.extra;
+
+          if (args is! LocationFlowArgs) {
+            return locationRouteError();
+          }
+
+          return provideLocationRepository(
+            args: args,
+            child: BlocProvider(
+              create: (context) =>
+                  MainAreaCubit(context.read<LocationRepository>())
+                    ..loadAreas(),
+              child: MainAreaPage(flowArgs: args),
+            ),
           );
         },
       ),
 
       GoRoute(
-        path: subAreas,
+        path: AppRouter.subAreas,
         name: 'subAreas',
         builder: (context, state) {
-          final area = state.extra;
+          final args = state.extra;
 
-          if (area is! LocationNode || area.level != LocationLevel.mainArea) {
-            return const Scaffold(
-              body: Center(child: Text('Main Area not found')),
-            );
+          if (args is! LocationFlowArgs ||
+              args.mainArea == null ||
+              args.mainArea!.level != LocationLevel.mainArea) {
+            return locationRouteError();
           }
 
-          return BlocProvider(
-            create: (context) => SubAreaCubit(
-              repository: context.read<LocationRepository>(),
-              mainAreaId: area.id,
-            )..loadSubAreas(),
-            child: SubAreaPage(mainArea: area),
+          return provideLocationRepository(
+            args: args,
+            child: BlocProvider(
+              create: (context) => SubAreaCubit(
+                repository: context.read<LocationRepository>(),
+                mainAreaId: args.mainArea!.id,
+              )..loadSubAreas(),
+              child: SubAreaPage(mainArea: args.mainArea!, flowArgs: args),
+            ),
           );
         },
       ),
 
       GoRoute(
-        path: locations,
+        path: AppRouter.locations,
         name: 'locations',
         builder: (context, state) {
-          final extra = state.extra;
+          final args = state.extra;
 
-          if (extra is! Map ||
-              extra['mainArea'] is! LocationNode ||
-              extra['subArea'] is! LocationNode) {
-            return const Scaffold(
-              body: Center(child: Text('Location information not found')),
-            );
+          if (args is! LocationFlowArgs ||
+              args.mainArea == null ||
+              args.subArea == null ||
+              args.mainArea!.level != LocationLevel.mainArea ||
+              args.subArea!.level != LocationLevel.subArea ||
+              args.subArea!.parentId != args.mainArea!.id) {
+            return locationRouteError();
           }
 
-          final mainArea = extra['mainArea'] as LocationNode;
-          final subArea = extra['subArea'] as LocationNode;
-
-          if (mainArea.level != LocationLevel.mainArea ||
-              subArea.level != LocationLevel.subArea ||
-              subArea.parentId != mainArea.id) {
-            return const Scaffold(
-              body: Center(child: Text('Invalid location hierarchy')),
-            );
-          }
-
-          return BlocProvider(
-            create: (context) => LocationListCubit(
-              repository: context.read<LocationRepository>(),
-              subAreaId: subArea.id,
-            )..loadLocations(),
-            child: LocationListPage(mainArea: mainArea, subArea: subArea),
+          return provideLocationRepository(
+            args: args,
+            child: BlocProvider(
+              create: (context) => LocationListCubit(
+                repository: context.read<LocationRepository>(),
+                subAreaId: args.subArea!.id,
+              )..loadLocations(),
+              child: LocationListPage(
+                mainArea: args.mainArea!,
+                subArea: args.subArea!,
+                flowArgs: args,
+              ),
+            ),
           );
         },
       ),
 
       GoRoute(
-        path: specificLocations,
+        path: AppRouter.specificLocations,
         name: 'specificLocations',
         builder: (context, state) {
-          final extra = state.extra;
+          final args = state.extra;
 
-          if (extra is! Map ||
-              extra['mainArea'] is! LocationNode ||
-              extra['subArea'] is! LocationNode ||
-              extra['location'] is! LocationNode) {
-            return const Scaffold(
-              body: Center(
-                child: Text('Specific Location information not found'),
+          if (args is! LocationFlowArgs ||
+              args.mainArea == null ||
+              args.subArea == null ||
+              args.location == null ||
+              args.mainArea!.level != LocationLevel.mainArea ||
+              args.subArea!.level != LocationLevel.subArea ||
+              args.location!.level != LocationLevel.location ||
+              args.subArea!.parentId != args.mainArea!.id ||
+              args.location!.parentId != args.subArea!.id) {
+            return locationRouteError();
+          }
+
+          return provideLocationRepository(
+            args: args,
+            child: BlocProvider(
+              create: (context) => SpecificLocationCubit(
+                repository: context.read<LocationRepository>(),
+                locationId: args.location!.id,
+              )..loadSpecificLocations(),
+              child: SpecificLocationPage(
+                mainArea: args.mainArea!,
+                subArea: args.subArea!,
+                location: args.location!,
+                flowArgs: args,
               ),
-            );
-          }
-
-          final mainArea = extra['mainArea'] as LocationNode;
-          final subArea = extra['subArea'] as LocationNode;
-          final location = extra['location'] as LocationNode;
-
-          // Validate complete hierarchy.
-          if (mainArea.level != LocationLevel.mainArea ||
-              subArea.level != LocationLevel.subArea ||
-              location.level != LocationLevel.location ||
-              subArea.parentId != mainArea.id ||
-              location.parentId != subArea.id) {
-            return const Scaffold(
-              body: Center(child: Text('Invalid location hierarchy')),
-            );
-          }
-
-          return BlocProvider(
-            create: (context) => SpecificLocationCubit(
-              repository: context.read<LocationRepository>(),
-              locationId: location.id,
-            )..loadSpecificLocations(),
-            child: SpecificLocationPage(
-              mainArea: mainArea,
-              subArea: subArea,
-              location: location,
             ),
           );
         },
@@ -198,11 +227,22 @@ class AppRouter {
         path: AppRouter.selectLocation,
         name: 'selectLocation',
         builder: (context, state) {
-          return BlocProvider(
-            create: (context) => SelectLocationCubit(
-              repository: context.read<LocationRepository>(),
-            )..loadMainAreas(),
-            child: const SelectLocationPage(),
+          final args = state.extra;
+
+          if (args is! LocationFlowArgs) {
+            return locationRouteError();
+          }
+
+          return provideLocationRepository(
+            args: args,
+            child: BlocProvider(
+              create: (context) => SelectLocationCubit(
+                repository: context.read<LocationRepository>(),
+                selectionRepository: sl<LocationSelectionRepository>(),
+                scope: args.scope,
+              )..loadMainAreas(),
+              child: SelectLocationPage(flowArgs: args),
+            ),
           );
         },
       ),

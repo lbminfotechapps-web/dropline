@@ -1,6 +1,7 @@
 import 'package:dropline/core/router/app_router.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:dropline/core/utility/widgets/app_background.dart';
+import 'package:dropline/features/event/domain/entities/location_flow_args.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -17,11 +18,12 @@ import '../widgets/location_empty_state.dart';
 class LocationListPage extends StatelessWidget {
   final LocationNode mainArea;
   final LocationNode subArea;
-
+  final LocationFlowArgs flowArgs;
   const LocationListPage({
     super.key,
     required this.mainArea,
     required this.subArea,
+    required this.flowArgs,
   });
 
   // ==========================================
@@ -51,23 +53,15 @@ class LocationListPage extends StatelessWidget {
     );
   }
 
-  // ==========================================
-  // LOCATION ITEM CLICK
-  // ==========================================
-
   void _onLocationTap(BuildContext context, LocationNode location) {
     context.push(
       AppRouter.specificLocations,
-      extra: {'mainArea': mainArea, 'subArea': subArea, 'location': location},
+      extra: flowArgs.copyWith(location: location),
     );
   }
 
-  // ==========================================
-  // FINISH SETUP
-  // ==========================================
-
   void _finishSetup(BuildContext context) {
-    context.push(AppRouter.selectLocation);
+    context.push(AppRouter.selectLocation, extra: flowArgs);
   }
 
   @override
