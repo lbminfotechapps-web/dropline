@@ -1,7 +1,11 @@
 import 'package:dropline/features/dashboard/domain/entity/project_entity.dart';
 
+
 class ProjectModel extends ProjectEntity {
-  const ProjectModel({required super.projectId, required super.projectName});
+  const ProjectModel({
+    required super.projectId,
+    required super.projectName,
+  });
 
   factory ProjectModel.fromJson(Map<String, dynamic> json) {
     return ProjectModel(
@@ -11,9 +15,14 @@ class ProjectModel extends ProjectEntity {
   }
 
   Map<String, dynamic> toJson() {
-    return {'fld_project_id': projectId, 'fld_project_name': projectName};
+    return {
+      'fld_project_id': projectId,
+      'fld_project_name': projectName,
+    };
   }
 }
+
+
 
 class ProjectResponseModel extends ProjectResponseEntity {
   const ProjectResponseModel({
@@ -22,12 +31,18 @@ class ProjectResponseModel extends ProjectResponseEntity {
     required List<ProjectModel> result,
   }) : super(result: result);
 
-  factory ProjectResponseModel.fromJson(Map<String, dynamic> json) {
+  factory ProjectResponseModel.fromJson(
+    Map<String, dynamic> json,
+  ) {
     return ProjectResponseModel(
       status: json['status'] == true,
       message: json['message']?.toString() ?? '',
       result: (json['result'] as List<dynamic>? ?? [])
-          .map((item) => ProjectModel.fromJson(item as Map<String, dynamic>))
+          .map(
+            (item) => ProjectModel.fromJson(
+              Map<String, dynamic>.from(item as Map),
+            ),
+          )
           .toList(),
     );
   }

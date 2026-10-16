@@ -1,18 +1,23 @@
 import 'package:dropline/core/theme/appcolors.dart';
-import 'package:dropline/features/dashboard/data/datasource/project_search_cache.dart';
+
+import 'package:dropline/features/dashboard/domain/entity/project_entity.dart';
+import 'package:dropline/features/dashboard/presentation/bloc/dashboard_bloc.dart';
+import 'package:dropline/features/dashboard/presentation/bloc/dashboard_event.dart';
+import 'package:dropline/features/dashboard/presentation/bloc/dashboard_state.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/app_text_styles.dart';
 
 class DashboardProjectCard extends StatefulWidget {
-  final String? selectedProject;
-  final ValueChanged<String>? onSearch;
+  final ProjectEntity? selectedProject;
+  final ValueChanged<ProjectEntity>? onProjectSelected;
   final VoidCallback? onRemoveProject;
 
   const DashboardProjectCard({
     super.key,
     this.selectedProject,
-    this.onSearch,
+    this.onProjectSelected,
     this.onRemoveProject,
   });
 
@@ -25,86 +30,116 @@ class _DashboardProjectCardState extends State<DashboardProjectCard> {
 
   final FocusNode _searchFocusNode = FocusNode();
 
-  final ProjectSearchCache _cache = ProjectSearchCache.instance;
-
   bool _isExpanded = false;
 
-  List<String> _recentSearches = [];
+  String _searchQuery = '';
 
-  @override
-  void initState() {
-    super.initState();
-    _loadHistory();
-  }
-
-  void _loadHistory() {
-    _recentSearches = _cache.getRecentSearches();
-  }
+  // =========================================
+  // EXPAND / COLLAPSE
+  // =========================================
 
   void _toggleExpanded() {
     if (widget.selectedProject != null) return;
+
     setState(() {
       _isExpanded = !_isExpanded;
-      _loadHistory();
     });
 
-    if (!_isExpanded) {
+    if (_isExpanded) {
+      final bloc = context.read<DashboardBloc>();
+
+      // Reload only if projects have not been loaded.
+      if (bloc.state.dashboardStatus == DashboardStatus.initial) {
+        bloc.add(const GetProjectList());
+      }
+    } else {
       _searchFocusNode.unfocus();
     }
   }
 
-  // ==========================================
+  // =========================================
+  // MANUAL PROJECT SELECTION
+  // =========================================
+
+  void _selectManualProject() {
+    final projectName = _searchController.text.trim();
+
+    if (projectName.isEmpty) return;
+
+    final projects = context.read<DashboardBloc>().state.projectList;
+
+    // If the name exactly matches an API project,
+    // select its real ID instead of creating a manual entry.
+    ProjectEntity? existingProject;
+
+    for (final project in projects) {
+      if (project.projectName.toLowerCase() == projectName.toLowerCase()) {
+        existingProject = project;
+        break;
+      }
+    }
+
+    final selected =
+        existingProject ??
+        ProjectEntity(projectId: '', projectName: projectName);
+
+    _onProjectTap(selected);
+  }
+  // =========================================
   // SEARCH PROJECT
-  // ==========================================
+  // =========================================
 
-  void _searchProject(String value) {
-    final query = value.trim();
-
-    if (query.isEmpty || widget.selectedProject != null) return;
-
-    _cache.addSearch(query);
-
+  void _onSearchChanged(String value) {
     setState(() {
-      _loadHistory();
-      _isExpanded = false;
-      _searchController.clear();
+      _searchQuery = value.trim().toLowerCase();
     });
+  }
+
+  // =========================================
+  // FILTER PROJECTS
+  // =========================================
+
+  List<ProjectEntity> _filterProjects(List<ProjectEntity> projects) {
+    if (_searchQuery.isEmpty) {
+      return projects;
+    }
+
+    return projects.where((project) {
+      final name = project.projectName.toLowerCase();
+      final id = project.projectId.toLowerCase();
+
+      return name.contains(_searchQuery) || id.contains(_searchQuery);
+    }).toList();
+  }
+
+  // =========================================
+  // PROJECT SELECTION
+  // =========================================
+
+  void _onProjectTap(ProjectEntity project) {
+    widget.onProjectSelected?.call(project);
 
     _searchFocusNode.unfocus();
 
-    // Future API / BLoC callback.
-    widget.onSearch?.call(query);
+    setState(() {
+      _isExpanded = false;
+      _searchQuery = '';
+      _searchController.clear();
+    });
   }
 
-  // ==========================================
-  // RECENT SEARCH CLICK
-  // ==========================================
+  // =========================================
+  // CLEAR SEARCH
+  // =========================================
 
-  void _onRecentSearchTap(String query) {
-    _searchController.text = query;
-    _searchController.selection = TextSelection.collapsed(offset: query.length);
+  void _clearSearch() {
+    _searchController.clear();
+
+    setState(() {
+      _searchQuery = '';
+    });
 
     _searchFocusNode.requestFocus();
-  }
-
-  // ==========================================
-  // REMOVE SEARCH HISTORY
-  // ==========================================
-
-  void _removeSearch(String query) {
-    _cache.removeSearch(query);
-
-    setState(() {
-      _loadHistory();
-    });
-  }
-
-  void _clearHistory() {
-    _cache.clearHistory();
-
-    setState(() {
-      _loadHistory();
-    });
   }
 
   @override
@@ -114,9 +149,14 @@ class _DashboardProjectCardState extends State<DashboardProjectCard> {
     super.dispose();
   }
 
+  // =========================================
+  // MAIN BUILD
+  // =========================================
+
   @override
   Widget build(BuildContext context) {
     final scale = MediaQuery.sizeOf(context).width / 591;
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
@@ -137,7 +177,6 @@ class _DashboardProjectCardState extends State<DashboardProjectCard> {
               child: Container(
                 width: double.infinity,
                 constraints: BoxConstraints(minHeight: 108 * scale),
-
                 child: Row(
                   children: [
                     Expanded(
@@ -159,12 +198,15 @@ class _DashboardProjectCardState extends State<DashboardProjectCard> {
             ),
           ),
 
+          // ====================================
+          // SELECTED PROJECT CHIP
+          // ====================================
           if (widget.selectedProject != null)
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
               child: InputChip(
                 label: Text(
-                  widget.selectedProject!,
+                  widget.selectedProject!.projectName,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -181,7 +223,7 @@ class _DashboardProjectCardState extends State<DashboardProjectCard> {
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
             alignment: Alignment.topCenter,
-            child: _isExpanded
+            child: _isExpanded && widget.selectedProject == null
                 ? Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -198,10 +240,32 @@ class _DashboardProjectCardState extends State<DashboardProjectCard> {
                             // Search field
                             _buildSearchField(),
 
-                            const SizedBox(height: 22),
+                            const SizedBox(height: 18),
 
-                            // Search history
-                            _buildRecentSearches(),
+                            // API Project List
+                            _buildProjectList(),
+
+                            const SizedBox(height: 12),
+
+                            ValueListenableBuilder<TextEditingValue>(
+                              valueListenable: _searchController,
+                              builder: (context, value, child) {
+                                if (value.text.trim().isEmpty) {
+                                  return const SizedBox.shrink();
+                                }
+
+                                return SizedBox(
+                                  width: double.infinity,
+                                  child: OutlinedButton.icon(
+                                    onPressed: _selectManualProject,
+                                    icon: const Icon(Icons.add_rounded),
+                                    label: const Text(
+                                      'Use entered project name',
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
                           ],
                         ),
                       ),
@@ -214,130 +278,283 @@ class _DashboardProjectCardState extends State<DashboardProjectCard> {
     );
   }
 
-  // ==========================================
+  // =========================================
   // SEARCH FIELD
-  // ==========================================
+  // =========================================
 
   Widget _buildSearchField() {
+    return BlocBuilder<DashboardBloc, DashboardState>(
+      builder: (context, state) {
+        final canAdd =
+            state.dashboardStatus == DashboardStatus.success &&
+            _searchQuery.isNotEmpty &&
+            !state.projectList.any(
+              (project) =>
+                  project.projectName.trim().toLowerCase() == _searchQuery,
+            );
+
+        return _buildProjectSearchInput(canAdd: canAdd);
+      },
+    );
+  }
+
+  void _addCustomProject() {
+    final name = _searchController.text.trim();
+    if (name.isEmpty) return;
+
+    _onProjectTap(ProjectEntity(projectId: '', projectName: name));
+  }
+
+  Widget _buildProjectSearchInput({required bool canAdd}) {
     return TextField(
       controller: _searchController,
       focusNode: _searchFocusNode,
       textInputAction: TextInputAction.done,
       style: AppTextStyles.inputText,
-      onSubmitted: _searchProject,
+
+      onChanged: _onSearchChanged,
+
+      // Submit manually entered project
+      onSubmitted: (_) => _selectManualProject(),
+
       decoration: InputDecoration(
-        hintText: 'Search project...',
+        hintText: 'Search or enter project name',
         hintStyle: AppTextStyles.inputHint,
+
         prefixIcon: const Icon(
           Icons.search_rounded,
           color: AppColors.iconSecondary,
         ),
-        suffixIcon: IconButton(
-          tooltip: 'Add project',
-          onPressed: () {
-            _searchProject(_searchController.text);
-          },
-          icon: const Icon(Icons.add_rounded, color: AppColors.white),
-        ),
-        filled: true,
-        fillColor: AppColors.inputBackground,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 16,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(
-            color: AppColors.inputBorder.withValues(alpha: 0.5),
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(
-            color: AppColors.inputFocusedBorder,
-            width: 1.3,
+
+        suffixIcon: _searchQuery.isNotEmpty
+            ? IconButton(
+                tooltip: 'Clear search',
+                onPressed: _clearSearch,
+                icon: const Icon(Icons.close_rounded),
+              )
+            : null,
+
+        // Keep all your existing decoration
+      ),
+    );
+  }
+
+  // =========================================
+  // PROJECT LIST USING BLOC
+  // =========================================
+
+  Widget _buildProjectList() {
+    return BlocBuilder<DashboardBloc, DashboardState>(
+      builder: (context, state) {
+        // LOADING
+        if (state.dashboardStatus == DashboardStatus.loading) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        // FAILURE
+        if (state.dashboardStatus == DashboardStatus.failure) {
+          return _buildErrorState(state.errorMessage);
+        }
+
+        // INITIAL
+        if (state.dashboardStatus == DashboardStatus.initial) {
+          return const SizedBox.shrink();
+        }
+
+        // SUCCESS
+        final projects = _filterProjects(state.projectList);
+
+        if (projects.isEmpty) {
+          return _buildEmptyState();
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // PROJECT COUNT HEADER
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'AVAILABLE PROJECTS',
+                    style: AppTextStyles.labelMedium.copyWith(
+                      color: AppColors.textSecondary,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                ),
+
+                Text(
+                  '${projects.length} Projects',
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 12),
+
+            // PROJECT LIST
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 280),
+              child: ListView.separated(
+                shrinkWrap: true,
+                physics: const ClampingScrollPhysics(),
+                itemCount: projects.length,
+                separatorBuilder: (context, index) {
+                  return Divider(
+                    height: 1,
+                    color: AppColors.cardBorder.withValues(alpha: 0.3),
+                  );
+                },
+                itemBuilder: (context, index) {
+                  final project = projects[index];
+
+                  return _buildProjectItem(project);
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // =========================================
+  // PROJECT ITEM
+  // =========================================
+
+  Widget _buildProjectItem(ProjectEntity project) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _onProjectTap(project),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.inputBackground,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.folder_outlined,
+                  color: AppColors.iconSecondary,
+                  size: 22,
+                ),
+              ),
+
+              const SizedBox(width: 12),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      project.projectName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+
+                    const SizedBox(height: 4),
+
+                    Text(
+                      'Project ID: ${project.projectId}',
+                      style: AppTextStyles.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 8),
+
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.iconSecondary,
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  // ==========================================
-  // RECENT SEARCHES
-  // ==========================================
+  // =========================================
+  // EMPTY PROJECT STATE
+  // =========================================
 
-  Widget _buildRecentSearches() {
-    if (_recentSearches.isEmpty) {
-      return Text('No recent searches', style: AppTextStyles.bodySmall);
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
+  Widget _buildEmptyState() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      child: Center(
+        child: Column(
           children: [
-            Expanded(
-              child: Text(
-                'RECENT SEARCHES',
-                style: AppTextStyles.labelMedium.copyWith(
-                  color: AppColors.textSecondary,
-                  letterSpacing: 1,
-                ),
-              ),
+            const Icon(
+              Icons.folder_off_outlined,
+              color: AppColors.iconSecondary,
+              size: 36,
             ),
-            TextButton(
-              onPressed: _clearHistory,
-              child: Text(
-                'Clear All',
-                style: AppTextStyles.labelSmall.copyWith(
-                  color: AppColors.white,
-                ),
-              ),
+
+            const SizedBox(height: 10),
+
+            Text(
+              _searchQuery.isNotEmpty
+                  ? 'No matching projects found'
+                  : 'No projects available',
+              style: AppTextStyles.bodyMedium,
+              textAlign: TextAlign.center,
             ),
           ],
         ),
+      ),
+    );
+  }
 
-        const SizedBox(height: 6),
+  // =========================================
+  // ERROR STATE
+  // =========================================
 
-        Column(
-          children: List.generate(_recentSearches.length, (index) {
-            final query = _recentSearches[index];
+  Widget _buildErrorState(String message) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Column(
+        children: [
+          const Icon(
+            Icons.error_outline_rounded,
+            color: Colors.redAccent,
+            size: 30,
+          ),
 
-            return Material(
-              color: Colors.transparent,
-              child: ListTile(
-                contentPadding: EdgeInsets.zero,
-                dense: true,
-                leading: const Icon(
-                  Icons.history_rounded,
-                  color: AppColors.iconSecondary,
-                  size: 21,
-                ),
-                title: Text(
-                  query,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.bodyMedium,
-                ),
-                trailing: IconButton(
-                  tooltip: 'Remove search',
-                  onPressed: () => _removeSearch(query),
-                  icon: const Icon(
-                    Icons.close_rounded,
-                    color: AppColors.iconSecondary,
-                    size: 18,
-                  ),
-                ),
-                onTap: () => _onRecentSearchTap(query),
-              ),
-            );
-          }),
-        ),
-      ],
+          const SizedBox(height: 8),
+
+          Text(
+            message.isNotEmpty ? message : 'Unable to load projects',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodySmall,
+          ),
+
+          const SizedBox(height: 12),
+
+          TextButton.icon(
+            onPressed: () {
+              context.read<DashboardBloc>().add(const GetProjectList());
+            },
+            icon: const Icon(Icons.refresh_rounded),
+            label: const Text('Retry'),
+          ),
+        ],
+      ),
     );
   }
 }

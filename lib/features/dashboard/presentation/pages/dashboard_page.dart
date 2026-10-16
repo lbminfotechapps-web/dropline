@@ -1,8 +1,15 @@
 import 'dart:async';
 
+import 'package:dropline/core/di/global_di.dart';
+import 'package:dropline/core/secure_storage/secure_storage.dart';
+import 'package:dropline/features/dashboard/presentation/bloc/dashboard_bloc.dart';
+import 'package:dropline/features/dashboard/presentation/bloc/dashboard_event.dart';
+import 'package:dropline/features/dashboard/presentation/bloc/dashboard_state.dart';
 import 'package:dropline/core/router/app_router.dart';
 import 'package:dropline/core/utility/widgets/app_background.dart';
+import 'package:dropline/features/dashboard/domain/entity/project_entity.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../widgets/dashboard_greeting.dart';
@@ -25,8 +32,8 @@ class _DashboardPageState extends State<DashboardPage> {
   // Temporary UI values.
   // Later these will come from authentication/dashboard BLoC.
   final String _userName = 'Leo';
-  String? _selectedProject;
-  final bool _isClockedIn = true;
+  ProjectEntity? _selectedProject;
+  bool _isPreparingPunchIn = false;
 
   @override
   void initState() {
@@ -66,30 +73,81 @@ class _DashboardPageState extends State<DashboardPage> {
   // SEARCH PROJECT
   // ==========================================
 
-  void _onProjectSearch(String query) {
-    final project = query.trim();
-    if (_selectedProject != null || project.isEmpty) return;
-    setState(() => _selectedProject = project);
+  void _onProjectSelected(ProjectEntity project) {
+    setState(() {
+      _selectedProject = project;
+    });
+
+    debugPrint('Selected Project ID: ${project.projectId}');
+    debugPrint('Selected Project Name: ${project.projectName}');
   }
   // =========================================
   // CLOCK IN / CLOCK OUT
   // =========================================
 
-  void _onSlideCompleted() {
-    context.push(AppRouter.punchOut);
-    // ScaffoldMessenger.of(context).showSnackBar(
-    //   SnackBar(
-    //     content: Text(
-    //       _isClockedIn
-    //           ? 'Clock Out API integration pending'
-    //           : 'Clock In API integration pending',
-    //     ),
-    //   ),
-    // );
+  Future<void> _onSlideCompleted() async {
+    final bloc = context.read<DashboardBloc>();
+    if (_isPreparingPunchIn ||
+        bloc.state.punchInStatus == DashboardStatus.loading) {
+      return;
+    }
+
+    final project = _selectedProject;
+    if (project == null) {
+      _showMessage('Please select a project first.');
+      return;
+    }
+
+    setState(() => _isPreparingPunchIn = true);
+    try {
+      final login = await sl<SecureStorage>().readLoginResponse();
+      if (!mounted) return;
+      if (login == null ||
+          !login.status ||
+          login.result.isEmpty ||
+          login.result.first.userId.trim().isEmpty) {
+        _showMessage('Please sign in again before clocking in.');
+        return;
+      }
+      bloc.add(
+        PunchInEvent(
+          loginUserId: login.result.first.userId,
+          projectName: project.projectName,
+          projectId: project.projectId,
+        ),
+      );
+    } catch (_) {
+      if (mounted) {
+        _showMessage('Unable to read your session. Please sign in again.');
+      }
+    } finally {
+      if (mounted) setState(() => _isPreparingPunchIn = false);
+    }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   Widget build(BuildContext context) {
+    return BlocConsumer<DashboardBloc, DashboardState>(
+      listenWhen: (previous, current) =>
+          previous.punchInStatus != current.punchInStatus,
+      listener: (context, state) {
+        if (state.punchInStatus == DashboardStatus.failure) {
+          _showMessage(state.errorMessage);
+        } else if (state.punchInStatus == DashboardStatus.success) {
+          context.push(AppRouter.punchOut);
+        }
+      },
+      builder: (context, state) => _buildDashboard(context, state),
+    );
+  }
+
+  Widget _buildDashboard(BuildContext context, DashboardState state) {
     return Scaffold(
       body: AppBackground(
         child: SafeArea(
@@ -127,11 +185,13 @@ class _DashboardPageState extends State<DashboardPage> {
 
                             DashboardProjectCard(
                               selectedProject: _selectedProject,
-                              onSearch: _onProjectSearch,
-                              onRemoveProject: () =>
-                                  setState(() => _selectedProject = null),
+                              onProjectSelected: _onProjectSelected,
+                              onRemoveProject: () {
+                                setState(() {
+                                  _selectedProject = null;
+                                });
+                              },
                             ),
-
                             SizedBox(height: 62 * scale),
 
                             DashboardClockCard(dateTime: _currentTime),
@@ -143,7 +203,10 @@ class _DashboardPageState extends State<DashboardPage> {
                             SizedBox(height: 80 * scale),
 
                             DashboardSlideButton(
-                              isClockedIn: _isClockedIn,
+                              isLoading:
+                                  _isPreparingPunchIn ||
+                                  state.punchInStatus ==
+                                      DashboardStatus.loading,
                               onCompleted: _onSlideCompleted,
                             ),
                           ],
