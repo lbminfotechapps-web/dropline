@@ -83,9 +83,10 @@ class _DashboardSlideButtonState extends State<DashboardSlideButton> {
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
                       child: Text(
-                        widget.isClockedIn
-                            ? 'SLIDE TO CLOCK OUT'
-                            : 'SLIDE TO CLOCK IN',
+                        // widget.isClockedIn
+                        // ? 'SLIDE TO CLOCK OUT'
+                        // :
+                        'SLIDE TO CLOCK IN',
                         style: AppTextStyles.buttonLarge.copyWith(
                           fontSize: 28 * _scale,
                           fontWeight: FontWeight.w800,
