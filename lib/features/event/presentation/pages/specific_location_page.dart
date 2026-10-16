@@ -1,6 +1,6 @@
-
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:dropline/core/utility/widgets/app_background.dart';
+import 'package:dropline/features/event/domain/entities/location_flow_args.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -8,7 +8,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_router.dart';
 
 import '../../../../core/theme/app_text_styles.dart';
-
 
 import '../../domain/entities/location_node.dart';
 import '../cubit/specific_location_cubit.dart';
@@ -21,21 +20,20 @@ class SpecificLocationPage extends StatelessWidget {
   final LocationNode mainArea;
   final LocationNode subArea;
   final LocationNode location;
-
+  final LocationFlowArgs flowArgs;
   const SpecificLocationPage({
     super.key,
     required this.mainArea,
     required this.subArea,
     required this.location,
+    required this.flowArgs,
   });
 
   // ==========================================
   // ADD SPECIFIC LOCATION BOTTOM SHEET
   // ==========================================
 
-  Future<void> _showAddSpecificLocationSheet(
-    BuildContext context,
-  ) async {
+  Future<void> _showAddSpecificLocationSheet(BuildContext context) async {
     final cubit = context.read<SpecificLocationCubit>();
 
     await showModalBottomSheet<bool>(
@@ -46,8 +44,7 @@ class SpecificLocationPage extends StatelessWidget {
       barrierColor: Colors.black.withValues(alpha: 0.5),
       builder: (_) => AddAreaBottomSheet(
         title: 'Add Specific Location',
-        description:
-            'Create a specific location inside ${location.name}.',
+        description: 'Create a specific location inside ${location.name}.',
         parentName: location.name,
         hintText: 'e.g. Left, Right, Front or Back',
         buttonText: 'Save Specific Location',
@@ -60,29 +57,37 @@ class SpecificLocationPage extends StatelessWidget {
   // ==========================================
   // BREADCRUMB NAVIGATION
   // ==========================================
-
   void _goToAllAreas(BuildContext context) {
-    context.go(AppRouter.mainAreas);
+    context.push(
+      AppRouter.mainAreas,
+      extra: LocationFlowArgs(
+        scope: flowArgs.scope,
+        projectName: flowArgs.projectName,
+      ),
+    );
   }
 
   void _goToMainArea(BuildContext context) {
-    context.go(
+    context.push(
       AppRouter.subAreas,
-      extra: mainArea,
+      extra: flowArgs.copyWith(
+        mainArea: mainArea,
+        clearSubArea: true,
+        clearLocation: true,
+      ),
     );
   }
 
   void _goToSubArea(BuildContext context) {
-    context.go(
+    context.push(
       AppRouter.locations,
-      extra: {
-        'mainArea': mainArea,
-        'subArea': subArea,
-      },
+      extra: flowArgs.copyWith(
+        mainArea: mainArea,
+        subArea: subArea,
+        clearLocation: true,
+      ),
     );
-  }
-
-  // ==========================================
+  } // ==========================================
   // SPECIFIC LOCATION ITEM TAP
   // ==========================================
 
@@ -95,21 +100,15 @@ class SpecificLocationPage extends StatelessWidget {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          'Specific Location: ${specificLocation.name}',
-        ),
+        content: Text('Specific Location: ${specificLocation.name}'),
         duration: const Duration(seconds: 2),
       ),
     );
   }
 
-  // ==========================================
-  // FINISH SETUP
-  // ==========================================
-
-void _finishSetup(BuildContext context) {
-  context.push(AppRouter.selectLocation);
-}
+  void _finishSetup(BuildContext context) {
+    context.push(AppRouter.selectLocation, extra: flowArgs);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -120,200 +119,167 @@ void _finishSetup(BuildContext context) {
           child: Column(
             children: [
               Expanded(
-                child: BlocBuilder<
-                    SpecificLocationCubit,
-                    SpecificLocationState>(
-                  builder: (context, state) {
-                    return CustomScrollView(
-                      slivers: [
-                        // ==================================
-                        // HEADER
-                        // ==================================
-
-                        SliverPadding(
-                          padding: const EdgeInsets.fromLTRB(
-                            28, 24, 28, 0,
-                          ),
-                          sliver: SliverToBoxAdapter(
-                            child: _buildHeader(context),
-                          ),
-                        ),
-
-                        // ==================================
-                        // BREADCRUMB
-                        // ==================================
-
-                        SliverPadding(
-                          padding: const EdgeInsets.fromLTRB(
-                            28, 20, 28, 0,
-                          ),
-                          sliver: SliverToBoxAdapter(
-                            child: LocationBreadcrumb(
-                              items: [
-                                LocationBreadcrumbItem(
-                                  title: 'All areas',
-                                  onTap: () =>
-                                      _goToAllAreas(context),
-                                ),
-                                LocationBreadcrumbItem(
-                                  title: mainArea.name,
-                                  onTap: () =>
-                                      _goToMainArea(context),
-                                ),
-                                LocationBreadcrumbItem(
-                                  title: subArea.name,
-                                  onTap: () =>
-                                      _goToSubArea(context),
-                                ),
-                                LocationBreadcrumbItem(
-                                  title: location.name,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-
-                        // ==================================
-                        // DESCRIPTION
-                        // ==================================
-
-                        SliverPadding(
-                          padding: const EdgeInsets.fromLTRB(
-                            28, 24, 28, 0,
-                          ),
-                          sliver: SliverToBoxAdapter(
-                            child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Specific Locations',
-                                  style: AppTextStyles
-                                      .titleMedium
-                                      .copyWith(
-                                    fontWeight:
-                                        FontWeight.w700,
-                                  ),
-                                ),
-
-                                const SizedBox(height: 8),
-
-                                Text(
-                                  'Add specific locations inside '
-                                  '${location.name}.',
-                                  style: AppTextStyles
-                                      .bodyMedium
-                                      .copyWith(
-                                    color:
-                                        AppColors.textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-
-                        // ==================================
-                        // LOADING
-                        // ==================================
-
-                        if (state.isLoading)
-                          const SliverFillRemaining(
-                            child: Center(
-                              child: CircularProgressIndicator(
-                                color: AppColors.white,
+                child:
+                    BlocBuilder<SpecificLocationCubit, SpecificLocationState>(
+                      builder: (context, state) {
+                        return CustomScrollView(
+                          slivers: [
+                            // ==================================
+                            // HEADER
+                            // ==================================
+                            SliverPadding(
+                              padding: const EdgeInsets.fromLTRB(28, 24, 28, 0),
+                              sliver: SliverToBoxAdapter(
+                                child: _buildHeader(context),
                               ),
                             ),
-                          )
 
-                        // ==================================
-                        // ERROR
-                        // ==================================
-
-                        else if (state.error != null &&
-                            state.specificLocations.isEmpty)
-                          SliverFillRemaining(
-                            hasScrollBody: false,
-                            child: Center(
-                              child: TextButton(
-                                onPressed: () => context
-                                    .read<SpecificLocationCubit>()
-                                    .loadSpecificLocations(),
-                                child: Text(
-                                  'Unable to load. Tap to retry',
-                                  style:
-                                      AppTextStyles.bodyMedium,
+                            // ==================================
+                            // BREADCRUMB
+                            // ==================================
+                            SliverPadding(
+                              padding: const EdgeInsets.fromLTRB(28, 20, 28, 0),
+                              sliver: SliverToBoxAdapter(
+                                child: LocationBreadcrumb(
+                                  items: [
+                                    LocationBreadcrumbItem(
+                                      title: 'All areas',
+                                      onTap: () => _goToAllAreas(context),
+                                    ),
+                                    LocationBreadcrumbItem(
+                                      title: mainArea.name,
+                                      onTap: () => _goToMainArea(context),
+                                    ),
+                                    LocationBreadcrumbItem(
+                                      title: subArea.name,
+                                      onTap: () => _goToSubArea(context),
+                                    ),
+                                    LocationBreadcrumbItem(
+                                      title: location.name,
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
-                          )
 
-                        // ==================================
-                        // EMPTY STATE
-                        // ==================================
+                            // ==================================
+                            // DESCRIPTION
+                            // ==================================
+                            SliverPadding(
+                              padding: const EdgeInsets.fromLTRB(28, 24, 28, 0),
+                              sliver: SliverToBoxAdapter(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Specific Locations',
+                                      style: AppTextStyles.titleMedium.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
 
-                        else if (state.specificLocations.isEmpty)
-                          SliverFillRemaining(
-                            hasScrollBody: false,
-                            child: Center(
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.all(24),
-                                child: LocationEmptyState(
-                                  title:
-                                      'Add your first Specific Location',
-                                  subtitle:
-                                      'For example, Left, Right, '
-                                      'Front or Back.',
-                                  onAdd: () =>
-                                      _showAddSpecificLocationSheet(
-                                    context,
-                                  ),
+                                    const SizedBox(height: 8),
+
+                                    Text(
+                                      'Add specific locations inside '
+                                      '${location.name}.',
+                                      style: AppTextStyles.bodyMedium.copyWith(
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
-                          )
 
-                        // ==================================
-                        // SPECIFIC LOCATION LIST
-                        // ==================================
-
-                        else
-                          SliverPadding(
-                            padding: const EdgeInsets.fromLTRB(
-                              28, 16, 28, 24,
-                            ),
-                            sliver: SliverList.separated(
-                              itemCount:
-                                  state.specificLocations.length,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(height: 12),
-                              itemBuilder: (context, index) {
-                                final item =
-                                    state.specificLocations[index];
-
-                                return LocationAreaTile(
-                                  title: item.name,
-                                  subtitle: 'Specific Location',
-                                  onTap: () =>
-                                      _onSpecificLocationTap(
-                                    context,
-                                    item,
+                            // ==================================
+                            // LOADING
+                            // ==================================
+                            if (state.isLoading)
+                              const SliverFillRemaining(
+                                child: Center(
+                                  child: CircularProgressIndicator(
+                                    color: AppColors.white,
                                   ),
-                                );
-                              },
-                            ),
-                          ),
-                      ],
-                    );
-                  },
-                ),
+                                ),
+                              )
+                            // ==================================
+                            // ERROR
+                            // ==================================
+                            else if (state.error != null &&
+                                state.specificLocations.isEmpty)
+                              SliverFillRemaining(
+                                hasScrollBody: false,
+                                child: Center(
+                                  child: TextButton(
+                                    onPressed: () => context
+                                        .read<SpecificLocationCubit>()
+                                        .loadSpecificLocations(),
+                                    child: Text(
+                                      'Unable to load. Tap to retry',
+                                      style: AppTextStyles.bodyMedium,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            // ==================================
+                            // EMPTY STATE
+                            // ==================================
+                            else if (state.specificLocations.isEmpty)
+                              SliverFillRemaining(
+                                hasScrollBody: false,
+                                child: Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(24),
+                                    child: LocationEmptyState(
+                                      title: 'Add your first Specific Location',
+                                      subtitle:
+                                          'For example, Left, Right, '
+                                          'Front or Back.',
+                                      onAdd: () =>
+                                          _showAddSpecificLocationSheet(
+                                            context,
+                                          ),
+                                    ),
+                                  ),
+                                ),
+                              )
+                            // ==================================
+                            // SPECIFIC LOCATION LIST
+                            // ==================================
+                            else
+                              SliverPadding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  28,
+                                  16,
+                                  28,
+                                  24,
+                                ),
+                                sliver: SliverList.separated(
+                                  itemCount: state.specificLocations.length,
+                                  separatorBuilder: (_, __) =>
+                                      const SizedBox(height: 12),
+                                  itemBuilder: (context, index) {
+                                    final item = state.specificLocations[index];
+
+                                    return LocationAreaTile(
+                                      title: item.name,
+                                      subtitle: 'Specific Location',
+                                      onTap: () =>
+                                          _onSpecificLocationTap(context, item),
+                                    );
+                                  },
+                                ),
+                              ),
+                          ],
+                        );
+                      },
+                    ),
               ),
 
               // ==================================
               // BOTTOM BUTTONS
               // ==================================
-
               _buildBottomActions(context),
             ],
           ),
@@ -341,9 +307,7 @@ void _finishSetup(BuildContext context) {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(17),
                 border: Border.all(
-                  color: AppColors.white.withValues(
-                    alpha: 0.20,
-                  ),
+                  color: AppColors.white.withValues(alpha: 0.20),
                 ),
               ),
               child: const Icon(
@@ -377,34 +341,25 @@ void _finishSetup(BuildContext context) {
   // ==========================================
 
   Widget _buildBottomActions(BuildContext context) {
-    return BlocBuilder<
-        SpecificLocationCubit,
-        SpecificLocationState>(
+    return BlocBuilder<SpecificLocationCubit, SpecificLocationState>(
       builder: (context, state) {
         return Padding(
-          padding: const EdgeInsets.fromLTRB(
-            28, 12, 28, 20,
-          ),
+          padding: const EdgeInsets.fromLTRB(28, 12, 28, 20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               // ADD SPECIFIC LOCATION
-
               SizedBox(
                 width: double.infinity,
                 height: 58,
                 child: ElevatedButton(
-                  onPressed: () =>
-                      _showAddSpecificLocationSheet(context),
+                  onPressed: () => _showAddSpecificLocationSheet(context),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        const Color(0xFFF7F8F9),
-                    foregroundColor:
-                        const Color(0xFF151C29),
+                    backgroundColor: const Color(0xFFF7F8F9),
+                    foregroundColor: const Color(0xFF151C29),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(18),
+                      borderRadius: BorderRadius.circular(18),
                     ),
                   ),
                   child: Text(
@@ -420,7 +375,6 @@ void _finishSetup(BuildContext context) {
               const SizedBox(height: 10),
 
               // FINISH SETUP
-
               SizedBox(
                 width: double.infinity,
                 height: 53,
@@ -431,16 +385,12 @@ void _finishSetup(BuildContext context) {
                   //     : () => _finishSetup(context),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.white,
-                    disabledForegroundColor:
-                        AppColors.textSecondary,
+                    disabledForegroundColor: AppColors.textSecondary,
                     side: BorderSide(
-                      color: AppColors.white.withValues(
-                        alpha: 0.28,
-                      ),
+                      color: AppColors.white.withValues(alpha: 0.28),
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(18),
+                      borderRadius: BorderRadius.circular(18),
                     ),
                   ),
                   child: Text(

@@ -1,6 +1,7 @@
 import 'package:dropline/core/router/app_router.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:dropline/core/utility/widgets/app_background.dart';
+import 'package:dropline/features/event/domain/entities/location_flow_args.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -17,10 +18,15 @@ class MainAreaPage extends StatelessWidget {
   // Step 2: navigate to Sub-area page with this node.
   final ValueChanged<LocationNode>? onAreaTap;
 
-  // Step 5: navigate to Select Location screen.
+  final LocationFlowArgs flowArgs;
   final VoidCallback? onFinishSetup;
 
-  const MainAreaPage({super.key, this.onAreaTap, this.onFinishSetup});
+  const MainAreaPage({
+    super.key,
+    this.onAreaTap,
+    this.onFinishSetup,
+    required this.flowArgs,
+  });
 
   Future<void> _showAddAreaSheet(BuildContext context) async {
     final cubit = context.read<MainAreaCubit>();
@@ -45,21 +51,21 @@ class MainAreaPage extends StatelessWidget {
   }
 
   void _onAreaSelected(BuildContext context, LocationNode area) {
-    if (onAreaTap != null) {
-      onAreaTap!(area);
-      return;
-    }
-
-    context.push(AppRouter.subAreas, extra: area);
+    context.push(
+      AppRouter.subAreas,
+      extra: flowArgs.copyWith(
+        mainArea: area,
+        clearSubArea: true,
+        clearLocation: true,
+      ),
+    );
   }
 
  void _finishSetup(BuildContext context) {
-  if (onFinishSetup != null) {
-    onFinishSetup!();
-    return;
-  }
-
-  context.push(AppRouter.selectLocation);
+  context.push(
+    AppRouter.selectLocation,
+    extra: flowArgs,
+  );
 }
 
   @override

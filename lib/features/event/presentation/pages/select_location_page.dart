@@ -1,5 +1,8 @@
+import 'package:dropline/core/di/global_di.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:dropline/core/utility/widgets/app_background.dart';
+import 'package:dropline/features/event/data/services/event_submission_preview_service.dart';
+import 'package:dropline/features/event/domain/entities/location_flow_args.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -12,56 +15,107 @@ import '../../domain/entities/selected_location.dart';
 import '../cubit/select_location_cubit.dart';
 import '../widgets/location_selection_dropdown.dart';
 
-class SelectLocationPage extends StatelessWidget {
+class SelectLocationPage extends StatefulWidget {
   final ValueChanged<SelectedLocation>? onUseLocation;
+  final LocationFlowArgs flowArgs;
+  const SelectLocationPage({
+    super.key,
+    this.onUseLocation,
+    required this.flowArgs,
+  });
 
-  const SelectLocationPage({super.key, this.onUseLocation});
+  @override
+  State<SelectLocationPage> createState() => _SelectLocationPageState();
+}
 
-  // ==========================================
-  // EDIT AREAS
-  // ==========================================
-
+class _SelectLocationPageState extends State<SelectLocationPage> {
+  bool _isSubmitting = false;
   Future<void> _editAreas(BuildContext context) async {
-    // Keep this page underneath the setup screen.
-    await context.push(AppRouter.mainAreas);
+    await context.push(
+      AppRouter.mainAreas,
+      extra: LocationFlowArgs(scope: widget.flowArgs.scope,projectName: widget.flowArgs.projectName,),
+    );
 
     if (!context.mounted) return;
 
-    // Reload the shared repository after editing.
     await context.read<SelectLocationCubit>().refreshAfterEditing();
   }
 
-  // ==========================================
-  // USE LOCATION
-  // ==========================================
+  Future<void> _useLocation(BuildContext context) async {
+    if (_isSubmitting) return;
 
-  void _useLocation(BuildContext context) {
-    final selected = context.read<SelectLocationCubit>().state.selectedResult;
+    final cubit = context.read<SelectLocationCubit>();
+
+    final selected = cubit.state.selectedResult;
 
     if (selected == null) return;
 
-    debugPrint('Selected location: ${selected.toJson()}');
+    setState(() {
+      _isSubmitting = true;
+    });
 
-    // Optional callback to the parent workflow.
-    if (onUseLocation != null) {
-      onUseLocation!(selected);
-      return;
+    try {
+      // ======================================
+      // STEP 1: SAVE CURRENT SELECTION
+      // ======================================
+
+      final saved = await cubit.saveCurrentSelection();
+
+      if (!saved) {
+        throw StateError('Unable to save selected location.');
+      }
+
+      // ======================================
+      // STEP 2: PRINT ALL SAVED EVENT DATA
+      // STEP 3: CLEAR SESSION DATA
+      // ======================================
+
+      final payload = await sl<EventSubmissionPreviewService>().previewAndClear(
+        scope: widget.flowArgs.scope,
+        projectName: widget.flowArgs.projectName,
+      );
+
+      // ======================================
+      // STEP 4: AFTER LOCAL CLEANUP
+      // ======================================
+
+      if (!mounted) return;
+
+      debugPrint(
+        'TOTAL SUBMITTED TIME SLOTS: '
+        '${payload['total_time_slots']}',
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Event data printed and local drafts cleared.'),
+        ),
+      );
+
+      // Return to a fresh workflow.
+      // This should navigate to your dashboard,
+      // not reuse an AddEventPage that still holds
+      // old notes and attachments in memory.
+      context.go('/dashboard');
+    } catch (e, stackTrace) {
+      debugPrint('EVENT PREVIEW ERROR: $e');
+      debugPrintStack(stackTrace: stackTrace);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Unable to complete local submission: $e'),
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
     }
-
-    // For now return the selected result to the
-    // screen which opened SelectLocationPage.
-    if (context.canPop()) {
-      context.pop(selected);
-      return;
-    }
-
-    // If this screen was opened as the root route,
-    // configure onUseLocation to handle navigation.
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Location selected. Connect the next screen.'),
-      ),
-    );
   }
 
   @override
@@ -243,9 +297,6 @@ class SelectLocationPage extends StatelessWidget {
   }
 
   // ==========================================
-  // HEADER
-  // ==========================================
-
   Widget _buildHeader(BuildContext context) {
     return Row(
       children: [
@@ -279,9 +330,6 @@ class SelectLocationPage extends StatelessWidget {
   }
 
   // ==========================================
-  // USE LOCATION BUTTON
-  // ==========================================
-
   Widget _buildBottomButton(BuildContext context) {
     return BlocBuilder<SelectLocationCubit, SelectLocationState>(
       builder: (context, state) {
@@ -291,12 +339,21 @@ class SelectLocationPage extends StatelessWidget {
             width: double.infinity,
             height: 58,
             child: ElevatedButton.icon(
-              onPressed: state.canUseLocation
+              onPressed: state.canUseLocation && !_isSubmitting
                   ? () => _useLocation(context)
                   : null,
-              icon: const Icon(Icons.arrow_forward_rounded, size: 22),
+              icon: _isSubmitting
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Color(0xFF151C29),
+                      ),
+                    )
+                  : const Icon(Icons.arrow_forward_rounded, size: 22),
               label: Text(
-                'Use Location',
+                _isSubmitting ? 'Preparing event data...' : 'Use Location',
                 style: AppTextStyles.buttonMedium.copyWith(
                   color: const Color(0xFF151C29),
                   fontWeight: FontWeight.w700,

@@ -1,6 +1,7 @@
 import 'package:dropline/core/router/app_router.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:dropline/core/utility/widgets/app_background.dart';
+import 'package:dropline/features/event/domain/entities/location_flow_args.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -16,8 +17,8 @@ import '../widgets/location_empty_state.dart';
 
 class SubAreaPage extends StatelessWidget {
   final LocationNode mainArea;
-
-  const SubAreaPage({super.key, required this.mainArea});
+final LocationFlowArgs flowArgs;
+  const SubAreaPage({super.key, required this.mainArea, required this.flowArgs,});
 
   // ==========================================
   // ADD SUB AREA
@@ -46,24 +47,25 @@ class SubAreaPage extends StatelessWidget {
     );
   }
 
-  // ==========================================
-  // CLICK SUB AREA
-  // ==========================================
+void _onSubAreaTap(
+  BuildContext context,
+  LocationNode subArea,
+) {
+  context.push(
+    AppRouter.locations,
+    extra: flowArgs.copyWith(
+      subArea: subArea,
+      clearLocation: true,
+    ),
+  );
+}
 
-  void _onSubAreaTap(BuildContext context, LocationNode subArea) {
-    context.push(
-      AppRouter.locations,
-      extra: {'mainArea': mainArea, 'subArea': subArea},
-    );
-  }
-
-  // ==========================================
-  // FINISH SETUP
-  // ==========================================
-
-  void _finishSetup(BuildContext context) {
-    context.push(AppRouter.selectLocation);
-  }
+void _finishSetup(BuildContext context) {
+  context.push(
+    AppRouter.selectLocation,
+    extra: flowArgs,
+  );
+}
 
   // ==========================================
   // MAIN BUILD

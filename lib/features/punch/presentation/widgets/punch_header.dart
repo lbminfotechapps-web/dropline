@@ -47,7 +47,7 @@ class PunchHeader extends StatelessWidget {
           child: Text(
             title,
             style: AppTextStyles.headingLarge.copyWith(
-              fontSize: 40 * scale,
+              fontSize: 38 * scale,
               fontWeight: FontWeight.w800,
               letterSpacing: 1,
             ),

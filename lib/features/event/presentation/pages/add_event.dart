@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:io';
+import 'package:dropline/features/event/domain/entities/event_draft_scope.dart';
+import 'package:dropline/features/event/domain/entities/location_flow_args.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dropline/core/di/global_di.dart';
 import 'package:dropline/core/secure_storage/secure_storage.dart';
@@ -22,20 +24,22 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-/// Note composer. Camera and recording can be supplied by the host screen.
 class AddEventPage extends StatefulWidget {
   const AddEventPage({
     super.key,
-    this.projectName = 'TRIBECA',
+    required this.projectId,
+    required this.projectName,
     this.onCamera,
     this.onRecordAudio,
     this.timeSlotDataSource,
     this.draftStore,
   });
-
+  final String projectId;
   final String projectName;
+
   final VoidCallback? onCamera;
   final VoidCallback? onRecordAudio;
+
   final TimeSlotRemoteDataSource? timeSlotDataSource;
   final EventDraftStore? draftStore;
 
@@ -91,6 +95,19 @@ class _AddEventPageState extends State<AddEventPage> {
     super.initState();
     _store = widget.draftStore ?? EventDraftStore();
     _initialise();
+  }
+
+  EventDraftScope get _eventDraftScope {
+    if (_timeSlots.isEmpty) {
+      throw StateError('No time slot selected');
+    }
+
+    return EventDraftScope(
+      userId: _userId,
+      projectId: widget.projectId,
+      date: _draftDate,
+      timeSlotId: _timeSlots[_selectedTime].id,
+    );
   }
 
   Future<void> _initialise() async {
@@ -427,8 +444,26 @@ class _AddEventPageState extends State<AddEventPage> {
   }
 
   Future<void> _completeEvent() async {
-    if (!_canEdit || !await _saveDraft() || !mounted) return;
-    context.push(AppRouter.mainAreas);
+    if (!_canEdit ||
+        _saveFailed ||
+        _pendingSaves > 0 ||
+        _picking ||
+        _userId.isEmpty ||
+        _userId == 'local' ||
+        widget.projectId.trim().isEmpty) {
+      return;
+    }
+
+    final scope = _eventDraftScope;
+
+    final saved = await _saveDraft();
+
+    if (!mounted || !saved) return;
+
+    await context.push(
+      AppRouter.mainAreas,
+      extra: LocationFlowArgs(scope: scope, projectName: widget.projectName,),
+    );
   }
 
   @override

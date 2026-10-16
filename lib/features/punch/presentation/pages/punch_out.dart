@@ -1,4 +1,8 @@
+import 'dart:async';
+
+import 'package:dropline/core/di/global_di.dart';
 import 'package:dropline/core/router/app_router.dart';
+import 'package:dropline/core/secure_storage/secure_storage.dart';
 import 'package:dropline/core/utility/widgets/app_background.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -15,20 +19,132 @@ class PunchOutPage extends StatefulWidget {
   State<PunchOutPage> createState() => _PunchOutPageState();
 }
 
-class _PunchOutPageState extends State<PunchOutPage> {
-  final String projectName = 'TRIBECA';
+class _PunchOutPageState extends State<PunchOutPage>
+    with WidgetsBindingObserver {
+  Timer? _clockTimer;
+  DateTime _currentTime = DateTime.now();
+  DateTime? _punchInTime;
 
-  // Temporary static values for UI
-  final String inTime = '09:41';
-  final String workedDuration = '02:00';
-  final String clockOutTime = '11:45';
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      _updateTime();
+    });
+    loadPunchInData();
+  }
+
+  void _updateTime() {
+    if (!mounted) return;
+    setState(() => _currentTime = DateTime.now());
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _updateTime();
+  }
+
+  @override
+  void dispose() {
+    _clockTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  String projectName = '';
+  String inTime = '';
+
+  bool isLoading = true;
+  String get workedDuration {
+    final start = _punchInTime;
+    if (start == null) return '--:--';
+    final elapsed = _currentTime.difference(start);
+    final minutes = elapsed.isNegative ? 0 : elapsed.inMinutes;
+    return '${(minutes ~/ 60).toString().padLeft(2, '0')}:'
+        '${(minutes % 60).toString().padLeft(2, '0')}';
+  }
+
+  String get clockOutTime =>
+      '${_currentTime.hour.toString().padLeft(2, '0')}:'
+      '${_currentTime.minute.toString().padLeft(2, '0')}';
   final String workType = 'EVENT';
 
-  void _onAddWorkDetails() {
-    context.push(AppRouter.addEvent);
-    // ScaffoldMessenger.of(
-    //   context,
-    // ).showSnackBar(const SnackBar(content: Text('Add Work Details clicked')));
+  Future<void> loadPunchInData() async {
+    try {
+      final punchData = await sl<SecureStorage>().readPunchInResult();
+
+      if (!mounted) return;
+
+      // Check whether saved Punch In data exists
+      if (punchData.isEmpty) {
+        debugPrint('No saved Punch In data found');
+
+        setState(() {
+          isLoading = false;
+        });
+
+        return;
+      }
+
+      final punch = punchData.first;
+
+      final time = punch.time.trim();
+      // The API stores the punch-in date and time in separate fields.
+      final punchInTime = DateTime.tryParse('${punch.date.trim()}T$time');
+      setState(() {
+        _punchInTime = punchInTime;
+        _currentTime = DateTime.now();
+        inTime = time.length >= 5 ? time.substring(0, 5) : time;
+        projectName = punch.projectName.trim();
+        isLoading = false;
+      });
+
+      debugPrint('In Time: $inTime');
+      debugPrint('Project Name: $projectName');
+      debugPrint('InPunch ID: ${punch.inpunchId}');
+    } catch (e) {
+      debugPrint('Error loading Punch In data: $e');
+
+      if (!mounted) return;
+
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _onAddWorkDetails() async {
+    try {
+      // Read saved Punch In result
+      final punchData = await sl<SecureStorage>().readPunchInResult();
+
+      if (!mounted) return;
+
+      // Get first Punch In record
+      final punch = punchData.first;
+
+      // Read Project ID and Project Name
+      final String selectedProjectId = punch.projectId.trim();
+      final String selectedProjectName = punch.projectName.trim();
+
+      debugPrint('Project ID: $selectedProjectId');
+      debugPrint('Project Name: $selectedProjectName');
+      debugPrint('InPunch ID: ${punch.inpunchId}');
+
+      // Navigate to Add Event screen
+      context.push(
+        AppRouter.addEvent,
+        extra: {
+          'projectId': selectedProjectId,
+          'projectName': selectedProjectName,
+        },
+      );
+    } catch (e) {
+      debugPrint('Read Punch In Error: $e');
+
+      if (!mounted) return;
+    }
   }
 
   void _onClockOut() {
@@ -63,7 +179,9 @@ class _PunchOutPageState extends State<PunchOutPage> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             PunchHeader(
-                              title: projectName,
+                              title: projectName.isNotEmpty
+                                  ? projectName
+                                  : 'No Project Selected',
                               scale: scale,
                               onBack: () => Navigator.pop(context),
                             ),
@@ -71,12 +189,11 @@ class _PunchOutPageState extends State<PunchOutPage> {
                             SizedBox(height: 121 * scale),
 
                             PunchTimeCard(
-                              time: inTime,
+                              time: inTime.isNotEmpty ? inTime : '--:--',
                               height: 200 * scale,
                               fontSize: 116 * scale,
                               radius: 54 * scale,
                             ),
-
                             SizedBox(height: 76 * scale),
 
                             PunchTimeCard(

@@ -1,4 +1,6 @@
 
+import 'package:dropline/features/event/domain/entities/event_draft_scope.dart';
+import 'package:dropline/features/event/domain/repositories/location_selection_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/entities/location_node.dart';
@@ -100,37 +102,109 @@ class SelectLocationState {
 
 class SelectLocationCubit extends Cubit<SelectLocationState> {
   final LocationRepository repository;
+    final LocationSelectionRepository selectionRepository;
+  final EventDraftScope scope;
 
   SelectLocationCubit({
     required this.repository,
+      required this.selectionRepository,
+    required this.scope,
   }) : super(const SelectLocationState());
 
   // Invalidates outdated asynchronous requests.
   int _requestVersion = 0;
 
-  Future<void> loadMainAreas() async {
-    final request = ++_requestVersion;
+ Future<void> loadMainAreas() async {
+  final request = ++_requestVersion;
 
-    emit(const SelectLocationState(isLoading: true));
+  emit(const SelectLocationState(
+    isLoading: true,
+  ));
 
-    try {
-      final areas = await repository.getChildren(
-        level: LocationLevel.mainArea,
-      );
+  try {
+    final areas = await repository.getChildren(
+      level: LocationLevel.mainArea,
+    );
 
-      if (isClosed || request != _requestVersion) return;
+    if (isClosed || request != _requestVersion) return;
 
-      emit(SelectLocationState(
-        mainAreas: areas,
-      ));
-    } catch (e) {
-      if (isClosed || request != _requestVersion) return;
+    emit(SelectLocationState(
+      mainAreas: areas,
+    ));
 
-      emit(SelectLocationState(
-        error: e.toString(),
+    await restoreSavedSelection();
+  } catch (e) {
+    if (isClosed || request != _requestVersion) return;
+
+    emit(SelectLocationState(
+      error: e.toString(),
+    ));
+  }
+}
+
+Future<void> restoreSavedSelection() async {
+  final saved = await selectionRepository.getSelection(scope);
+
+  if (isClosed || saved == null) return;
+
+  bool containsId(List<LocationNode> nodes, String id) {
+    return nodes.any((node) => node.id == id);
+  }
+
+  if (!containsId(state.mainAreas, saved.mainArea.id)) {
+    return;
+  }
+
+  await selectMainArea(saved.mainArea);
+  if (isClosed || state.error != null) return;
+
+  if (!containsId(state.subAreas, saved.subArea.id)) {
+    return;
+  }
+
+  await selectSubArea(saved.subArea);
+  if (isClosed || state.error != null) return;
+
+  if (!containsId(state.locations, saved.location.id)) {
+    return;
+  }
+
+  await selectLocation(saved.location);
+  if (isClosed || state.error != null) return;
+
+  if (!containsId(
+    state.specificLocations,
+    saved.specificLocation.id,
+  )) {
+    return;
+  }
+
+  selectSpecificLocation(saved.specificLocation);
+}
+
+
+Future<bool> saveCurrentSelection() async {
+  final selected = state.selectedResult;
+
+  if (selected == null) return false;
+
+  try {
+    await selectionRepository.saveSelection(
+      scope,
+      selected,
+    );
+
+    return true;
+  } catch (e) {
+    if (!isClosed) {
+      emit(state.copyWith(
+        error: 'Unable to save selected location: $e',
       ));
     }
+
+    return false;
   }
+}
 
   // Call after returning from Edit Areas.
   Future<void> refreshAfterEditing() async {
