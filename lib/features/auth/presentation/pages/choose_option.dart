@@ -67,13 +67,10 @@ class ChooseOptionPage extends StatelessWidget {
     );
   }
 
-  Widget _option({
-    required String label,
-    required VoidCallback onTap,
-  }) {
+  Widget _option({required String label, required VoidCallback onTap}) {
     return Center(
       child: SizedBox(
-        width: 140,
+        width: 240,
         child: Material(
           color: AppColors.cardBackground,
           shape: RoundedRectangleBorder(
@@ -86,8 +83,8 @@ class ChooseOptionPage extends StatelessWidget {
           child: InkWell(
             onTap: onTap,
             child: Container(
-              constraints: const BoxConstraints(minHeight: 44),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              constraints: const BoxConstraints(minHeight: 72),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Row(
                 children: [
                   Expanded(
@@ -97,7 +94,7 @@ class ChooseOptionPage extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.titleLarge.copyWith(
-                        fontSize: 14,
+                        fontSize: 22,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.7,
                       ),

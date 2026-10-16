@@ -250,6 +250,7 @@ class _LoginScreenState extends State<LoginScreen> {
               builder: (context, constraints) {
                 final w = constraints.maxWidth;
                 final s = w / 591;
+                final showOtp = _mobileController.text.length == 10;
                 // Keep the design proportions on short screens and when the
                 // keyboard reduces the viewport; the scroll view handles the rest.
                 final h = math.max(
@@ -379,11 +380,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           67,
                           field('Mobile', _mobileController, phone: true),
                         ),
-                        for (
-                          var i = 0;
-                          i < (_mobileController.text.length == 10 ? 4 : 0);
-                          i++
-                        )
+                        for (var i = 0; i < (showOtp ? 4 : 0); i++)
                           place(
                             51 + i * 123,
                             803,
@@ -442,7 +439,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         place(
                           97,
-                          1067,
+                          showOtp ? 930 : 740,
                           384,
                           36,
                           FittedBox(
@@ -503,7 +500,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         place(
                           43,
-                          1124,
+                          showOtp ? 987 : 797,
                           505,
                           98,
                           LayoutBuilder(

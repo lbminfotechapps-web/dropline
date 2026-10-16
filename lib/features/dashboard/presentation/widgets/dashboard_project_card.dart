@@ -1,3 +1,4 @@
+import 'package:dropline/core/utility/widgets/app_background.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 
 import 'package:dropline/features/dashboard/domain/entity/project_entity.dart';
@@ -26,36 +27,114 @@ class DashboardProjectCard extends StatefulWidget {
 }
 
 class _DashboardProjectCardState extends State<DashboardProjectCard> {
-  final TextEditingController _searchController = TextEditingController();
+  bool _isOpening = false;
 
-  final FocusNode _searchFocusNode = FocusNode();
-
-  bool _isExpanded = false;
-
-  String _searchQuery = '';
-
-  // =========================================
-  // EXPAND / COLLAPSE
-  // =========================================
-
-  void _toggleExpanded() {
-    if (widget.selectedProject != null) return;
-
-    setState(() {
-      _isExpanded = !_isExpanded;
-    });
-
-    if (_isExpanded) {
-      final bloc = context.read<DashboardBloc>();
-
-      // Reload only if projects have not been loaded.
-      if (bloc.state.dashboardStatus == DashboardStatus.initial) {
-        bloc.add(const GetProjectList());
+  Future<void> _openProjectPicker() async {
+    if (_isOpening) return;
+    _isOpening = true;
+    final bloc = context.read<DashboardBloc>();
+    if (bloc.state.dashboardStatus == DashboardStatus.initial) {
+      bloc.add(const GetProjectList());
+    }
+    try {
+      final project = await Navigator.of(context).push<ProjectEntity>(
+        PageRouteBuilder<ProjectEntity>(
+          transitionDuration: const Duration(milliseconds: 350),
+          reverseTransitionDuration: const Duration(milliseconds: 300),
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              BlocProvider.value(
+                value: bloc,
+                child: const _ProjectPickerPage(),
+              ),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            final curved = CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+              reverseCurve: Curves.easeInCubic,
+            );
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0, 1),
+                end: Offset.zero,
+              ).animate(curved),
+              child: child,
+            );
+          },
+        ),
+      );
+      if (mounted && project != null) {
+        widget.onProjectSelected?.call(project);
       }
-    } else {
-      _searchFocusNode.unfocus();
+    } finally {
+      _isOpening = false;
     }
   }
+
+  @override
+  Widget build(BuildContext context) {
+    final scale = MediaQuery.sizeOf(context).width / 591;
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: AppColors.cardBorder.withValues(alpha: 0.65)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: _openProjectPicker,
+              borderRadius: BorderRadius.circular(28),
+              child: Container(
+                width: double.infinity,
+                alignment: Alignment.center,
+                constraints: BoxConstraints(minHeight: 108 * scale),
+                child: Text(
+                  'SELECT PROJECT',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.titleLarge.copyWith(
+                    fontSize: 28 * scale,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.7,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          if (widget.selectedProject != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+              child: InputChip(
+                label: Text(
+                  widget.selectedProject!.projectName,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                onPressed: _openProjectPicker,
+                onDeleted: widget.onRemoveProject,
+                deleteIcon: const Icon(Icons.close_rounded),
+                deleteButtonTooltipMessage: 'Remove project',
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProjectPickerPage extends StatefulWidget {
+  const _ProjectPickerPage();
+
+  @override
+  State<_ProjectPickerPage> createState() => _ProjectPickerPageState();
+}
+
+class _ProjectPickerPageState extends State<_ProjectPickerPage> {
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+  String _searchQuery = '';
 
   // =========================================
   // MANUAL PROJECT SELECTION
@@ -73,7 +152,8 @@ class _DashboardProjectCardState extends State<DashboardProjectCard> {
     ProjectEntity? existingProject;
 
     for (final project in projects) {
-      if (project.projectName.toLowerCase() == projectName.toLowerCase()) {
+      if (project.projectName.trim().toLowerCase() ==
+          projectName.toLowerCase()) {
         existingProject = project;
         break;
       }
@@ -117,15 +197,8 @@ class _DashboardProjectCardState extends State<DashboardProjectCard> {
   // =========================================
 
   void _onProjectTap(ProjectEntity project) {
-    widget.onProjectSelected?.call(project);
-
     _searchFocusNode.unfocus();
-
-    setState(() {
-      _isExpanded = false;
-      _searchQuery = '';
-      _searchController.clear();
-    });
+    Navigator.of(context).pop(project);
   }
 
   // =========================================
@@ -149,131 +222,39 @@ class _DashboardProjectCardState extends State<DashboardProjectCard> {
     super.dispose();
   }
 
-  // =========================================
-  // MAIN BUILD
-  // =========================================
-
   @override
   Widget build(BuildContext context) {
-    final scale = MediaQuery.sizeOf(context).width / 591;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.cardBorder.withValues(alpha: 0.65)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // ====================================
-          // PROJECT HEADER
-          // ====================================
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: widget.selectedProject == null ? _toggleExpanded : null,
-              borderRadius: BorderRadius.circular(28),
-              child: Container(
-                width: double.infinity,
-                constraints: BoxConstraints(minHeight: 108 * scale),
-                child: Row(
+    return Scaffold(
+      body: AppBackground(
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
                   children: [
                     Expanded(
                       child: Text(
                         'SELECT PROJECT',
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.titleLarge.copyWith(
-                          fontSize: 28 * scale,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.7,
-                        ),
+                        style: AppTextStyles.titleLarge,
                       ),
+                    ),
+                    IconButton(
+                      tooltip: 'Close project selection',
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.close_rounded),
                     ),
                   ],
                 ),
-              ),
+                const SizedBox(height: 20),
+                _buildSearchField(),
+                const SizedBox(height: 18),
+                Expanded(child: _buildProjectList()),
+              ],
             ),
           ),
-
-          // ====================================
-          // SELECTED PROJECT CHIP
-          // ====================================
-          if (widget.selectedProject != null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
-              child: InputChip(
-                label: Text(
-                  widget.selectedProject!.projectName,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                onDeleted: widget.onRemoveProject,
-                deleteIcon: const Icon(Icons.close_rounded),
-                deleteButtonTooltipMessage: 'Remove project',
-              ),
-            ),
-
-          // ====================================
-          // EXPANDABLE CONTENT
-          // ====================================
-          AnimatedSize(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            alignment: Alignment.topCenter,
-            child: _isExpanded && widget.selectedProject == null
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Divider(
-                        color: AppColors.cardBorder.withValues(alpha: 0.5),
-                        height: 1,
-                      ),
-
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Search field
-                            _buildSearchField(),
-
-                            const SizedBox(height: 18),
-
-                            // API Project List
-                            _buildProjectList(),
-
-                            const SizedBox(height: 12),
-
-                            ValueListenableBuilder<TextEditingValue>(
-                              valueListenable: _searchController,
-                              builder: (context, value, child) {
-                                if (value.text.trim().isEmpty) {
-                                  return const SizedBox.shrink();
-                                }
-
-                                return SizedBox(
-                                  width: double.infinity,
-                                  child: OutlinedButton.icon(
-                                    onPressed: _selectManualProject,
-                                    icon: const Icon(Icons.add_rounded),
-                                    label: const Text(
-                                      'Use entered project name',
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  )
-                : const SizedBox.shrink(),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -283,32 +264,15 @@ class _DashboardProjectCardState extends State<DashboardProjectCard> {
   // =========================================
 
   Widget _buildSearchField() {
-    return BlocBuilder<DashboardBloc, DashboardState>(
-      builder: (context, state) {
-        final canAdd =
-            state.dashboardStatus == DashboardStatus.success &&
-            _searchQuery.isNotEmpty &&
-            !state.projectList.any(
-              (project) =>
-                  project.projectName.trim().toLowerCase() == _searchQuery,
-            );
-
-        return _buildProjectSearchInput(canAdd: canAdd);
-      },
-    );
+    return _buildProjectSearchInput();
   }
 
-  void _addCustomProject() {
-    final name = _searchController.text.trim();
-    if (name.isEmpty) return;
-
-    _onProjectTap(ProjectEntity(projectId: '', projectName: name));
-  }
-
-  Widget _buildProjectSearchInput({required bool canAdd}) {
+  Widget _buildProjectSearchInput() {
     return TextField(
       controller: _searchController,
       focusNode: _searchFocusNode,
+      autofocus: true,
+      cursorColor: Colors.white,
       textInputAction: TextInputAction.done,
       style: AppTextStyles.inputText,
 
@@ -318,8 +282,11 @@ class _DashboardProjectCardState extends State<DashboardProjectCard> {
       onSubmitted: (_) => _selectManualProject(),
 
       decoration: InputDecoration(
-        hintText: 'Search or enter project name',
+        hintText: 'Search existing or enter new project',
         hintStyle: AppTextStyles.inputHint,
+        focusedBorder: const UnderlineInputBorder(
+          borderSide: BorderSide(color: Colors.white, width: 2),
+        ),
 
         prefixIcon: const Icon(
           Icons.search_rounded,
@@ -327,10 +294,24 @@ class _DashboardProjectCardState extends State<DashboardProjectCard> {
         ),
 
         suffixIcon: _searchQuery.isNotEmpty
-            ? IconButton(
-                tooltip: 'Clear search',
-                onPressed: _clearSearch,
-                icon: const Icon(Icons.close_rounded),
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_searchQuery.isNotEmpty)
+                    IconButton(
+                      tooltip: 'Clear search',
+                      onPressed: _clearSearch,
+                      icon: const Icon(Icons.close_rounded),
+                    ),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: IconButton.filled(
+                      tooltip: 'Add and select entered project',
+                      onPressed: _selectManualProject,
+                      icon: const Icon(Icons.add_rounded, color: Colors.white),
+                    ),
+                  ),
+                ],
               )
             : null,
 
@@ -399,8 +380,7 @@ class _DashboardProjectCardState extends State<DashboardProjectCard> {
             const SizedBox(height: 12),
 
             // PROJECT LIST
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 280),
+            Expanded(
               child: ListView.separated(
                 shrinkWrap: true,
                 physics: const ClampingScrollPhysics(),
