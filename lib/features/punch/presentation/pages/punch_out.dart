@@ -25,7 +25,7 @@ class _PunchOutPageState extends State<PunchOutPage> {
   final String workType = 'EVENT';
 
   void _onAddWorkDetails() {
-      context.push(AppRouter.addEvent);
+    context.push(AppRouter.addEvent);
     // ScaffoldMessenger.of(
     //   context,
     // ).showSnackBar(const SnackBar(content: Text('Add Work Details clicked')));

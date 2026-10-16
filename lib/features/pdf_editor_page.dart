@@ -9,7 +9,16 @@ import '../model/pdf_export.dart';
 import 'pdf_drawing_page.dart';
 
 class PdfEditorPage extends StatefulWidget {
-  const PdfEditorPage({super.key});
+  const PdfEditorPage({
+    super.key,
+    this.initialBytes,
+    this.fileName,
+    this.onSave,
+  });
+
+  final Uint8List? initialBytes;
+  final String? fileName;
+  final Future<void> Function(Uint8List bytes)? onSave;
 
   @override
   State<PdfEditorPage> createState() => _PdfEditorPageState();
@@ -32,6 +41,13 @@ class _PdfEditorPageState extends State<PdfEditorPage> {
   int? pendingPageNumber;
 
   bool get hasPdf => currentPdfBytes != null;
+
+  @override
+  void initState() {
+    super.initState();
+    currentPdfBytes = widget.initialBytes;
+    selectedFileName = widget.fileName;
+  }
 
   // =========================================
   // SHOW MESSAGE
@@ -367,6 +383,12 @@ class _PdfEditorPageState extends State<PdfEditorPage> {
         Uint8List.fromList(outputBytes),
       );
 
+      if (widget.onSave != null) {
+        await widget.onSave!(bytes);
+        if (mounted) Navigator.of(context).pop(true);
+        return;
+      }
+
       final String baseName = (selectedFileName ?? 'document').replaceAll(
         RegExp(r'\.pdf$', caseSensitive: false),
         '',
@@ -498,7 +520,7 @@ class _PdfEditorPageState extends State<PdfEditorPage> {
                   icon: Icons.folder_open,
                   label: 'Open',
                   color: const Color(0xFF176B4D),
-                  onTap: openPdf,
+                  onTap: widget.onSave == null ? openPdf : null,
                 ),
                 const SizedBox(width: 8),
                 editorButton(
@@ -517,7 +539,7 @@ class _PdfEditorPageState extends State<PdfEditorPage> {
                 const SizedBox(width: 8),
                 editorButton(
                   icon: Icons.save_alt,
-                  label: 'Save As',
+                  label: widget.onSave == null ? 'Save As' : 'Save',
                   color: const Color(0xFF176B4D),
                   onTap: hasPdf ? savePdf : null,
                 ),

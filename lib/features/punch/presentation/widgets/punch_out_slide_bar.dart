@@ -89,36 +89,43 @@ class _PunchOutSlideBarState extends State<PunchOutSlideBar> {
               Positioned.fill(
                 child: Padding(
                   padding: EdgeInsets.only(
-                    left: 154 * widget.scale,
+                    left: _padding + _handleSize,
                     right: 24 * widget.scale,
                   ),
                   child: Row(
                     children: [
                       Expanded(
-                        flex: 6,
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            widget.actionText,
-                            style: AppTextStyles.buttonLarge.copyWith(
-                              fontSize: 36 * widget.scale,
-                              fontWeight: FontWeight.w800,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12 * widget.scale,
+                          ),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.center,
+                            child: Text(
+                              widget.actionText,
+                              style: AppTextStyles.buttonLarge.copyWith(
+                                fontSize: 36 * widget.scale,
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                      SizedBox(width: 48 * widget.scale),
                       Expanded(
-                        flex: 5,
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            widget.timeText,
-                            style: AppTextStyles.displaySmall.copyWith(
-                              fontSize: 64 * widget.scale,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -1,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12 * widget.scale,
+                          ),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              widget.timeText,
+                              style: AppTextStyles.displaySmall.copyWith(
+                                fontSize: 64 * widget.scale,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -1,
+                              ),
                             ),
                           ),
                         ),

@@ -4,6 +4,7 @@ import 'package:dropline/core/secure_storage/secure_storage.dart';
 import 'package:dropline/features/auth/data/datasource/login_remote_data_source.dart';
 import 'package:dropline/features/auth/data/model/login_response_model.dart';
 import 'package:dropline/features/auth/presentation/pages/loginpage.dart';
+import 'package:dropline/features/auth/presentation/pages/choose_option.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -44,6 +45,10 @@ void main() {
       routes: [
         GoRoute(path: AppRouter.login, builder: (_, _) => const LoginScreen()),
         GoRoute(
+          path: AppRouter.chooseOption,
+          builder: (_, _) => const ChooseOptionPage(),
+        ),
+        GoRoute(
           path: AppRouter.dashboard,
           builder: (_, _) => const Scaffold(body: Text('Dashboard opened')),
         ),
@@ -70,8 +75,15 @@ void main() {
     await tester.ensureVisible(signIn);
     await tester.tap(signIn);
     await tester.pumpAndSettle();
-    expect(find.text('Dashboard opened'), findsOneWidget);
     expect(find.text('Signed in successfully.'), findsOneWidget);
+    expect(find.text('PERSONAL'), findsOneWidget);
+    await tester.tap(find.text('BUSINESS'));
+    await tester.pumpAndSettle();
+    expect(find.text('Business is coming soon.'), findsOneWidget);
+    expect(find.text('PERSONAL'), findsOneWidget);
+    await tester.tap(find.text('PERSONAL'));
+    await tester.pumpAndSettle();
+    expect(find.text('Dashboard opened'), findsOneWidget);
     expect(remote.submittedMobile, '0712345678');
     expect((await sl<SecureStorage>().readLoginResponse())?.status, isTrue);
     await tester.pumpWidget(const SizedBox.shrink());
