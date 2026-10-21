@@ -1,8 +1,13 @@
+import 'dart:convert';
+
 import 'package:dropline/core/di/global_di.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:dropline/core/utility/widgets/app_background.dart';
+import 'package:dropline/core/utility/widgets/app_toast.dart';
 import 'package:dropline/features/event/data/services/event_submission_preview_service.dart';
 import 'package:dropline/features/event/domain/entities/location_flow_args.dart';
+import 'package:dropline/features/event/domain/repositories/location_repository_factory.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -33,7 +38,10 @@ class _SelectLocationPageState extends State<SelectLocationPage> {
   Future<void> _editAreas(BuildContext context) async {
     await context.push(
       AppRouter.mainAreas,
-      extra: LocationFlowArgs(scope: widget.flowArgs.scope,projectName: widget.flowArgs.projectName,),
+      extra: LocationFlowArgs(
+        scope: widget.flowArgs.scope,
+        projectName: widget.flowArgs.projectName,
+      ),
     );
 
     if (!context.mounted) return;
@@ -41,61 +49,188 @@ class _SelectLocationPageState extends State<SelectLocationPage> {
     await context.read<SelectLocationCubit>().refreshAfterEditing();
   }
 
+  // Future<void> _useLocation(BuildContext context) async {
+  //   if (_isSubmitting) return;
+
+  //   final cubit = context.read<SelectLocationCubit>();
+  //   final selected = cubit.state.selectedResult;
+
+  //   if (selected == null) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(
+  //         content: Text(
+  //           'Please select all four location levels.',
+  //         ),
+  //       ),
+  //     );
+  //     return;
+  //   }
+
+  //   setState(() {
+  //     _isSubmitting = true;
+  //   });
+
+  //   try {
+  //     // ==========================================
+  //     // STEP 1: SAVE SELECTED LOCATION
+  //     // ==========================================
+
+  //     final saved = await cubit.saveCurrentSelection();
+
+  //     if (!saved) {
+  //       throw StateError(
+  //         'Unable to save selected location.',
+  //       );
+  //     }
+
+  //     // ==========================================
+  //     // STEP 2: GET CURRENT TIME SLOT
+  //     // ==========================================
+
+  //     final currentScope = widget.flowArgs.scope;
+
+  //     debugPrint(
+  //       'PREVIEW ONLY TIME SLOT: ${currentScope.timeSlotId}',
+  //     );
+
+  //     // ==========================================
+  //     // STEP 3: READ PERSISTENT EVENT DATA
+  //     // ==========================================
+
+  //     // IMPORTANT:
+  //     // Ensure this service method no longer
+  //     // deletes eventFolder or locationFolder.
+
+  //     final payload =
+  //         await sl<EventSubmissionPreviewService>().previewAndClear(
+  //       scope: currentScope,
+  //       projectName: widget.flowArgs.projectName,
+  //     );
+
+  //     // ==========================================
+  //     // STEP 4: PRINT COMPLETE JSON
+  //     // ==========================================
+
+  //     final jsonString =
+  //         const JsonEncoder.withIndent('  ').convert(payload);
+
+  //     debugPrintSynchronously(
+  //       '========== EVENT JSON START ==========',
+  //     );
+
+  //     for (int i = 0; i < jsonString.length; i += 800) {
+  //       final end = (i + 800 < jsonString.length)
+  //           ? i + 800
+  //           : jsonString.length;
+
+  //       debugPrintSynchronously(
+  //         jsonString.substring(i, end),
+  //       );
+  //     }
+
+  //     debugPrintSynchronously(
+  //       '========== EVENT JSON END ==========',
+  //     );
+
+  //     debugPrint(
+  //       'EVENT DATA PRINTED FOR SLOT: ${payload['time_slot_id']}',
+  //     );
+
+  //     // Do not evict repository cache.
+  //     // Do not delete persistent event data.
+  //     // Do not navigate to dashboard.
+
+  //     if (!mounted) return;
+
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text(
+  //           'Time slot ${currentScope.timeSlotId} '
+  //           'data printed successfully. No data deleted.',
+  //         ),
+  //         duration: const Duration(seconds: 3),
+  //       ),
+  //     );
+  //   } catch (e, stackTrace) {
+  //     debugPrint('EVENT PREVIEW ERROR: $e');
+  //     debugPrintStack(stackTrace: stackTrace);
+
+  //     if (!mounted) return;
+
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text(
+  //           'Unable to print event data: $e',
+  //         ),
+  //         duration: const Duration(seconds: 5),
+  //       ),
+  //     );
+  //   } finally {
+  //     if (mounted) {
+  //       setState(() {
+  //         _isSubmitting = false;
+  //       });
+  //     }
+  //   }
+  // }
+
   Future<void> _useLocation(BuildContext context) async {
     if (_isSubmitting) return;
 
     final cubit = context.read<SelectLocationCubit>();
-
     final selected = cubit.state.selectedResult;
 
-    if (selected == null) return;
+    if (selected == null) {
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   const SnackBar(
+      //     content: Text('Please select all four location levels.'),
+      //   ),
+      // );
+      AppToast.error('Please select all four location levels.');
+      return;
+    }
 
     setState(() {
       _isSubmitting = true;
     });
 
     try {
-      // ======================================
-      // STEP 1: SAVE CURRENT SELECTION
-      // ======================================
-
+      // Save selection for clicked time slot.
       final saved = await cubit.saveCurrentSelection();
 
       if (!saved) {
         throw StateError('Unable to save selected location.');
       }
 
-      // ======================================
-      // STEP 2: PRINT ALL SAVED EVENT DATA
-      // STEP 3: CLEAR SESSION DATA
-      // ======================================
+      final currentScope = widget.flowArgs.scope;
 
+      debugPrint('SUBMITTING ONLY TIME SLOT: ${currentScope.timeSlotId}');
+
+      // Print and clear only the clicked slot.
       final payload = await sl<EventSubmissionPreviewService>().previewAndClear(
-        scope: widget.flowArgs.scope,
+        scope: currentScope,
         projectName: widget.flowArgs.projectName,
       );
 
-      // ======================================
-      // STEP 4: AFTER LOCAL CLEANUP
-      // ======================================
+      sl<LocationRepositoryFactory>().evictScope(currentScope);
 
       if (!mounted) return;
 
-      debugPrint(
-        'TOTAL SUBMITTED TIME SLOTS: '
-        '${payload['total_time_slots']}',
+      debugPrint('EVENT COMPLETED FOR SLOT: ${payload['time_slot_id']}');
+
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   SnackBar(
+      //     content: Text(
+      //       'Time slot ${currentScope.timeSlotId} '
+      //       'printed and cleared successfully.',
+      //     ),
+      //   ),
+      // );
+      AppToast.success(
+        'Time slot ${currentScope.timeSlotId} printed and cleared successfully',
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Event data printed and local drafts cleared.'),
-        ),
-      );
-
-      // Return to a fresh workflow.
-      // This should navigate to your dashboard,
-      // not reuse an AddEventPage that still holds
-      // old notes and attachments in memory.
+      // Navigate to fresh screen.
       context.go('/dashboard');
     } catch (e, stackTrace) {
       debugPrint('EVENT PREVIEW ERROR: $e');
@@ -103,12 +238,13 @@ class _SelectLocationPageState extends State<SelectLocationPage> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Unable to complete local submission: $e'),
-          duration: const Duration(seconds: 5),
-        ),
-      );
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   SnackBar(
+      //     content: Text('Unable to complete event: $e'),
+      //     duration: const Duration(seconds: 5),
+      //   ),
+      // );
+       AppToast.error('Unable to complete event: $e');
     } finally {
       if (mounted) {
         setState(() {

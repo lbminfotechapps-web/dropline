@@ -2,6 +2,7 @@ import 'package:dropline/core/router/app_router.dart';
 import 'package:dropline/core/theme/app_text_styles.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:dropline/core/utility/widgets/app_background.dart';
+import 'package:dropline/core/utility/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -10,6 +11,7 @@ class ChooseOptionPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scale = MediaQuery.sizeOf(context).width / 591;
     return Scaffold(
       body: AppBackground(
         child: SafeArea(
@@ -41,19 +43,22 @@ class ChooseOptionPage extends StatelessWidget {
                         _option(
                           label: 'PERSONAL',
                           onTap: () => context.go(AppRouter.dashboard),
+                          scale: scale,
                         ),
                         SizedBox(height: 28 * scale),
                         _option(
                           label: 'BUSINESS',
                           onTap: () {
-                            ScaffoldMessenger.of(context)
-                              ..clearSnackBars()
-                              ..showSnackBar(
-                                const SnackBar(
-                                  content: Text('Business is coming soon.'),
-                                ),
-                              );
+                            // ScaffoldMessenger.of(context)
+                            //   ..clearSnackBars()
+                            //   ..showSnackBar(
+                            //     const SnackBar(
+                            //       content: Text('Business is coming soon.'),
+                            //     ),
+                            //   );
+                             AppToast.error('Business is coming soon.');
                           },
+                          scale: scale,
                         ),
                       ],
                     ),
@@ -67,14 +72,19 @@ class ChooseOptionPage extends StatelessWidget {
     );
   }
 
-  Widget _option({required String label, required VoidCallback onTap}) {
+  Widget _option({
+    required String label,
+    required VoidCallback onTap,
+    required double scale,
+  }) {
     return Center(
       child: SizedBox(
-        width: 240,
+        // width: 240,
         child: Material(
           color: AppColors.cardBackground,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(28),
+
             side: BorderSide(
               color: AppColors.cardBorder.withValues(alpha: 0.65),
             ),
@@ -94,7 +104,7 @@ class ChooseOptionPage extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.titleLarge.copyWith(
-                        fontSize: 22,
+                        fontSize: 28 * scale,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.7,
                       ),

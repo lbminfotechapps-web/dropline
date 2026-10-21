@@ -7,6 +7,37 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   setUp(() async => initGlobalDi());
   tearDown(() async => sl.reset());
+  testWidgets('Deleting OTP digits moves focus to the previous box', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: LoginScreen()));
+    await tester.enterText(find.byType(TextField).at(1), '0712345678');
+    await tester.pumpAndSettle();
+
+    for (var i = 0; i < 4; i++) {
+      await tester.enterText(find.byType(TextField).at(i + 2), '${i + 1}');
+      await tester.pump();
+    }
+
+    for (var i = 3; i >= 0; i--) {
+      final field = tester.widget<TextField>(find.byType(TextField).at(i + 2));
+      expect(field.focusNode!.hasFocus, isTrue);
+      // Send an edit through the active keyboard connection without tapping
+      // another box, as a software keyboard does when deleting a digit.
+      tester.testTextInput.updateEditingValue(TextEditingValue.empty);
+      await tester.pump();
+      expect(field.controller!.text, isEmpty);
+      if (i > 0) {
+        final previous = tester.widget<TextField>(
+          find.byType(TextField).at(i + 1),
+        );
+        expect(previous.focusNode!.hasFocus, isTrue);
+        expect(previous.controller!.selection.baseOffset, 1);
+      }
+    }
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
   for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
     testWidgets('Terms dialog uses native controls on $platform', (
       tester,
