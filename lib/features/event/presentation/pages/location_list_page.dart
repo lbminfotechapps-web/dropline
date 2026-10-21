@@ -2,6 +2,7 @@ import 'package:dropline/core/router/app_router.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:dropline/core/utility/widgets/app_background.dart';
 import 'package:dropline/features/event/domain/entities/location_flow_args.dart';
+import 'package:dropline/features/event/helper/finish_location_setup.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -60,9 +61,16 @@ class LocationListPage extends StatelessWidget {
     );
   }
 
-  void _finishSetup(BuildContext context) {
-    context.push(AppRouter.selectLocation, extra: flowArgs);
-  }
+  // void _finishSetup(BuildContext context) {
+  //   context.push(AppRouter.selectLocation, extra: flowArgs);
+  // }
+
+  Future<void> _finishSetup(BuildContext context) async {
+  await finishLocationSetup(
+    context,
+    flowArgs: flowArgs,
+  );
+}
 
   @override
   Widget build(BuildContext context) {

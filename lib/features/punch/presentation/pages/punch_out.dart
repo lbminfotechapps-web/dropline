@@ -5,6 +5,7 @@ import 'package:dropline/core/di/global_di.dart';
 import 'package:dropline/core/router/app_router.dart';
 import 'package:dropline/core/secure_storage/secure_storage.dart';
 import 'package:dropline/core/utility/widgets/app_background.dart';
+import 'package:dropline/core/utility/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:showcaseview/showcaseview.dart';
@@ -168,9 +169,10 @@ class _PunchOutPageState extends State<PunchOutPage>
   }
 
   void _onClockOut() {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Clock Out action triggered')));
+    // ScaffoldMessenger.of(
+    //   context,
+    // ).showSnackBar(const SnackBar(content: Text('Clock Out action triggered')));
+    AppToast.success('Clock Out action triggered.');
   }
 
   @override
@@ -203,7 +205,8 @@ class _PunchOutPageState extends State<PunchOutPage>
                                   ? projectName
                                   : 'No Project Selected',
                               scale: scale,
-                              onBack: () => Navigator.pop(context),
+                              // onBack: () => Navigator.pop(context),
+                              onBack: () => context.push(AppRouter.dashboard),
                             ),
 
                             SizedBox(height: 121 * scale),

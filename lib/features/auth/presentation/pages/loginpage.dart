@@ -1,5 +1,6 @@
 import 'package:dropline/core/utility/showcase_once.dart';
 import 'package:dropline/core/di/global_di.dart';
+import 'package:dropline/core/utility/widgets/app_toast.dart';
 import 'package:dropline/features/auth/presentation/bloc/login_bloc.dart';
 import 'package:dropline/features/auth/presentation/bloc/login_event.dart';
 import 'package:dropline/features/auth/presentation/bloc/login_state.dart';
@@ -28,6 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _nameController = TextEditingController();
   final _mobileController = TextEditingController();
   final _codeControllers = List.generate(4, (_) => TextEditingController());
+  final _codeFocusNodes = List.generate(4, (_) => FocusNode());
   bool _agreed = false;
   late final LoginBloc _loginBloc;
   bool _isNavigating = false;
@@ -192,20 +194,22 @@ class _LoginScreenState extends State<LoginScreen> {
     if (_nameController.text.trim().isEmpty ||
         _mobileController.text.length != 10) {
       setState(() => _slide = 0);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Enter your name and 10-digit mobile number.'),
-        ),
-      );
+      AppToast.error('Enter your name and 10-digit mobile number.');
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   const SnackBar(
+      //     content: Text('Enter your name and 10-digit mobile number.'),
+      //   ),
+      // );
       return;
     }
     if (!_agreed) {
       setState(() => _slide = 0);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please agree to the Terms & Conditions to continue.'),
-        ),
-      );
+      AppToast.error('Please agree to the Terms & Conditions to continue.');
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   const SnackBar(
+      //     content: Text('Please agree to the Terms & Conditions to continue.'),
+      //   ),
+      // );
       return;
     }
     setState(() => _isNavigating = true);
@@ -229,6 +233,9 @@ class _LoginScreenState extends State<LoginScreen> {
     for (final controller in _codeControllers) {
       controller.dispose();
     }
+    for (final focusNode in _codeFocusNodes) {
+      focusNode.dispose();
+    }
     super.dispose();
   }
 
@@ -238,23 +245,25 @@ class _LoginScreenState extends State<LoginScreen> {
       bloc: _loginBloc,
       listener: (context, state) {
         if (state.status == LoginStatus.success) {
-          ScaffoldMessenger.of(context)
-            ..clearSnackBars()
-            ..showSnackBar(
-              const SnackBar(
-                content: Text('Signed in successfully.'),
-                duration: Duration(seconds: 3),
-              ),
-            );
+          AppToast.success('Signed in successfully.');
+          // ScaffoldMessenger.of(context)
+          //   ..clearSnackBars()
+          //   ..showSnackBar(
+          //     const SnackBar(
+          //       content: Text('Signed in successfully.'),
+          //       duration: Duration(seconds: 3),
+          //     ),
+          //   );
           context.go(AppRouter.chooseOption);
         } else if (state.status == LoginStatus.failure) {
           setState(() {
             _isNavigating = false;
             _slide = 0;
           });
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(state.message)));
+          AppToast.error(state.message);
+          // ScaffoldMessenger.of(
+          //   context,
+          // ).showSnackBar(SnackBar(content: Text(state.message)));
         }
       },
       child: AbsorbPointer(
@@ -420,6 +429,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               child: TextField(
                                 controller: _codeControllers[i],
+                                focusNode: _codeFocusNodes[i],
                                 textAlign: TextAlign.center,
                                 textAlignVertical: TextAlignVertical.center,
                                 cursorColor: AppColors.white,
@@ -451,7 +461,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                                 onChanged: (value) {
                                   if (value.isNotEmpty && i < 3) {
-                                    FocusScope.of(context).nextFocus();
+                                    _codeFocusNodes[i + 1].requestFocus();
+                                  } else if (value.isEmpty && i > 0) {
+                                    final previous = _codeControllers[i - 1];
+                                    previous.selection =
+                                        TextSelection.collapsed(
+                                          offset: previous.text.length,
+                                        );
+                                    _codeFocusNodes[i - 1].requestFocus();
                                   }
                                 },
                               ),
@@ -459,7 +476,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         place(
                           97,
-                          showOtp ? 930 : 740,
+                          showOtp ? 930 : 760,
                           384,
                           36,
                           Showcase(
@@ -503,6 +520,26 @@ class _LoginScreenState extends State<LoginScreen> {
                                         border: Border.all(
                                           color: AppColors.loginAgreement,
                                         ),
+                          40,
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Row(
+                              children: [
+                                GestureDetector(
+                                  onTap: () =>
+                                      setState(() => _agreed = !_agreed),
+                                  child: Container(
+                                    width: 34 * s,
+                                    height: 34 * s,
+                                    decoration: BoxDecoration(
+                                      color: _agreed
+                                          ? AppColors.loginAgreement
+                                          : AppColors.transparent,
+                                      borderRadius: BorderRadius.circular(
+                                        10 * s,
+                                      ),
+                                      border: Border.all(
+                                        color: AppColors.loginAgreement,
                                       ),
                                       child: _agreed
                                           ? Icon(
@@ -541,9 +578,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                         ),
+
                         place(
                           43,
-                          showOtp ? 987 : 797,
+                          showOtp ? 987 : 820,
                           505,
                           98,
                           LayoutBuilder(

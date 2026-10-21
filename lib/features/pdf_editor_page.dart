@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:dropline/core/utility/widgets/app_toast.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart' as pdf;
@@ -730,9 +731,10 @@ class _AddPdfNoteDialogState extends State<_AddPdfNoteDialog> {
     final String note = _noteController.text.trim();
 
     if (note.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please enter a note')));
+      // ScaffoldMessenger.of(
+      //   context,
+      // ).showSnackBar(const SnackBar(content: Text('Please enter a note')));
+      AppToast.success('Please enter a note.');
       return;
     }
 

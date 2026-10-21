@@ -34,11 +34,10 @@ class _DashboardPageState extends State<DashboardPage> {
   late DateTime _currentTime;
   Timer? _clockTimer;
 
-  // Temporary UI values.
-  // Later these will come from authentication/dashboard BLoC.
-  final String _userName = 'Leo';
   ProjectEntity? _selectedProject;
   bool _isPreparingPunchIn = false;
+  bool _isLoggingOut = false;
+  String _userName = '';
 
   @override
   void initState() {
@@ -76,6 +75,8 @@ class _DashboardPageState extends State<DashboardPage> {
         });
       }
     });
+
+    loadLoginInData();
   }
 
   @override
@@ -107,7 +108,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Future<void> _onSlideCompleted() async {
     final bloc = context.read<DashboardBloc>();
-    if (_isPreparingPunchIn ||
+    if (_isLoggingOut || _isPreparingPunchIn ||
         bloc.state.punchInStatus == DashboardStatus.loading) {
       return;
     }
@@ -149,6 +150,48 @@ class _DashboardPageState extends State<DashboardPage> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _logout() async {
+    if (_isLoggingOut ||
+        _isPreparingPunchIn ||
+        context.read<DashboardBloc>().state.punchInStatus ==
+            DashboardStatus.loading) {
+      return;
+    }
+    setState(() => _isLoggingOut = true);
+    try {
+      final storage = sl<SecureStorage>();
+      await storage.clearPunchInResult();
+      await storage.clearLoginResponse();
+      if (!mounted) return;
+      context.go(AppRouter.login);
+    } catch (_) {
+      if (mounted) _showMessage('Unable to log out. Please try again.');
+    } finally {
+      if (mounted) setState(() => _isLoggingOut = false);
+    }
+  }
+
+  Future<void> loadLoginInData() async {
+    try {
+      final loginData = await sl<SecureStorage>().readLoginResponse();
+
+      if (!mounted) return;
+
+      if (loginData == null ||
+          !loginData.status ||
+          loginData.result.isEmpty ||
+          loginData.result.first.name.trim().isEmpty) {
+        _showMessage('Please sign in again before clocking in.');
+        return;
+      }
+      setState(() {
+        _userName = loginData.result.first.name.trim();
+      });
+    } catch (e) {
+      debugPrint('Error loading Login data: $e');
+    }
   }
 
   @override
@@ -195,6 +238,13 @@ class _DashboardPageState extends State<DashboardPage> {
                             DashboardGreeting(
                               name: _userName,
                               dateTime: _currentTime,
+                              onLogout:
+                                  _isLoggingOut ||
+                                      _isPreparingPunchIn ||
+                                      state.punchInStatus ==
+                                          DashboardStatus.loading
+                                  ? null
+                                  : _logout,
                             ),
 
                             SizedBox(height: 100 * scale),
