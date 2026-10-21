@@ -1,3 +1,4 @@
+import 'package:dropline/core/utility/showcase_once.dart';
 import 'package:dropline/core/di/global_di.dart';
 import 'package:dropline/features/auth/presentation/bloc/login_bloc.dart';
 import 'package:dropline/features/auth/presentation/bloc/login_event.dart';
@@ -11,6 +12,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -20,6 +22,9 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _termsShowcaseKey = GlobalKey();
+  late final ShowcaseView _showcaseView;
+  late final String _showcaseScope;
   final _nameController = TextEditingController();
   final _mobileController = TextEditingController();
   final _codeControllers = List.generate(4, (_) => TextEditingController());
@@ -31,6 +36,20 @@ class _LoginScreenState extends State<LoginScreen> {
   void initState() {
     super.initState();
     _loginBloc = sl<LoginBloc>();
+    _showcaseScope = 'login-${identityHashCode(this)}';
+    _showcaseView = ShowcaseView.register(
+      scope: _showcaseScope,
+      enableAutoScroll: true,
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ShowcaseOnce.show(
+        id: 'login_terms',
+        showcase: _showcaseView,
+        target: _termsShowcaseKey,
+        isMounted: () => mounted,
+      );
+    });
   }
 
   double _slide = 0;
@@ -203,6 +222,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
+    _showcaseView.unregister();
     _loginBloc.close();
     _nameController.dispose();
     _mobileController.dispose();
@@ -442,59 +462,82 @@ class _LoginScreenState extends State<LoginScreen> {
                           showOtp ? 930 : 740,
                           384,
                           36,
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Row(
-                              children: [
-                                GestureDetector(
-                                  onTap: () =>
-                                      setState(() => _agreed = !_agreed),
-                                  child: Container(
-                                    width: 34 * s,
-                                    height: 34 * s,
-                                    decoration: BoxDecoration(
-                                      color: _agreed
-                                          ? AppColors.loginAgreement
-                                          : AppColors.transparent,
-                                      borderRadius: BorderRadius.circular(
-                                        10 * s,
+                          Showcase(
+                            key: _termsShowcaseKey,
+                            scope: _showcaseScope,
+                            title: 'Review before you sign in',
+                            description:
+                                'Tap Terms & Conditions to read them. '
+                                'If you agree, select the checkbox or tap '
+                                '“I agree” in the dialog, then slide to sign in.',
+                            targetPadding: const EdgeInsets.all(8),
+                            targetBorderRadius: BorderRadius.circular(12),
+                            tooltipPadding: const EdgeInsets.all(16),
+                            tooltipActions: [
+                              TooltipActionButton(
+                                type: TooltipDefaultActionType.skip,
+                                name: 'OK',
+                                textStyle: TextStyle(color: Colors.white),
+                                onTap: _showcaseView.dismiss,
+                              ),
+                            ],
+                            disposeOnTap: true,
+                            onTargetClick: _showTermsAndConditions,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Row(
+                                children: [
+                                  GestureDetector(
+                                    onTap: () =>
+                                        setState(() => _agreed = !_agreed),
+                                    child: Container(
+                                      width: 34 * s,
+                                      height: 34 * s,
+                                      decoration: BoxDecoration(
+                                        color: _agreed
+                                            ? AppColors.loginAgreement
+                                            : AppColors.transparent,
+                                        borderRadius: BorderRadius.circular(
+                                          10 * s,
+                                        ),
+                                        border: Border.all(
+                                          color: AppColors.loginAgreement,
+                                        ),
                                       ),
-                                      border: Border.all(
-                                        color: AppColors.loginAgreement,
-                                      ),
+                                      child: _agreed
+                                          ? Icon(
+                                              Icons.check_rounded,
+                                              color:
+                                                  AppColors.loginAgreementIcon,
+                                              size: 25 * s,
+                                            )
+                                          : null,
                                     ),
-                                    child: _agreed
-                                        ? Icon(
-                                            Icons.check_rounded,
-                                            color: AppColors.loginAgreementIcon,
-                                            size: 25 * s,
-                                          )
-                                        : null,
                                   ),
-                                ),
-                                SizedBox(width: 17 * s),
-                                Text(
-                                  'I agree to the',
-                                  style: AppTextStyles.inputText.copyWith(
-                                    color: AppColors.textSecondary,
-                                    fontSize: 20 * s,
-                                  ),
-                                ),
-                                SizedBox(width: 18 * s),
-                                InkWell(
-                                  onTap: _showTermsAndConditions,
-                                  child: Text(
-                                    'Terms & Conditions',
-                                    style: AppTextStyles.link.copyWith(
-                                      color: AppColors.loginLink,
+                                  SizedBox(width: 17 * s),
+                                  Text(
+                                    'I agree to the',
+                                    style: AppTextStyles.inputText.copyWith(
+                                      color: AppColors.textSecondary,
                                       fontSize: 20 * s,
-                                      fontWeight: FontWeight.w600,
-                                      decoration: TextDecoration.underline,
-                                      decorationColor: AppColors.loginLink,
                                     ),
                                   ),
-                                ),
-                              ],
+                                  SizedBox(width: 18 * s),
+                                  InkWell(
+                                    onTap: _showTermsAndConditions,
+                                    child: Text(
+                                      'Terms & Conditions',
+                                      style: AppTextStyles.link.copyWith(
+                                        color: AppColors.loginLink,
+                                        fontSize: 20 * s,
+                                        fontWeight: FontWeight.w600,
+                                        decoration: TextDecoration.underline,
+                                        decorationColor: AppColors.loginLink,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),

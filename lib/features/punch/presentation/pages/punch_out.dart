@@ -1,3 +1,4 @@
+import 'package:dropline/core/utility/showcase_once.dart';
 import 'dart:async';
 
 import 'package:dropline/core/di/global_di.dart';
@@ -6,6 +7,7 @@ import 'package:dropline/core/secure_storage/secure_storage.dart';
 import 'package:dropline/core/utility/widgets/app_background.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 import '../widgets/punch_header.dart';
 import '../widgets/punch_time_card.dart';
@@ -21,6 +23,9 @@ class PunchOutPage extends StatefulWidget {
 
 class _PunchOutPageState extends State<PunchOutPage>
     with WidgetsBindingObserver {
+  final _workDetailsShowcaseKey = GlobalKey();
+  late final String _showcaseScope;
+  late final ShowcaseView _showcaseView;
   Timer? _clockTimer;
   DateTime _currentTime = DateTime.now();
   DateTime? _punchInTime;
@@ -28,6 +33,20 @@ class _PunchOutPageState extends State<PunchOutPage>
   @override
   void initState() {
     super.initState();
+    _showcaseScope = 'punch-out-${identityHashCode(this)}';
+    _showcaseView = ShowcaseView.register(
+      scope: _showcaseScope,
+      enableAutoScroll: true,
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ShowcaseOnce.show(
+        id: 'work_details',
+        showcase: _showcaseView,
+        target: _workDetailsShowcaseKey,
+        isMounted: () => mounted,
+      );
+    });
     WidgetsBinding.instance.addObserver(this);
     _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       _updateTime();
@@ -47,6 +66,7 @@ class _PunchOutPageState extends State<PunchOutPage>
 
   @override
   void dispose() {
+    _showcaseView.unregister();
     _clockTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -205,11 +225,36 @@ class _PunchOutPageState extends State<PunchOutPage>
 
                             SizedBox(height: 78 * scale),
 
-                            WorkDetailsCard(
-                              title: 'ADD WORK DETAILS',
-                              value: workType,
-                              onTap: _onAddWorkDetails,
-                              scale: scale,
+                            Showcase(
+                              key: _workDetailsShowcaseKey,
+                              scope: _showcaseScope,
+                              title: 'Add your work details',
+                              description:
+                                  'Tap Event to record details of the work '
+                                  'you’ve done on this project.',
+                              targetPadding: const EdgeInsets.all(8),
+                              targetBorderRadius: BorderRadius.circular(
+                                88 * scale,
+                              ),
+                              tooltipPadding: const EdgeInsets.all(16),
+                              tooltipActions: [
+                                TooltipActionButton(
+                                  type: TooltipDefaultActionType.skip,
+                                  name: 'OK',
+                                  textStyle: const TextStyle(
+                                    color: Colors.white,
+                                  ),
+                                  onTap: _showcaseView.dismiss,
+                                ),
+                              ],
+                              disposeOnTap: true,
+                              onTargetClick: _onAddWorkDetails,
+                              child: WorkDetailsCard(
+                                title: 'ADD WORK DETAILS',
+                                value: workType,
+                                onTap: _onAddWorkDetails,
+                                scale: scale,
+                              ),
                             ),
                           ],
                         ),

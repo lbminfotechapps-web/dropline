@@ -73,49 +73,148 @@ class _DashboardProjectCardState extends State<DashboardProjectCard> {
   @override
   Widget build(BuildContext context) {
     final scale = MediaQuery.sizeOf(context).width / 591;
+    final project = widget.selectedProject;
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppColors.cardBackgroundLight, AppColors.primaryDark],
+        ),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.cardBorder.withValues(alpha: 0.65)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Material(
             color: Colors.transparent,
             child: InkWell(
               onTap: _openProjectPicker,
               borderRadius: BorderRadius.circular(28),
-              child: Container(
-                width: double.infinity,
-                alignment: Alignment.center,
-                constraints: BoxConstraints(minHeight: 108 * scale),
-                child: Text(
-                  'SELECT PROJECT',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.titleLarge.copyWith(
-                    fontSize: 28 * scale,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.7,
-                  ),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.18),
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.work_outline_rounded,
+                        color: Colors.white,
+                        size: 26,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'SELECT PROJECT',
+                            style: AppTextStyles.titleLarge.copyWith(
+                              fontSize: 30 * scale,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            project == null
+                                ? 'Choose where you’re working today'
+                                : 'Tap to change your project',
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: AppColors.textSecondary,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
-          if (widget.selectedProject != null)
+          if (project != null)
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
-              child: InputChip(
-                label: Text(
-                  widget.selectedProject!.projectName,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Material(
+                color: const Color(0xFFF0F3FB),
+                borderRadius: BorderRadius.circular(18),
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: _openProjectPicker,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.check_circle_rounded,
+                          color: AppColors.primaryDark,
+                          size: 24,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'CURRENT PROJECT',
+                                style: AppTextStyles.labelSmall.copyWith(
+                                  color: AppColors.primaryDark,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 1.1,
+                                ),
+                              ),
+                              const SizedBox(height: 5),
+                              Text(
+                                project.projectName,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTextStyles.titleLarge.copyWith(
+                                  color: Colors.black,
+                                  fontSize: 30 * scale,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: 'Remove project',
+                          onPressed: widget.onRemoveProject,
+                          icon: const Icon(
+                            Icons.close_rounded,
+                            color: AppColors.primaryDark,
+                            size: 20,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                onPressed: _openProjectPicker,
-                onDeleted: widget.onRemoveProject,
-                deleteIcon: const Icon(Icons.close_rounded),
-                deleteButtonTooltipMessage: 'Remove project',
               ),
             ),
         ],
@@ -135,6 +234,14 @@ class _ProjectPickerPageState extends State<_ProjectPickerPage> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   String _searchQuery = '';
+  bool _showSearch = false;
+
+  void _openSearch() {
+    setState(() => _showSearch = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _searchFocusNode.requestFocus();
+    });
+  }
 
   // =========================================
   // MANUAL PROJECT SELECTION
@@ -237,7 +344,10 @@ class _ProjectPickerPageState extends State<_ProjectPickerPage> {
                     Expanded(
                       child: Text(
                         'SELECT PROJECT',
-                        style: AppTextStyles.titleLarge,
+                        style: AppTextStyles.titleLarge.copyWith(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                     ),
                     IconButton(
@@ -248,9 +358,19 @@ class _ProjectPickerPageState extends State<_ProjectPickerPage> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                _buildSearchField(),
-                const SizedBox(height: 18),
                 Expanded(child: _buildProjectList()),
+                const SizedBox(height: 18),
+                if (_showSearch)
+                  _buildSearchField()
+                else
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: IconButton.filled(
+                      tooltip: 'Search existing or enter new project',
+                      onPressed: _openSearch,
+                      icon: const Icon(Icons.add_rounded, color: Colors.white),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -271,7 +391,6 @@ class _ProjectPickerPageState extends State<_ProjectPickerPage> {
     return TextField(
       controller: _searchController,
       focusNode: _searchFocusNode,
-      autofocus: true,
       cursorColor: Colors.white,
       textInputAction: TextInputAction.done,
       style: AppTextStyles.inputText,
