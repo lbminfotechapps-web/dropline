@@ -44,4 +44,9 @@ class LocationRepositoryFactory {
     }
   });
 }
+
+
+void evictScope(EventDraftScope scope) {
+  _repositories.remove(scope.storageKey);
+}
 }
