@@ -1,3 +1,4 @@
+import 'package:dropline/core/utility/showcase_once.dart';
 import 'dart:async';
 
 import 'package:dropline/core/di/global_di.dart';
@@ -11,6 +12,7 @@ import 'package:dropline/features/dashboard/domain/entity/project_entity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 import '../widgets/dashboard_greeting.dart';
 import '../widgets/dashboard_date_card.dart';
@@ -26,6 +28,9 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
+  final _projectShowcaseKey = GlobalKey();
+  late final String _showcaseScope;
+  late final ShowcaseView _showcaseView;
   late DateTime _currentTime;
   Timer? _clockTimer;
 
@@ -37,6 +42,20 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   void initState() {
     super.initState();
+    _showcaseScope = 'dashboard-${identityHashCode(this)}';
+    _showcaseView = ShowcaseView.register(
+      scope: _showcaseScope,
+      enableAutoScroll: true,
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ShowcaseOnce.show(
+        id: 'select_project',
+        showcase: _showcaseView,
+        target: _projectShowcaseKey,
+        isMounted: () => mounted,
+      );
+    });
 
     _currentTime = DateTime.now();
 
@@ -62,6 +81,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   void dispose() {
+    _showcaseView.unregister();
     _clockTimer?.cancel();
     super.dispose();
   }
@@ -233,14 +253,36 @@ class _DashboardPageState extends State<DashboardPage> {
 
                             SizedBox(height: 51 * scale),
 
-                            DashboardProjectCard(
-                              selectedProject: _selectedProject,
-                              onProjectSelected: _onProjectSelected,
-                              onRemoveProject: () {
-                                setState(() {
-                                  _selectedProject = null;
-                                });
-                              },
+                            Showcase(
+                              key: _projectShowcaseKey,
+                              scope: _showcaseScope,
+                              title: 'Choose your project',
+                              description:
+                                  'Tap Select Project to search for and choose '
+                                  'the project you’re working on. Select a '
+                                  'project before sliding to clock in.',
+                              targetPadding: const EdgeInsets.all(8),
+                              targetBorderRadius: BorderRadius.circular(28),
+                              tooltipPadding: const EdgeInsets.all(16),
+                              tooltipActions: [
+                                TooltipActionButton(
+                                  type: TooltipDefaultActionType.skip,
+                                  name: 'OK',
+                                  textStyle: const TextStyle(
+                                    color: Colors.white,
+                                  ),
+                                  onTap: _showcaseView.dismiss,
+                                ),
+                              ],
+                              child: DashboardProjectCard(
+                                selectedProject: _selectedProject,
+                                onProjectSelected: _onProjectSelected,
+                                onRemoveProject: () {
+                                  setState(() {
+                                    _selectedProject = null;
+                                  });
+                                },
+                              ),
                             ),
                             SizedBox(height: 62 * scale),
 
