@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dropline/features/companies/presentation/start_work.dart';
 import 'package:dropline/features/project_setup/presentation/pages/project_setup_pages.dart';
 import 'package:dropline/features/newproject/presentation/new_project.dart';
 
@@ -372,7 +373,12 @@ class _MePageState extends State<MePage> {
                           borderRadius: BorderRadius.circular(7 * s),
                         ),
                       ),
-                      onPressed: widget.onStartWork,
+                      onPressed: () => Navigator.of(context).push<void>(
+                        MaterialPageRoute<void>(
+                          builder: (_) =>
+                              StartWorkPage(onStartWork: widget.onStartWork),
+                        ),
+                      ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
