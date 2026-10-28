@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:dropline/core/router/app_router.dart';
+import 'package:go_router/go_router.dart';
 import 'package:dropline/features/companies/presentation/companies_people.dart';
 
 /// Project configuration menu, styled to match the project setup reference.
@@ -35,7 +37,7 @@ class ProjectSetupPage extends StatelessWidget {
       if (onBackToProject != null) {
         onBackToProject!();
       } else {
-        Navigator.of(context).maybePop();
+        if (context.canPop()) context.pop();
       }
     }
 
@@ -181,7 +183,15 @@ class ProjectSetupPage extends StatelessWidget {
                           menuItem(
                             'Areas',
                             'Set up the places where work happens',
-                            onAreas,
+                            onAreas ??
+                                () => context.push<Map<String, dynamic>>(
+                                  Uri(
+                                    path: AppRouter.areaLabels,
+                                    queryParameters: {
+                                      'projectName': projectName,
+                                    },
+                                  ).toString(),
+                                ),
                           ),
                           menuItem(
                             'Events',
