@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dropline/features/companies/presentation/companies_people.dart';
 
 /// Project configuration menu, styled to match the project setup reference.
 class ProjectSetupPage extends StatelessWidget {
@@ -170,7 +171,12 @@ class ProjectSetupPage extends StatelessWidget {
                           menuItem(
                             'Companies & people',
                             'Company IDs, Admins, teams and permissions',
-                            onCompaniesAndPeople,
+                            onCompaniesAndPeople ??
+                                () => Navigator.of(context).push(
+                                  MaterialPageRoute<void>(
+                                    builder: (_) => const CompaniesPeoplePage(),
+                                  ),
+                                ),
                           ),
                           menuItem(
                             'Areas',
