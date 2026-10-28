@@ -202,6 +202,11 @@ class _LoginScreenState extends State<LoginScreen> {
       // );
       return;
     }
+    if (_codeControllers.any((controller) => controller.text.length != 1)) {
+      setState(() => _slide = 0);
+      AppToast.error('Enter the complete 4-digit OTP.');
+      return;
+    }
     if (!_agreed) {
       setState(() => _slide = 0);
       AppToast.error('Please agree to the Terms & Conditions to continue.');
@@ -520,26 +525,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                         border: Border.all(
                                           color: AppColors.loginAgreement,
                                         ),
-                          40,
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Row(
-                              children: [
-                                GestureDetector(
-                                  onTap: () =>
-                                      setState(() => _agreed = !_agreed),
-                                  child: Container(
-                                    width: 34 * s,
-                                    height: 34 * s,
-                                    decoration: BoxDecoration(
-                                      color: _agreed
-                                          ? AppColors.loginAgreement
-                                          : AppColors.transparent,
-                                      borderRadius: BorderRadius.circular(
-                                        10 * s,
-                                      ),
-                                      border: Border.all(
-                                        color: AppColors.loginAgreement,
                                       ),
                                       child: _agreed
                                           ? Icon(

@@ -4,6 +4,8 @@
 <dict>
 	<key>NSCameraUsageDescription</key>
 	<string>Dropline uses your camera to attach photos to event notes.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Dropline uses your photo library to select prescription images for reading.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Dropline uses your microphone to record voice notes for events.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>

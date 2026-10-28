@@ -22,11 +22,15 @@ class DashboardRepoImp implements DashboardRepo {
     String loginUserId,
     String projectName,
     String projectId,
+    String type,
+    String id,
   ) async {
     final response = await dashboardDatasource.punchIn(
       loginUserId,
       projectName,
       projectId,
+      type,
+      id,
     );
 
     // Save only when Punch In is successful.

@@ -2,6 +2,7 @@ import 'package:dropline/core/utility/showcase_once.dart';
 import 'dart:async';
 
 import 'package:dropline/core/di/global_di.dart';
+import 'package:dropline/core/theme/appcolors.dart';
 import 'package:dropline/core/secure_storage/secure_storage.dart';
 import 'package:dropline/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:dropline/features/dashboard/presentation/bloc/dashboard_event.dart';
@@ -10,6 +11,7 @@ import 'package:dropline/core/router/app_router.dart';
 import 'package:dropline/core/utility/widgets/app_background.dart';
 import 'package:dropline/features/dashboard/domain/entity/project_entity.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:showcaseview/showcaseview.dart';
@@ -33,6 +35,7 @@ class _DashboardPageState extends State<DashboardPage> {
   late final ShowcaseView _showcaseView;
   late DateTime _currentTime;
   Timer? _clockTimer;
+  DateTime? _lastBackPressed;
 
   ProjectEntity? _selectedProject;
   bool _isPreparingPunchIn = false;
@@ -108,7 +111,8 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Future<void> _onSlideCompleted() async {
     final bloc = context.read<DashboardBloc>();
-    if (_isLoggingOut || _isPreparingPunchIn ||
+    if (_isLoggingOut ||
+        _isPreparingPunchIn ||
         bloc.state.punchInStatus == DashboardStatus.loading) {
       return;
     }
@@ -135,6 +139,8 @@ class _DashboardPageState extends State<DashboardPage> {
           loginUserId: login.result.first.userId,
           projectName: project.projectName,
           projectId: project.projectId,
+          type: 'Inpunch',
+          id: '0',
         ),
       );
     } catch (_) {
@@ -161,6 +167,46 @@ class _DashboardPageState extends State<DashboardPage> {
     }
     setState(() => _isLoggingOut = true);
     try {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          backgroundColor: AppColors.cardBackground,
+          surfaceTintColor: AppColors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: const BorderSide(color: AppColors.cardBorder),
+          ),
+          titleTextStyle: Theme.of(dialogContext).textTheme.titleLarge
+              ?.copyWith(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w600,
+              ),
+          contentTextStyle: Theme.of(
+            dialogContext,
+          ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+          title: const Text('Log out?'),
+          content: const Text('Are you sure you want to log out?'),
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.textSecondary,
+              ),
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.buttonPrimary,
+                foregroundColor: AppColors.buttonText,
+              ),
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Log out'),
+            ),
+          ],
+        ),
+      );
+      if (!mounted || confirmed != true) return;
+
       final storage = sl<SecureStorage>();
       await storage.clearPunchInResult();
       await storage.clearLoginResponse();
@@ -196,17 +242,38 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<DashboardBloc, DashboardState>(
-      listenWhen: (previous, current) =>
-          previous.punchInStatus != current.punchInStatus,
-      listener: (context, state) {
-        if (state.punchInStatus == DashboardStatus.failure) {
-          _showMessage(state.errorMessage);
-        } else if (state.punchInStatus == DashboardStatus.success) {
-          context.push(AppRouter.punchOut);
+    return PopScope(
+      canPop: Theme.of(context).platform != TargetPlatform.android,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        final now = DateTime.now();
+        if (_lastBackPressed != null &&
+            now.difference(_lastBackPressed!) < const Duration(seconds: 2)) {
+          SystemNavigator.pop();
+          return;
         }
+        _lastBackPressed = now;
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(
+              content: Text('Press back again to exit'),
+              duration: Duration(seconds: 2),
+            ),
+          );
       },
-      builder: (context, state) => _buildDashboard(context, state),
+      child: BlocConsumer<DashboardBloc, DashboardState>(
+        listenWhen: (previous, current) =>
+            previous.punchInStatus != current.punchInStatus,
+        listener: (context, state) {
+          if (state.punchInStatus == DashboardStatus.failure) {
+            _showMessage(state.errorMessage);
+          } else if (state.punchInStatus == DashboardStatus.success) {
+            context.push(AppRouter.punchOut);
+          }
+        },
+        builder: (context, state) => _buildDashboard(context, state),
+      ),
     );
   }
 
@@ -238,6 +305,7 @@ class _DashboardPageState extends State<DashboardPage> {
                             DashboardGreeting(
                               name: _userName,
                               dateTime: _currentTime,
+                              onMe: () => context.push(AppRouter.me),
                               onLogout:
                                   _isLoggingOut ||
                                       _isPreparingPunchIn ||
