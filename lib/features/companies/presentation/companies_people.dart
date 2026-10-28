@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'add_compnies.dart';
+import 'invite_people.dart';
 
 class CompaniesPeoplePage extends StatefulWidget {
-  const CompaniesPeoplePage({super.key});
+  const CompaniesPeoplePage({super.key, this.onInvitePeople});
+
+  final VoidCallback? onInvitePeople;
 
   @override
   State<CompaniesPeoplePage> createState() => _CompaniesPeoplePageState();
@@ -19,43 +23,9 @@ class _CompaniesPeoplePageState extends State<CompaniesPeoplePage> {
   final List<String> _companies = ['Apex Build'];
 
   Future<void> _addCompany() async {
-    final controller = TextEditingController();
-    final name = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: _surface,
-        title: const Text('Add company', style: TextStyle(color: _text)),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          textCapitalization: TextCapitalization.words,
-          style: const TextStyle(color: _text),
-          decoration: const InputDecoration(
-            labelText: 'Company name',
-            labelStyle: TextStyle(color: _muted),
-          ),
-          onSubmitted: (value) {
-            if (value.trim().isNotEmpty) Navigator.pop(context, value.trim());
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: _muted)),
-          ),
-          TextButton(
-            onPressed: () {
-              final value = controller.text.trim();
-              if (value.isNotEmpty) Navigator.pop(context, value);
-            },
-            child: const Text('Add', style: TextStyle(color: _lime)),
-          ),
-        ],
-      ),
-    );
-    // Let the dialog finish its dismissal animation before disposing its field.
-    await Future<void>.delayed(const Duration(milliseconds: 300));
-    controller.dispose();
+    final name = await Navigator.of(
+      context,
+    ).push<String>(MaterialPageRoute(builder: (_) => const AddCompaniesPage()));
     if (!mounted || name == null) return;
     setState(() => _companies.add(name));
   }
@@ -196,11 +166,46 @@ class _CompaniesPeoplePageState extends State<CompaniesPeoplePage> {
                         child: label('+ Add company', bold: true),
                       ),
                     ),
-                  ] else
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 12 * s),
-                      child: label('No team members yet', color: _muted),
+                  ] else ...[
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 7 * s,
+                        vertical: 6 * s,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _surface,
+                        border: Border.all(color: _border),
+                        borderRadius: BorderRadius.circular(7 * s),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          label('Suresh', size: 8, bold: true),
+                          SizedBox(height: 2 * s),
+                          label(
+                            'Company owner · Joined',
+                            size: 6.5,
+                            color: _muted,
+                          ),
+                        ],
+                      ),
                     ),
+                    SizedBox(height: 6 * s),
+                    SizedBox(
+                      height: 28 * s,
+                      child: OutlinedButton(
+                        style: buttonStyle(),
+                        onPressed:
+                            widget.onInvitePeople ??
+                            () => Navigator.of(context).push<void>(
+                              MaterialPageRoute<void>(
+                                builder: (_) => const InvitePeoplePage(),
+                              ),
+                            ),
+                        child: label('+ Invite people', size: 8, bold: true),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dropline/core/router/app_router.dart';
 import 'package:go_router/go_router.dart';
+import 'package:dropline/features/projectevent/presentation/project_event.dart';
 import 'package:dropline/features/companies/presentation/companies_people.dart';
 
 /// Project configuration menu, styled to match the project setup reference.
@@ -196,7 +197,15 @@ class ProjectSetupPage extends StatelessWidget {
                           menuItem(
                             'Events',
                             'Categories and events for your records',
-                            onEvents,
+                            onEvents ??
+                                () => Navigator.of(context).push<void>(
+                                  MaterialPageRoute<void>(
+                                    builder: (_) => ProjectEventPage(
+                                      projectName: projectName,
+                                      companyName: companyName,
+                                    ),
+                                  ),
+                                ),
                           ),
                           menuItem(
                             'Master flows',
