@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'add_category.dart';
 
 class ProjectEventPage extends StatefulWidget {
   const ProjectEventPage({
@@ -29,52 +30,18 @@ class _ProjectEventPageState extends State<ProjectEventPage> {
   ];
 
   Future<void> _newCategory() async {
-    final formKey = GlobalKey<FormState>();
-    var name = '';
-    final result = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: _surface,
-        title: const Text('New category', style: TextStyle(color: _text)),
-        content: Form(
-          key: formKey,
-          child: TextFormField(
-            autofocus: true,
-            textCapitalization: TextCapitalization.words,
-            style: const TextStyle(color: _text),
-            decoration: const InputDecoration(
-              labelText: 'Category name',
-              labelStyle: TextStyle(color: _muted),
-            ),
-            onChanged: (value) => name = value.trim(),
-            validator: (value) => value == null || value.trim().isEmpty
-                ? 'Enter a category name'
-                : null,
-            onFieldSubmitted: (_) {
-              if (formKey.currentState!.validate()) {
-                Navigator.pop(context, name);
-              }
-            },
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: _muted)),
-          ),
-          TextButton(
-            onPressed: () {
-              if (formKey.currentState!.validate()) {
-                Navigator.pop(context, name);
-              }
-            },
-            child: const Text('Add', style: TextStyle(color: _lime)),
-          ),
-        ],
+    final result = await Navigator.of(context).push<ProjectEventCategory>(
+      MaterialPageRoute<ProjectEventCategory>(
+        builder: (_) => AddCategoryPage(projectName: widget.projectName),
       ),
     );
     if (!mounted || result == null) return;
-    setState(() => _categories.add((name: result, events: 'No events yet')));
+    setState(
+      () => _categories.add((
+        name: result.name,
+        events: result.events.join(' · '),
+      )),
+    );
   }
 
   @override
