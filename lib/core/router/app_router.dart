@@ -1,3 +1,6 @@
+import 'package:dropline/features/areas/presentation/pages/area_editable_pages.dart';
+import 'package:dropline/features/project_setup/presentation/pages/project_setup_pages.dart';
+import 'package:dropline/features/areas/presentation/pages/area_main_pages.dart';
 import 'package:dropline/core/di/global_di.dart';
 import 'package:dropline/features/me/presentation/me.dart';
 import 'package:dropline/features/auth/presentation/pages/loginpage.dart';
@@ -54,6 +57,9 @@ class AppRouter {
   static const String chooseOption = '/choose-option';
   static const String dashboard = '/dashboard';
   static const String me = '/me';
+  static const String projectSetup = '/project-setup';
+  static const String areaLabels = '/area-labels';
+  static const String areas = '/areas';
   static const String addEvent = '/add-event';
   static const String punchOut = '/punchOut';
   static const String mainAreas = '/mainAreas';
@@ -66,6 +72,41 @@ class AppRouter {
     initialLocation: splash,
 
     routes: [
+      GoRoute(
+        path: projectSetup,
+        builder: (context, state) => ProjectSetupPage(
+          projectName:
+              state.uri.queryParameters['projectName'] ?? 'Laxmi Gauri',
+          companyName: state.uri.queryParameters['companyName'] ?? 'Apex Build',
+        ),
+      ),
+      GoRoute(
+        path: areaLabels,
+        builder: (context, state) {
+          final data = state.extra as Map<String, dynamic>?;
+          return AreaMainPage(
+            projectName:
+                state.uri.queryParameters['projectName'] ?? 'Laxmi Gauri',
+            initialLabels: (data?['labels'] as List?)?.cast<String>(),
+            initialAboutAreas: data?['aboutAreas'] as String?,
+            returnResult: state.uri.queryParameters['edit'] == 'true',
+          );
+        },
+      ),
+      GoRoute(
+        path: areas,
+        builder: (context, state) {
+          final data = state.extra as Map<String, dynamic>?;
+          return AreaEditablePage(
+            projectName:
+                state.uri.queryParameters['projectName'] ?? 'Laxmi Gauri',
+            labels:
+                (data?['labels'] as List?)?.cast<String>() ??
+                const ['Building', 'Level', 'Apartment', 'Room'],
+            aboutAreas: data?['aboutAreas'] as String? ?? '',
+          );
+        },
+      ),
       GoRoute(
         path: me,
         builder: (context, state) =>

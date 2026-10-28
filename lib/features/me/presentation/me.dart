@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:dropline/core/router/app_router.dart';
+import 'package:go_router/go_router.dart';
 import 'package:dropline/features/companies/presentation/start_work.dart';
 import 'package:dropline/features/project_setup/presentation/pages/project_setup_pages.dart';
 import 'package:dropline/features/newproject/presentation/new_project.dart';
@@ -312,11 +314,7 @@ class _MePageState extends State<MePage> {
                   if (showProject)
                     GestureDetector(
                       behavior: HitTestBehavior.opaque,
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => const ProjectSetupPage(),
-                        ),
-                      ),
+                      onTap: () => context.push(AppRouter.projectSetup),
                       child: panel(
                         height: 42,
                         child: Row(
