@@ -4,9 +4,11 @@ import 'package:dropline/features/dashboard/domain/entity/project_entity.dart';
 abstract class DashboardRepo {
   Future<ProjectResponseEntity> getProjects();
 
-   Future<InPunchResponseEntity> punchIn(
+  Future<InPunchResponseEntity> punchIn(
     String loginUserId,
     String projectName,
     String projectId,
+    String type,
+    String id,
   );
 }

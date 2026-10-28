@@ -1,4 +1,5 @@
 import 'package:dropline/core/di/global_di.dart';
+import 'package:dropline/features/me/presentation/me.dart';
 import 'package:dropline/features/auth/presentation/pages/loginpage.dart';
 import 'package:dropline/features/auth/presentation/pages/choose_option.dart';
 import 'package:dropline/features/dashboard/presentation/pages/dashboard_page.dart';
@@ -52,6 +53,7 @@ class AppRouter {
   static const String login = '/login';
   static const String chooseOption = '/choose-option';
   static const String dashboard = '/dashboard';
+  static const String me = '/me';
   static const String addEvent = '/add-event';
   static const String punchOut = '/punchOut';
   static const String mainAreas = '/mainAreas';
@@ -64,6 +66,11 @@ class AppRouter {
     initialLocation: splash,
 
     routes: [
+      GoRoute(
+        path: me,
+        builder: (context, state) =>
+            MePage(onStartWork: () => context.push(dashboard)),
+      ),
       GoRoute(
         path: chooseOption,
         builder: (context, state) => const ChooseOptionPage(),

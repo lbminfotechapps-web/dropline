@@ -11,15 +11,19 @@ class DashboardUsecase {
     return await dashboardRepo.getProjects();
   }
 
- Future<InPunchResponseEntity> punchIn(
-  String loginUserId,
-  String projectName,
-  String projectId,
-) async {
-  return await dashboardRepo.punchIn(
-    loginUserId,
-    projectName,
-    projectId,
-  );
-}
+  Future<InPunchResponseEntity> punchIn(
+    String loginUserId,
+    String projectName,
+    String projectId,
+    String type,
+    String id,
+  ) async {
+    return await dashboardRepo.punchIn(
+      loginUserId,
+      projectName,
+      projectId,
+      type,
+      id,
+    );
+  }
 }

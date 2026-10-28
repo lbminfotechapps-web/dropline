@@ -78,6 +78,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
         event.loginUserId,
         event.projectName,
         event.projectId,
+        event.type,
+        event.id,
       );
 
       if (response.status && response.result.isNotEmpty) {

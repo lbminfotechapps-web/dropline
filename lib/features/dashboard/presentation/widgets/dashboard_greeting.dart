@@ -5,12 +5,14 @@ class DashboardGreeting extends StatelessWidget {
   final String name;
   final DateTime dateTime;
   final VoidCallback? onLogout;
+  final VoidCallback? onMe;
 
   const DashboardGreeting({
     super.key,
     required this.name,
     required this.dateTime,
     this.onLogout,
+    this.onMe,
   });
 
   String get greeting {
@@ -47,6 +49,15 @@ class DashboardGreeting extends StatelessWidget {
           onPressed: onLogout,
           icon: const Icon(Icons.logout),
           color: AppTextStyles.headingMedium.color,
+        ),
+        TextButton(
+          onPressed: onMe,
+          style: TextButton.styleFrom(
+            foregroundColor: AppTextStyles.headingMedium.color,
+            minimumSize: const Size(40, 48),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+          ),
+          child: const Text('Me'),
         ),
       ],
     );
