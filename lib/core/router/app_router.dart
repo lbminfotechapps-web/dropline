@@ -1,4 +1,5 @@
 import 'package:dropline/features/areas/presentation/pages/area_editable_pages.dart';
+import 'package:dropline/features/masterFlow/presentation/pages/master_flow.dart';
 import 'package:dropline/features/project_setup/presentation/pages/project_setup_pages.dart';
 import 'package:dropline/features/areas/presentation/pages/area_main_pages.dart';
 import 'package:dropline/core/di/global_di.dart';
@@ -67,6 +68,8 @@ class AppRouter {
   static const String locations = '/locations';
   static const String specificLocations = '/specificLocations';
   static const String selectLocation = '/selectLocation';
+  static const String masterFlow = '/masterFlow';
+
   static final GoRouter router = GoRouter(
     navigatorKey: navigatorKey,
     initialLocation: splash,
@@ -292,6 +295,14 @@ class AppRouter {
               child: SelectLocationPage(flowArgs: args),
             ),
           );
+        },
+      ),
+
+      GoRoute(
+        path: masterFlow,
+        name: 'masterFlow',
+        builder: (context, state) {
+          return const MasterFlowsScreen();
         },
       ),
     ],
