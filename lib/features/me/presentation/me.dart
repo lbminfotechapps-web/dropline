@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dropline/features/project_setup/presentation/pages/project_setup_pages.dart';
 import 'package:dropline/features/newproject/presentation/new_project.dart';
 
 /// The site overview, with proportions taken from the supplied screen reference.
@@ -308,38 +309,46 @@ class _MePageState extends State<MePage> {
                   ),
                   SizedBox(height: 10 * s),
                   if (showProject)
-                    panel(
-                      height: 42,
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                text('Laxmi Gauri', 10, bold: true),
-                                SizedBox(height: 5 * s),
-                                text('PlasterCo · Admin', 5.8, color: _muted),
-                              ],
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const ProjectSetupPage(),
+                        ),
+                      ),
+                      child: panel(
+                        height: 42,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  text('Laxmi Gauri', 10, bold: true),
+                                  SizedBox(height: 5 * s),
+                                  text('PlasterCo · Admin', 5.8, color: _muted),
+                                ],
+                              ),
                             ),
-                          ),
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 8 * s,
-                              vertical: 2 * s,
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 8 * s,
+                                vertical: 2 * s,
+                              ),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: _border),
+                                borderRadius: BorderRadius.circular(9 * s),
+                              ),
+                              child: text('Business', 5, color: _muted),
                             ),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: _border),
-                              borderRadius: BorderRadius.circular(9 * s),
+                            Icon(
+                              Icons.chevron_right,
+                              size: 13 * s,
+                              color: _muted,
                             ),
-                            child: text('Business', 5, color: _muted),
-                          ),
-                          Icon(
-                            Icons.chevron_right,
-                            size: 13 * s,
-                            color: _muted,
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   if (!showProject)
