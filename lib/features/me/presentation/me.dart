@@ -393,8 +393,8 @@ class _MePageState extends State<MePage> {
                       ),
                     ),
                   ),
-                  SizedBox(height: 3 * s),
-                  Center(child: text('Laxmi Gauri', 5, color: _muted)),
+                  // SizedBox(height: 3 * s),
+                  // Center(child: text('Laxmi Gauri', 5, color: _muted)),
                 ],
               ),
             );

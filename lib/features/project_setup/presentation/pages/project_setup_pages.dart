@@ -210,7 +210,10 @@ class ProjectSetupPage extends StatelessWidget {
                           menuItem(
                             'Master flows',
                             'Activities, references, companies and areas',
-                            onMasterFlows,
+                            onMasterFlows ??
+                                () {
+                                  context.push('/masterFlow');
+                                },
                           ),
                         ],
                       ),
