@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'add_compnies.dart';
 import 'invite_people.dart';
 
@@ -22,13 +23,14 @@ class _CompaniesPeoplePageState extends State<CompaniesPeoplePage> {
   bool _showCompanies = true;
   final List<String> _companies = ['Apex Build'];
 
-  Future<void> _addCompany() async {
-    final name = await Navigator.of(
-      context,
-    ).push<String>(MaterialPageRoute(builder: (_) => const AddCompaniesPage()));
-    if (!mounted || name == null) return;
-    setState(() => _companies.add(name));
-  }
+  // Future<void> _addCompany() async {
+  //   final name = context.push('/findCompany');
+  //   // await Navigator.of(
+  //   //   context,
+  //   // ).push<String>(MaterialPageRoute(builder: (_) => const AddCompaniesPage()));
+  //   if (!mounted || name == null) return;
+  //   setState(() => _companies.add(name));
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -162,7 +164,10 @@ class _CompaniesPeoplePageState extends State<CompaniesPeoplePage> {
                       height: 28 * s,
                       child: OutlinedButton(
                         style: buttonStyle(),
-                        onPressed: _addCompany,
+                        onPressed: () {
+                          context.push('/findcompany');
+                        },
+                        //_addCompany,
                         child: label('+ Add company', bold: true),
                       ),
                     ),

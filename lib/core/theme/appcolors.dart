@@ -3,11 +3,26 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // ==========================================
-  // PRIMARY COLORS
-  // ==========================================
+static const Color background = Color(0xFF09283A);
+  static const Color surface = Color(0xFF0D3046);
+  static const Color cardBackground = Color(0xFF0C2D43);
+  static const Color inputBackground = Color(0xFF0B2C42);
+  static const Color border = Color(0xFF28516B);
 
-  static const Color primary = Color(0xFF65758A);
+  static const Color primary = Color(0xFFB5FF76);
+  static const Color primaryText = Color(0xFF09283A);
+
+  static const Color textPrimary = Color(0xFFFFFFFF);
+  static const Color textSecondary = Color(0xFF93B5CC);
+  static const Color hintText = Color(0xFF779CB5);
+  static const Color iconColor = Color(0xFF86C9F2);
+
+  static const Color error = Color(0xFFFF6B6B);
+  static const Color transparent = Colors.transparent;
+
+  static const Color gradientTop = Color(0xFF123D5B);
+  static const Color gradientBottom = Color(0xFF09283A);
+
 
   static const Color primaryLight = Color(0xFF8C9AAA);
 
@@ -45,21 +60,17 @@ class AppColors {
   // CARD / CONTAINER COLORS
   // ==========================================
 
-  static const Color cardBackground = Color(0xFF657488);
+
 
   static const Color cardBackgroundLight = Color(0xFF718094);
 
   static const Color cardBorder = Color(0xFF8592A2);
 
-  static const Color surface = Color(0xFF69798D);
 
   // ==========================================
   // TEXT COLORS
   // ==========================================
 
-  static const Color textPrimary = Color(0xFFFFFFFF);
-
-  static const Color textSecondary = Color(0xFFD2D8E4);
 
   static const Color textMuted = Color(0xFFB6C0CE);
 
@@ -91,13 +102,10 @@ class AppColors {
   // INPUT / TEXTFIELD COLORS
   // ==========================================
 
-  static const Color inputBackground = Color(0xFF637287);
-
   static const Color inputBorder = Color(0xFF8998A9);
 
   static const Color inputFocusedBorder = Color(0xFFE0E7F0);
 
-  static const Color hintText = Color(0xFFBCC6D3);
 
   // ==========================================
   // STATUS COLORS
@@ -105,7 +113,7 @@ class AppColors {
 
   static const Color success = Color(0xFF48B28A);
 
-  static const Color error = Color(0xFFE57373);
+
 
   static const Color warning = Color(0xFFFFC46B);
 
@@ -146,9 +154,26 @@ class AppColors {
 
   static const Color black = Color(0xFF000000);
 
-  static const Color transparent = Colors.transparent;
+
 
   static const Color divider = Color(0xFF8290A1);
 
   static const Color shadow = Color(0x33000000);
+
+
+    static const Color certificateBackgroundTop = Color(0xFF8192A8);
+  static const Color certificateBackgroundBottom = Color(0xFF53657B);
+  static const Color certificateSurface = Color(0xFF586B82);
+  static const Color certificateBorder = Color(0xFF9AABBF);
+  static const Color certificatePrimary = Color(0xFF65FF45);
+  static const Color certificateTextPrimary = Color(0xFFF7F9FF);
+  static const Color certificateTextSecondary = Color(0xFFD3DBE8);
+  static const Color certificateIcon = Color(0xFFDCE6F1);
+  static const Color certificateButtonText = Color(0xFF0B2535);
+
+  static const Color sheetBackground = Color(0xFF0D3046);
+static const Color sheetHandle = Color(0xFF93B5CC);
+static const Color selectedDate = Color(0xFFB5FF76);
+static const Color disabledButton = Color(0xFF355B73);
+static const Color disabledText = Color(0xFF93B5CC);
 }
