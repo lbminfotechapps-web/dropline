@@ -1,4 +1,7 @@
 import 'package:dropline/features/areas/presentation/pages/area_editable_pages.dart';
+import 'package:dropline/features/certificate/presentation/pages/add_certificate_screen.dart';
+import 'package:dropline/features/certificate/presentation/pages/certificates.dart';
+import 'package:dropline/features/companies/presentation/find_company.dart';
 import 'package:dropline/features/masterFlow/presentation/pages/master_flow.dart';
 import 'package:dropline/features/project_setup/presentation/pages/project_setup_pages.dart';
 import 'package:dropline/features/areas/presentation/pages/area_main_pages.dart';
@@ -69,6 +72,10 @@ class AppRouter {
   static const String specificLocations = '/specificLocations';
   static const String selectLocation = '/selectLocation';
   static const String masterFlow = '/masterFlow';
+  static const String findcompany = '/findcompany';
+  static const String certificateList = '/certificateList';
+
+  static const String addCertifiate = '/addCertifiate';
 
   static final GoRouter router = GoRouter(
     navigatorKey: navigatorKey,
@@ -303,6 +310,29 @@ class AppRouter {
         name: 'masterFlow',
         builder: (context, state) {
           return const MasterFlowsScreen();
+        },
+      ),
+
+      GoRoute(
+        path: findcompany,
+        name: 'findcompany',
+        builder: (context, state) {
+          return const FindCompanyScreen();
+        },
+      ),
+      GoRoute(
+        path: certificateList,
+        name: 'certificateList',
+        builder: (context, state) {
+          return const CertificatesScreen();
+        },
+      ),
+
+      GoRoute(
+        path: addCertifiate,
+        name: 'addCertifiate',
+        builder: (context, state) {
+          return const AddCertificateScreen();
         },
       ),
     ],

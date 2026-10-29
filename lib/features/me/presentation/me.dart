@@ -57,29 +57,36 @@ class _MePageState extends State<MePage> {
               ),
               child: child,
             );
-            Widget shortcut(IconData icon, String title, String subtitle) =>
-                Expanded(
-                  child: panel(
-                    height: 42,
-                    child: Row(
-                      children: [
-                        Icon(icon, size: 14 * s, color: _muted),
-                        SizedBox(width: 6 * s),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              text(title, 7.5, bold: true),
-                              SizedBox(height: 4 * s),
-                              text(subtitle, 5.6, color: _muted),
-                            ],
-                          ),
+            Widget shortcut(
+              IconData icon,
+              String title,
+              String subtitle, {
+              required VoidCallback onTap,
+            }) => Expanded(
+              child: GestureDetector(
+                onTap: onTap,
+                child: panel(
+                  height: 42,
+                  child: Row(
+                    children: [
+                      Icon(icon, size: 14 * s, color: _muted),
+                      SizedBox(width: 6 * s),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            text(title, 7.5, bold: true),
+                            SizedBox(height: 4 * s),
+                            text(subtitle, 5.6, color: _muted),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                );
+                ),
+              ),
+            );
             final showProject =
                 _category != 'Personal' &&
                 'Laxmi Gauri'.toLowerCase().contains(_query.toLowerCase());
@@ -187,12 +194,17 @@ class _MePageState extends State<MePage> {
                   SizedBox(height: 7 * s),
                   Row(
                     children: [
-                      shortcut(Icons.person_outline, 'My card', 'View & share'),
+                      shortcut(Icons.person_outline, 'My card', 'View & share',onTap: () {
+                        
+                      },),
                       SizedBox(width: 6 * s),
                       shortcut(
                         Icons.article_outlined,
                         'My certificates',
                         'View & manage',
+                      onTap: () {
+                        context.push('/certificateList');
+                      },
                       ),
                     ],
                   ),
@@ -203,12 +215,18 @@ class _MePageState extends State<MePage> {
                         Icons.article_outlined,
                         'My reports',
                         'Photos, notes & audio',
+                       onTap: () {
+                         
+                       },
                       ),
                       SizedBox(width: 6 * s),
                       shortcut(
                         Icons.account_tree_outlined,
                         'Handovers',
                         'View handovers',
+                        onTap: () {
+                          
+                        },
                       ),
                     ],
                   ),
