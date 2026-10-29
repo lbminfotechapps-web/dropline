@@ -18,16 +18,21 @@ class _AddCompaniesPageState extends State<AddCompaniesPage> {
 
   final _formKey = GlobalKey<FormState>();
   final _company = TextEditingController(text: 'PlasterCo');
-  final _admin = TextEditingController(text: 'Rahul Sharma');
-  final _contact = TextEditingController();
-  bool _sendHandovers = true;
-  bool _reviewHandovers = true;
+  String _trade = 'Plastering';
+  static const _trades = [
+    'Plastering',
+    'Masonry',
+    'Painting',
+    'Electrical',
+    'Plumbing',
+    'Carpentry',
+    'Flooring',
+    'Other',
+  ];
 
   @override
   void dispose() {
     _company.dispose();
-    _admin.dispose();
-    _contact.dispose();
     super.dispose();
   }
 
@@ -57,82 +62,37 @@ class _AddCompaniesPageState extends State<AddCompaniesPage> {
               borderRadius: BorderRadius.circular(6 * s),
               borderSide: BorderSide(color: color),
             );
-            Widget field(
-              String title,
-              TextEditingController controller, {
-              bool phone = false,
-            }) => Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                label(title, size: 6.5, color: _muted, bold: true),
-                SizedBox(height: 3 * s),
-                TextFormField(
-                  controller: controller,
-                  keyboardType: phone
-                      ? TextInputType.phone
-                      : TextInputType.text,
-                  textCapitalization: phone
-                      ? TextCapitalization.none
-                      : TextCapitalization.words,
-                  style: TextStyle(color: _text, fontSize: 7 * s),
-                  validator: (value) =>
-                      value == null || value.trim().isEmpty ? 'Required' : null,
-                  onChanged: phone ? null : (_) => setState(() {}),
-                  decoration: InputDecoration(
-                    hintText: phone ? '+91 ****** 0042' : null,
-                    hintStyle: TextStyle(color: _text, fontSize: 7 * s),
-                    isDense: true,
-                    filled: true,
-                    fillColor: _surface,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 6 * s,
-                      vertical: 7 * s,
-                    ),
-                    enabledBorder: border(_border),
-                    focusedBorder: border(_muted),
-                    errorBorder: border(Colors.redAccent),
-                    focusedErrorBorder: border(Colors.redAccent),
-                  ),
-                ),
-              ],
-            );
-            Widget permission(
-              String title,
-              bool value,
-              ValueChanged<bool> onChanged,
-            ) => Container(
-              height: 24 * s,
-              padding: EdgeInsets.symmetric(horizontal: 7 * s),
-              decoration: BoxDecoration(
-                color: _surface,
-                border: Border.all(color: _border),
-                borderRadius: BorderRadius.circular(6 * s),
-              ),
-              child: Row(
-                children: [
-                  Expanded(child: label(title, bold: true)),
-                  SizedBox(
-                    width: 21 * s,
-                    height: 14 * s,
-                    child: FittedBox(
-                      child: Switch(
-                        value: value,
-                        onChanged: onChanged,
-                        activeThumbColor: Colors.white,
-                        activeTrackColor: _lime,
-                        inactiveThumbColor: _muted,
-                        inactiveTrackColor: _background,
-                        trackOutlineColor: const WidgetStatePropertyAll(
-                          Colors.transparent,
+            Widget field(String title, TextEditingController controller) =>
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    label(title, size: 6.5, color: _muted, bold: true),
+                    SizedBox(height: 3 * s),
+                    TextFormField(
+                      controller: controller,
+                      keyboardType: TextInputType.text,
+                      textCapitalization: TextCapitalization.words,
+                      style: TextStyle(color: _text, fontSize: 7 * s),
+                      validator: (value) =>
+                          value == null || value.trim().isEmpty
+                          ? 'Required'
+                          : null,
+                      decoration: InputDecoration(
+                        isDense: true,
+                        filled: true,
+                        fillColor: _surface,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 6 * s,
+                          vertical: 7 * s,
                         ),
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        enabledBorder: border(_border),
+                        focusedBorder: border(_muted),
+                        errorBorder: border(Colors.redAccent),
+                        focusedErrorBorder: border(Colors.redAccent),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            );
-
+                  ],
+                );
             return SingleChildScrollView(
               padding: EdgeInsets.fromLTRB(10 * s, 7 * s, 10 * s, 10 * s),
               child: ConstrainedBox(
@@ -173,11 +133,7 @@ class _AddCompaniesPageState extends State<AddCompaniesPage> {
                             ),
                             SizedBox(width: 7 * s),
                             Expanded(
-                              child: label(
-                                'Add company & Admin',
-                                size: 12,
-                                bold: true,
-                              ),
+                              child: label('Add company', size: 12, bold: true),
                             ),
                           ],
                         ),
@@ -195,38 +151,39 @@ class _AddCompaniesPageState extends State<AddCompaniesPage> {
                           ),
                         ),
                         SizedBox(height: 9 * s),
-                        field('Admin’s full name', _admin),
-                        SizedBox(height: 8 * s),
-                        field('Contact number', _contact, phone: true),
-                        SizedBox(height: 16 * s),
-                        label(
-                          'Role: Admin · ${_company.text.trim()}',
-                          size: 8,
-                          bold: true,
-                        ),
-                        SizedBox(height: 4 * s),
-                        label(
-                          'Can manage ${_company.text.trim()}’s project team.',
-                          size: 6.5,
-                          color: _muted,
-                        ),
-                        SizedBox(height: 12 * s),
-                        permission(
-                          'Send handovers',
-                          _sendHandovers,
-                          (value) => setState(() => _sendHandovers = value),
-                        ),
-                        SizedBox(height: 4 * s),
-                        permission(
-                          'Review handovers',
-                          _reviewHandovers,
-                          (value) => setState(() => _reviewHandovers = value),
-                        ),
-                        SizedBox(height: 18 * s),
-                        label(
-                          'Permissions apply to this company only.',
-                          size: 6.5,
-                          color: _muted,
+                        label('Trades', size: 6.5, color: _muted, bold: true),
+                        SizedBox(height: 3 * s),
+                        DropdownButtonFormField<String>(
+                          initialValue: _trade,
+                          dropdownColor: _surface,
+                          style: TextStyle(color: _text, fontSize: 7 * s),
+                          icon: Icon(
+                            Icons.keyboard_arrow_down,
+                            color: _muted,
+                            size: 13 * s,
+                          ),
+                          decoration: InputDecoration(
+                            isDense: true,
+                            filled: true,
+                            fillColor: _surface,
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 6 * s,
+                              vertical: 7 * s,
+                            ),
+                            enabledBorder: border(_border),
+                            focusedBorder: border(_muted),
+                          ),
+                          items: _trades
+                              .map(
+                                (trade) => DropdownMenuItem(
+                                  value: trade,
+                                  child: Text(trade),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            if (value != null) setState(() => _trade = value);
+                          },
                         ),
                         SizedBox(height: 20 * s),
                         const Spacer(),
@@ -241,7 +198,7 @@ class _AddCompaniesPageState extends State<AddCompaniesPage> {
                                   MaterialPageRoute<String>(
                                     builder: (_) => ShareInvitationPage(
                                       companyName: _company.text.trim(),
-                                      adminName: _admin.text.trim(),
+                                      trade: _trade,
                                     ),
                                   ),
                                 );
@@ -256,7 +213,7 @@ class _AddCompaniesPageState extends State<AddCompaniesPage> {
                               ),
                             ),
                             child: label(
-                              'Add & send invitation',
+                              'Save Company',
                               color: _background,
                               bold: true,
                             ),

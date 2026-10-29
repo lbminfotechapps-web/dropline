@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'project_invitation.dart';
+import 'package:flutter/services.dart';
+import 'invite_company_admin.dart';
 
 class ShareInvitationPage extends StatelessWidget {
   const ShareInvitationPage({
@@ -21,29 +22,23 @@ class ShareInvitationPage extends StatelessWidget {
   final String trade;
   final VoidCallback? onShareInvitation;
 
-  static const _background = Color(0xFF092A3B);
-  static const _surface = Color(0xFF0D3042);
-  static const _border = Color(0xFF31576B);
-  static const _muted = Color(0xFF8EB5C9);
-  static const _text = Color(0xFFF0F4FC);
+  static const _background = Color(0xFF03283B);
+  static const _surface = Color(0xFF062D43);
+  static const _border = Color(0xFF16465D);
+  static const _muted = Color(0xFF80B2CD);
+  static const _text = Color(0xFFE9F2F8);
   static const _lime = Color(0xFFB5FF65);
 
-  void _openProjectInvitation(BuildContext context) {
-    Navigator.of(context).push<bool>(
-      MaterialPageRoute<bool>(
-        builder: (_) => ProjectInvitationPage(
-          projectName: projectName,
-          companyName: companyName,
-          inviterCompany: ownerCompanyName,
-        ),
-      ),
-    );
+  Future<void> _copyCompanyId(BuildContext context) async {
+    await Clipboard.setData(ClipboardData(text: companyId));
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Company ID copied')));
   }
 
   @override
   Widget build(BuildContext context) {
-    void backToCompanies() => Navigator.of(context).pop(companyName);
-
     return Scaffold(
       backgroundColor: _background,
       body: SafeArea(
@@ -55,121 +50,185 @@ class ShareInvitationPage extends StatelessWidget {
               double size = 7,
               Color color = _text,
               bool bold = false,
+              TextAlign? align,
             }) => Text(
               value,
+              textAlign: align,
               style: TextStyle(
                 color: color,
                 fontSize: size * s,
                 fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
-                letterSpacing: .15 * s,
+                height: 1.4,
               ),
             );
-            RoundedRectangleBorder shape() => RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(7 * s),
+            BoxDecoration panel() => BoxDecoration(
+              color: _surface,
+              border: Border.all(color: _border),
+              borderRadius: BorderRadius.circular(5 * s),
             );
-            Widget card(String title, String subtitle) => Container(
-              padding: EdgeInsets.symmetric(horizontal: 7 * s, vertical: 6 * s),
-              decoration: BoxDecoration(
-                color: _surface,
-                border: Border.all(color: _border),
-                borderRadius: BorderRadius.circular(7 * s),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  label(title, size: 8, bold: true),
-                  SizedBox(height: 2 * s),
-                  label(subtitle, size: 6, color: _muted),
-                ],
-              ),
-            );
-            return SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(10 * s, 5 * s, 10 * s, 10 * s),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: (constraints.maxHeight - 15 * s).clamp(
-                    0,
-                    double.infinity,
+            Widget emptyState(String title, String subtitle, double height) =>
+                Container(
+                  constraints: BoxConstraints(minHeight: height * s),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 10 * s,
+                    vertical: 10 * s,
                   ),
-                ),
-                child: IntrinsicHeight(
+                  decoration: panel(),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Row(
-                        children: [
-                          SizedBox(
-                            width: 21 * s,
-                            height: 22 * s,
-                            child: OutlinedButton(
-                              onPressed: backToCompanies,
-                              style: OutlinedButton.styleFrom(
-                                padding: EdgeInsets.zero,
-                                backgroundColor: _surface,
-                                side: const BorderSide(color: _border),
-                                shape: shape(),
-                              ),
-                              child: Icon(
-                                Icons.chevron_left,
-                                color: _muted,
-                                size: 13 * s,
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: 7 * s),
-                          Expanded(
-                            child: label(companyName, size: 12, bold: true),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 10 * s),
+                      Icon(Icons.people_outline, color: _muted, size: 15 * s),
+                      SizedBox(height: 3 * s),
                       label(
-                        '$projectName · $ownerCompanyName',
+                        title,
+                        size: 7,
+                        bold: true,
+                        align: TextAlign.center,
+                      ),
+                      SizedBox(height: 2 * s),
+                      label(
+                        subtitle,
                         size: 6.5,
                         color: _muted,
+                        align: TextAlign.center,
                       ),
-                      SizedBox(height: 11 * s),
-                      card(companyName, '$companyId · $trade'),
-                      SizedBox(height: 5 * s),
-                      card(adminName, 'Admin · Invited'),
-                      SizedBox(height: 5 * s),
+                    ],
+                  ),
+                );
+            return SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(10 * s, 7 * s, 10 * s, 20 * s),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
                       SizedBox(
-                        height: 28 * s,
+                        width: 22 * s,
+                        height: 22 * s,
                         child: OutlinedButton(
-                          onPressed:
-                              onShareInvitation ??
-                              () => _openProjectInvitation(context),
+                          onPressed: () =>
+                              Navigator.of(context).pop(companyName),
                           style: OutlinedButton.styleFrom(
                             padding: EdgeInsets.zero,
-                            backgroundColor: _surface,
                             side: const BorderSide(color: _border),
-                            shape: shape(),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5 * s),
+                            ),
                           ),
-                          child: label('Share invitation', bold: true),
+                          child: Icon(
+                            Icons.chevron_left,
+                            size: 12 * s,
+                            color: _muted,
+                          ),
                         ),
                       ),
-                      SizedBox(height: 20 * s),
-                      const Spacer(),
-                      SizedBox(
-                        height: 27 * s,
-                        child: FilledButton(
-                          onPressed: backToCompanies,
-                          style: FilledButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            backgroundColor: _lime,
-                            foregroundColor: _background,
-                            shape: shape(),
-                          ),
-                          child: label(
-                            'Back to companies',
-                            color: _background,
-                            bold: true,
-                          ),
+                      SizedBox(width: 7 * s),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            label(companyName, size: 12, bold: true),
+                            label(
+                              '$projectName · $trade',
+                              size: 6.5,
+                              color: _muted,
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                ),
+                  SizedBox(height: 11 * s),
+                  Container(
+                    padding: EdgeInsets.all(8 * s),
+                    decoration: panel(),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              label(
+                                'Dropline Company ID',
+                                size: 7,
+                                color: _muted,
+                              ),
+                              label(companyId, size: 13, bold: true),
+                              SizedBox(height: 2 * s),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => _copyCompanyId(context),
+                          tooltip: 'Copy company ID',
+                          padding: EdgeInsets.all(3 * s),
+                          constraints: BoxConstraints(
+                            minWidth: 23 * s,
+                            minHeight: 30 * s,
+                          ),
+                          icon: Icon(
+                            Icons.copy_outlined,
+                            size: 11 * s,
+                            color: _muted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 12 * s),
+                  Padding(
+                    padding: EdgeInsets.only(left: 2 * s),
+                    child: label('Company admins', size: 10, bold: true),
+                  ),
+                  SizedBox(height: 4 * s),
+                  emptyState(
+                    'No admin yet',
+                    'Invite the company’s representative.',
+                    62,
+                  ),
+                  SizedBox(height: 8 * s),
+                  SizedBox(
+                    height: 23 * s,
+                    child: OutlinedButton(
+                      onPressed:
+                          onShareInvitation ??
+                          () => Navigator.of(context).push<void>(
+                            MaterialPageRoute<void>(
+                              builder: (_) => InviteCompanyAdminPage(
+                                companyName: companyName,
+                                projectName: projectName,
+                              ),
+                            ),
+                          ),
+                      style: OutlinedButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        side: const BorderSide(color: Color(0xFF829B3F)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5 * s),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.add, size: 12 * s, color: _lime),
+                          SizedBox(width: 4 * s),
+                          label('Invite company admin', size: 7),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 16 * s),
+                  Padding(
+                    padding: EdgeInsets.only(left: 2 * s),
+                    child: label('Team members', size: 10, bold: true),
+                  ),
+                  SizedBox(height: 4 * s),
+                  emptyState(
+                    'No team members yet',
+                    'The company admin can add their team\nafter joining.',
+                    72,
+                  ),
+                ],
               ),
             );
           },
