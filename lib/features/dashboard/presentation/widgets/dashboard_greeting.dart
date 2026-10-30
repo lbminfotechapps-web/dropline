@@ -28,6 +28,8 @@ class DashboardGreeting extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scale = MediaQuery.sizeOf(context).width / 591;
+    final s = MediaQuery.sizeOf(context).width / 210;
+    const muted = Color(0xFF8EB5C9);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -57,7 +59,30 @@ class DashboardGreeting extends StatelessWidget {
             minimumSize: const Size(40, 48),
             padding: const EdgeInsets.symmetric(horizontal: 8),
           ),
-          child: const Text('Me'),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 22 * s,
+                height: 22 * s,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: muted),
+                ),
+                child: Icon(Icons.person_outline, color: muted, size: 15 * s),
+              ),
+              SizedBox(height: 2 * s),
+              Text(
+                'ME',
+                style: TextStyle(
+                  fontSize: 5 * s,
+                  color: muted,
+                  fontWeight: FontWeight.w400,
+                  letterSpacing: .15 * s,
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );

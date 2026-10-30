@@ -1,13 +1,29 @@
+import '../../domain/entities/project_entity.dart';
+import 'package:dropline/features/companies/presentation/invitation_ready.dart';
 import 'package:flutter/material.dart';
 import 'package:dropline/core/router/app_router.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dropline/features/companies/presentation/start_work.dart';
 import 'package:dropline/features/project_setup/presentation/pages/project_setup_pages.dart';
 import 'package:dropline/features/newproject/presentation/pages/new_project.dart';
+import 'package:dropline/core/di/global_di.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../bloc/project_bloc.dart';
+import '../bloc/project_event.dart';
+import '../bloc/project_state.dart';
+
 
 /// The site overview, with proportions taken from the supplied screen reference.
 class MePage extends StatefulWidget {
-  const MePage({super.key, this.onStartWork});
+  const MePage({
+    super.key,
+    this.onStartWork,
+    this.sentInvitationCount = 0,
+    this.receivedInvitationCount = 0,
+  });
+
+  final int sentInvitationCount;
+  final int receivedInvitationCount;
 
   final VoidCallback? onStartWork;
 
@@ -24,6 +40,76 @@ class _MePageState extends State<MePage> {
   String _category = 'All';
   String _query = '';
   String _language = 'English';
+
+  late final ProjectBloc _projectBloc;
+
+  @override
+  void initState() {
+    super.initState();
+    _projectBloc = sl<ProjectBloc>()..add(const FetchProjectsEvent());
+  }
+
+  Future<void> _openSentInvitations() async {
+    final state = _projectBloc.state;
+    if (state is! ProjectLoaded || state.projects.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Load a project to view invitations.')),
+      );
+      return;
+    }
+    final ProjectEntity? project;
+    if (state.projects.length == 1) {
+      project = state.projects.first;
+    } else {
+      project = await showModalBottomSheet<ProjectEntity>(
+        context: context,
+        backgroundColor: _surface,
+        builder: (context) => SafeArea(
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              const ListTile(
+                title: Text(
+                  'Select project',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+              for (final project in state.projects)
+                ListTile(
+                  title: Text(
+                    project.projectName,
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  subtitle: Text(
+                    project.companyName,
+                    style: const TextStyle(color: _muted),
+                  ),
+                  onTap: () => Navigator.of(context).pop(project),
+                ),
+            ],
+          ),
+        ),
+      );
+    }
+    final selectedProject = project;
+    if (!mounted || selectedProject == null) return;
+    Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => InvitationReadyPage(
+          returnToMe: false,
+          projectId: selectedProject.projectId,
+          projectName: selectedProject.projectName,
+          companyName: selectedProject.companyName,
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _projectBloc.close();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -87,9 +173,71 @@ class _MePageState extends State<MePage> {
                 ),
               ),
             );
-            final showProject =
-                _category != 'Personal' &&
-                'Laxmi Gauri'.toLowerCase().contains(_query.toLowerCase());
+            Widget invitationCard(
+              String title,
+              IconData icon,
+              int count, {
+              VoidCallback? onTap,
+            }) => Expanded(
+              child: GestureDetector(
+                onTap: onTap,
+                behavior: HitTestBehavior.opaque,
+                child: panel(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 9 * s),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: EdgeInsets.all(5 * s),
+                              decoration: BoxDecoration(
+                                color: _lime.withValues(alpha: .1),
+                                borderRadius: BorderRadius.circular(6 * s),
+                              ),
+                              child: Icon(icon, color: _lime, size: 12 * s),
+                            ),
+                            const Spacer(),
+                            Container(
+                              constraints: BoxConstraints(minWidth: 19 * s),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 5 * s,
+                                vertical: 3 * s,
+                              ),
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: _lime,
+                                borderRadius: BorderRadius.circular(10 * s),
+                              ),
+                              child: text(
+                                '$count',
+                                7,
+                                color: _background,
+                                bold: true,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 8 * s),
+                        Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 6 * s,
+                            color: const Color(0xFFF0F4FC),
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: .15 * s,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
             return SingleChildScrollView(
               padding: EdgeInsets.fromLTRB(10 * s, 10 * s, 10 * s, 10 * s),
               child: Column(
@@ -194,17 +342,20 @@ class _MePageState extends State<MePage> {
                   SizedBox(height: 7 * s),
                   Row(
                     children: [
-                      shortcut(Icons.person_outline, 'My card', 'View & share',onTap: () {
-                        
-                      },),
+                      shortcut(
+                        Icons.person_outline,
+                        'My card',
+                        'View & share',
+                        onTap: () {},
+                      ),
                       SizedBox(width: 6 * s),
                       shortcut(
                         Icons.article_outlined,
                         'My certificates',
                         'View & manage',
-                      onTap: () {
-                        context.push('/certificateList');
-                      },
+                        onTap: () {
+                          context.push('/certificateList');
+                        },
                       ),
                     ],
                   ),
@@ -215,18 +366,34 @@ class _MePageState extends State<MePage> {
                         Icons.article_outlined,
                         'My reports',
                         'Photos, notes & audio',
-                       onTap: () {
-                         
-                       },
+                        onTap: () {},
                       ),
                       SizedBox(width: 6 * s),
                       shortcut(
                         Icons.account_tree_outlined,
                         'Handovers',
                         'View handovers',
-                        onTap: () {
-                          
-                        },
+                        onTap: () {},
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 14 * s),
+                  text('Invitations', 13, bold: true),
+                  SizedBox(height: 7 * s),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      invitationCard(
+                        'Sent invitations',
+                        Icons.send_outlined,
+                        widget.sentInvitationCount,
+                        onTap: _openSentInvitations,
+                      ),
+                      SizedBox(width: 6 * s),
+                      invitationCard(
+                        'Received invitations',
+                        Icons.mark_email_unread_outlined,
+                        widget.receivedInvitationCount,
                       ),
                     ],
                   ),
@@ -329,52 +496,131 @@ class _MePageState extends State<MePage> {
                         .toList(),
                   ),
                   SizedBox(height: 10 * s),
-                  if (showProject)
-                    GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => context.push(AppRouter.projectSetup),
-                      child: panel(
-                        height: 42,
-                        child: Row(
+                  BlocBuilder<ProjectBloc, ProjectState>(
+                    bloc: _projectBloc,
+                    builder: (context, state) {
+                      if (state is ProjectInitial || state is ProjectLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (state is ProjectError) {
+                        return Column(
                           children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  text('Laxmi Gauri', 10, bold: true),
-                                  SizedBox(height: 5 * s),
-                                  text('PlasterCo · Admin', 5.8, color: _muted),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 8 * s,
-                                vertical: 2 * s,
-                              ),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: _border),
-                                borderRadius: BorderRadius.circular(9 * s),
-                              ),
-                              child: text('Business', 5, color: _muted),
-                            ),
-                            Icon(
-                              Icons.chevron_right,
-                              size: 13 * s,
-                              color: _muted,
+                            text(state.message, 7, color: _muted),
+                            TextButton(
+                              onPressed: () =>
+                                  _projectBloc.add(const FetchProjectsEvent()),
+                              child: const Text('Retry'),
                             ),
                           ],
-                        ),
-                      ),
-                    ),
-                  if (!showProject)
-                    SizedBox(
-                      height: 42 * s,
-                      child: Center(
-                        child: text('No projects found', 7, color: _muted),
-                      ),
-                    ),
+                        );
+                      }
+                      if (state is! ProjectLoaded) {
+                        return const SizedBox.shrink();
+                      }
+                      final query = _query.trim().toLowerCase();
+                      final projects = state.projects.where((project) {
+                        final matchesCategory =
+                            _category == 'All' ||
+                            project.projectType.toLowerCase() ==
+                                _category.toLowerCase();
+                        final matchesQuery =
+                            project.projectName.toLowerCase().contains(query) ||
+                            project.companyName.toLowerCase().contains(query);
+                        return matchesCategory && matchesQuery;
+                      }).toList();
+                      if (projects.isEmpty) {
+                        return SizedBox(
+                          height: 42 * s,
+                          child: Center(
+                            child: text('No projects found', 7, color: _muted),
+                          ),
+                        );
+                      }
+                      return Column(
+                        children: [
+                          for (final project in projects)
+                            Padding(
+                              padding: EdgeInsets.only(bottom: 6 * s),
+                              child: GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () => context.push(
+                                  Uri(
+                                    path: AppRouter.projectSetup,
+                                    queryParameters: {
+                                      'projectName': project.projectName,
+                                      'projectId': project.projectId,
+                                      'companyId': project.companyId,
+                                      'companyName': project.companyName,
+                                    },
+                                  ).toString(),
+                                ),
+                                child: panel(
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      minHeight: 42 * s,
+                                    ),
+                                    child: Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: 7 * s,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                text(
+                                                  project.projectName,
+                                                  10,
+                                                  bold: true,
+                                                ),
+                                                SizedBox(height: 5 * s),
+                                                text(
+                                                  project.companyName,
+                                                  5.8,
+                                                  color: _muted,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Container(
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 8 * s,
+                                              vertical: 2 * s,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              border: Border.all(
+                                                color: _border,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(9 * s),
+                                            ),
+                                            child: text(
+                                              project.projectType,
+                                              5,
+                                              color: _muted,
+                                            ),
+                                          ),
+                                          Icon(
+                                            Icons.chevron_right,
+                                            size: 13 * s,
+                                            color: _muted,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
                   SizedBox(height: 15 * s),
                   SizedBox(
                     height: 27 * s,
