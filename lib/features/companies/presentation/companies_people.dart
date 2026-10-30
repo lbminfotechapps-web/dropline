@@ -1,11 +1,25 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dropline/core/di/global_di.dart';
+import 'bloc/find_company_bloc.dart';
+import 'share_invitation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'add_compnies.dart';
 import 'invite_people.dart';
 
 class CompaniesPeoplePage extends StatefulWidget {
-  const CompaniesPeoplePage({super.key, this.onInvitePeople});
+  const CompaniesPeoplePage({
+    super.key,
+    this.projectId = '',
+    this.companyId = '',
+    this.projectName = 'Laxmi Gauri',
+    this.companyName = 'Apex Build',
+    this.onInvitePeople,
+  });
 
+  final String projectId;
+  final String companyId;
+  final String projectName;
+  final String companyName;
   final VoidCallback? onInvitePeople;
 
   @override
@@ -21,16 +35,29 @@ class _CompaniesPeoplePageState extends State<CompaniesPeoplePage> {
   static const _lime = Color(0xFFB5FF65);
 
   bool _showCompanies = true;
-  final List<String> _companies = ['Apex Build'];
+  late final FindCompanyBloc _companiesBloc;
 
-  // Future<void> _addCompany() async {
-  //   final name = context.push('/findCompany');
-  //   // await Navigator.of(
-  //   //   context,
-  //   // ).push<String>(MaterialPageRoute(builder: (_) => const AddCompaniesPage()));
-  //   if (!mounted || name == null) return;
-  //   setState(() => _companies.add(name));
-  // }
+  @override
+  void initState() {
+    super.initState();
+    _companiesBloc = sl<FindCompanyBloc>();
+    _loadCompanies();
+  }
+
+  void _loadCompanies() {
+    _companiesBloc.add(
+      SearchSubCompanies(
+        projectId: widget.projectId,
+        companyId: widget.companyId,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _companiesBloc.close();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,7 +116,7 @@ class _CompaniesPeoplePageState extends State<CompaniesPeoplePage> {
                       SizedBox(width: 7 * s),
                       Expanded(
                         child: label(
-                          'Companies & people',
+                          'Sub Companies & people',
                           size: 12,
                           bold: true,
                         ),
@@ -97,7 +124,11 @@ class _CompaniesPeoplePageState extends State<CompaniesPeoplePage> {
                     ],
                   ),
                   SizedBox(height: 10 * s),
-                  label('Laxmi Gauri · Apex Build', size: 6.5, color: _muted),
+                  label(
+                    '${widget.projectName} · ${widget.companyName}',
+                    size: 6.5,
+                    color: _muted,
+                  ),
                   SizedBox(height: 11 * s),
                   Row(
                     children: [true, false]
@@ -117,7 +148,9 @@ class _CompaniesPeoplePageState extends State<CompaniesPeoplePage> {
                                     () => _showCompanies = companies,
                                   ),
                                   child: label(
-                                    companies ? 'Companies' : 'Owner’s team',
+                                    companies
+                                        ? 'Sub Companies'
+                                        : 'Owner’s team',
                                     size: 6.5,
                                     bold: true,
                                     color: _showCompanies == companies
@@ -133,42 +166,119 @@ class _CompaniesPeoplePageState extends State<CompaniesPeoplePage> {
                   ),
                   SizedBox(height: 7 * s),
                   if (_showCompanies) ...[
-                    for (final company in _companies)
-                      Container(
-                        margin: EdgeInsets.only(bottom: 5 * s),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 7 * s,
-                          vertical: 6 * s,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _surface,
-                          border: Border.all(color: _border),
-                          borderRadius: BorderRadius.circular(7 * s),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            label(company, size: 8, bold: true),
-                            SizedBox(height: 2 * s),
-                            label(
-                              company == 'Apex Build'
-                                  ? 'Your company · Suresh · Company owner'
-                                  : 'Your company',
-                              size: 6.5,
+                    BlocBuilder<FindCompanyBloc, FindCompanyState>(
+                      bloc: _companiesBloc,
+                      builder: (context, state) {
+                        if (state.loading) {
+                          return const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                        }
+                        if (state.error != null) {
+                          return Column(
+                            children: [
+                              label(state.error!, color: _muted),
+                              TextButton(
+                                onPressed: _loadCompanies,
+                                child: const Text('Retry'),
+                              ),
+                            ],
+                          );
+                        }
+                        if (state.companies.isEmpty) {
+                          return Padding(
+                            padding: EdgeInsets.symmetric(vertical: 10 * s),
+                            child: label(
+                              'No sub companies found',
                               color: _muted,
                             ),
+                          );
+                        }
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            for (final company in state.companies)
+                              Card(
+                                color: _surface,
+                                margin: EdgeInsets.only(bottom: 5 * s),
+                                shape: RoundedRectangleBorder(
+                                  side: const BorderSide(color: _border),
+                                  borderRadius: BorderRadius.circular(7 * s),
+                                ),
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(7 * s),
+                                  onTap: () => Navigator.of(context).push(
+                                    MaterialPageRoute<String>(
+                                      builder: (_) => ShareInvitationPage(
+                                        subCompany: company,
+                                        companyName: company.subCompanyName,
+                                        projectName: company.projectName,
+                                        ownerCompanyName: company.companyName,
+                                        companyId: company.subCompanyNo,
+                                        trade: company.tradeName,
+                                      ),
+                                    ),
+                                  ),
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 7 * s,
+                                      vertical: 6 * s,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              label(
+                                                company.subCompanyName,
+                                                size: 8,
+                                                bold: true,
+                                              ),
+                                              SizedBox(height: 2 * s),
+                                              label(
+                                                '${company.subCompanyNo} · ${company.tradeName}',
+                                                size: 6.5,
+                                                color: _muted,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Icon(
+                                          Icons.chevron_right,
+                                          color: _muted,
+                                          size: 13 * s,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
                           ],
-                        ),
-                      ),
+                        );
+                      },
+                    ),
                     SizedBox(
                       height: 28 * s,
                       child: OutlinedButton(
                         style: buttonStyle(),
-                        onPressed: () {
-                          context.push('/findcompany');
+                        onPressed: () async {
+                          await context.push(
+                            Uri(
+                              path: '/findcompany',
+                              queryParameters: {
+                                'projectId': widget.projectId,
+                                'companyId': widget.companyId,
+                                'projectName': widget.projectName,
+                              },
+                            ).toString(),
+                          );
+                          if (mounted) _loadCompanies();
                         },
                         //_addCompany,
-                        child: label('+ Add company', bold: true),
+                        child: label('+ Add sub company', bold: true),
                       ),
                     ),
                   ] else ...[
@@ -204,7 +314,12 @@ class _CompaniesPeoplePageState extends State<CompaniesPeoplePage> {
                             widget.onInvitePeople ??
                             () => Navigator.of(context).push<void>(
                               MaterialPageRoute<void>(
-                                builder: (_) => const InvitePeoplePage(),
+                                builder: (_) => InvitePeoplePage(
+                                  companyId: widget.companyId,
+                                  projectId: widget.projectId,
+                                  companyName: widget.companyName,
+                                  projectName: widget.projectName,
+                                ),
                               ),
                             ),
                         child: label('+ Invite people', size: 8, bold: true),

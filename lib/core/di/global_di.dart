@@ -2,6 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:dropline/core/api_constant/dio_client.dart';
 import 'package:dropline/core/di/dashboard_di.dart';
 import 'package:dropline/core/di/login_di.dart';
+import 'package:dropline/core/di/project_list_di.dart';
+import 'package:dropline/core/di/sub_company_di.dart';
 import 'package:dropline/core/secure_storage/secure_storage.dart';
 import 'package:dropline/features/event/data/datasources/location_draft_local_data_source.dart';
 import 'package:dropline/features/event/data/services/event_submission_preview_service.dart';
@@ -45,5 +47,7 @@ Future<void> initGlobalDi() async {
     );
   }
   initLoginDi(sl);
+  await initProjectDi(sl);
   await initDashboardDi(sl);
+  await initSubCompanyDi(sl);
 }

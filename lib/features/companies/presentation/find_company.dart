@@ -1,3 +1,9 @@
+import 'dart:async';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dropline/core/di/global_di.dart';
+import '../domain/entities/sub_company_entity.dart';
+import 'bloc/find_company_bloc.dart';
+import 'share_invitation.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:dropline/core/utility/widgets/appbar.dart';
 import 'package:flutter/material.dart';
@@ -6,11 +12,15 @@ import 'add_compnies.dart';
 class FindCompanyScreen extends StatefulWidget {
   const FindCompanyScreen({
     super.key,
+    this.projectId = '',
+    this.companyId = '',
     this.projectName = 'Laxmi Gauri',
     this.onCreateCompany,
     this.onCompanySelected,
   });
 
+  final String projectId;
+  final String companyId;
   final String projectName;
   final VoidCallback? onCreateCompany;
   final ValueChanged<CompanyItem>? onCompanySelected;
@@ -22,8 +32,9 @@ class FindCompanyScreen extends StatefulWidget {
 class CompanyItem {
   final String id;
   final String name;
+  final SubCompanyEntity? details;
 
-  const CompanyItem({required this.id, required this.name});
+  const CompanyItem({required this.id, required this.name, this.details});
 }
 
 class _FindCompanyScreenState extends State<FindCompanyScreen> {
@@ -31,35 +42,35 @@ class _FindCompanyScreenState extends State<FindCompanyScreen> {
 
   String searchQuery = '';
 
-  // Replace this with your API response.
-  final List<CompanyItem> companies = [];
+  late final FindCompanyBloc _bloc;
+  Timer? _debounce;
 
-  List<CompanyItem> get filteredCompanies {
-    if (searchQuery.trim().isEmpty) {
-      return companies;
-    }
-
-    return companies.where((company) {
-      return company.name.toLowerCase().contains(
-            searchQuery.trim().toLowerCase(),
-          ) ||
-          company.id.toLowerCase().contains(searchQuery.trim().toLowerCase());
-    }).toList();
+  void _search() {
+    _bloc.add(
+      SearchSubCompanies(
+        projectId: widget.projectId,
+        subCompanyName: searchQuery,
+        companyId: widget.companyId,
+      ),
+    );
   }
 
   @override
   void initState() {
     super.initState();
-
+    _bloc = sl<FindCompanyBloc>();
+    _search();
     _searchController.addListener(() {
-      setState(() {
-        searchQuery = _searchController.text;
-      });
+      setState(() => searchQuery = _searchController.text);
+      _debounce?.cancel();
+      _debounce = Timer(const Duration(milliseconds: 350), _search);
     });
   }
 
   @override
   void dispose() {
+    _debounce?.cancel();
+    _bloc.close();
     _searchController.dispose();
     super.dispose();
   }
@@ -92,7 +103,44 @@ class _FindCompanyScreenState extends State<FindCompanyScreen> {
 
             const SizedBox(height: 12),
 
-            Expanded(child: _buildCompanyContent()),
+            Expanded(
+              child: BlocBuilder<FindCompanyBloc, FindCompanyState>(
+                bloc: _bloc,
+                builder: (context, state) {
+                  if (state.loading)
+                    return const Center(child: CircularProgressIndicator());
+                  if (state.error != null)
+                    return Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            state.error!,
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: _search,
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    );
+                  return _buildCompanyContent(
+                    state.companies
+                        .map(
+                          (company) => CompanyItem(
+                            id: company.subCompanyNo,
+                            name: company.subCompanyName,
+                            details: company,
+                          ),
+                        )
+                        .toList(),
+                  );
+                },
+              ),
+            ),
 
             const SizedBox(height: 12),
 
@@ -182,7 +230,7 @@ class _FindCompanyScreenState extends State<FindCompanyScreen> {
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
-          hintText: 'Search company name or ID',
+          hintText: 'Search company name',
           hintStyle: const TextStyle(color: AppColors.hintText, fontSize: 12),
           prefixIcon: const Icon(
             Icons.search_rounded,
@@ -211,9 +259,7 @@ class _FindCompanyScreenState extends State<FindCompanyScreen> {
   // COMPANY CONTENT
   // ---------------------------------------------------
 
-  Widget _buildCompanyContent() {
-    final results = filteredCompanies;
-
+  Widget _buildCompanyContent(List<CompanyItem> results) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -226,7 +272,7 @@ class _FindCompanyScreenState extends State<FindCompanyScreen> {
           : ListView.separated(
               padding: const EdgeInsets.all(12),
               itemCount: results.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
+              separatorBuilder: (_, index) => const SizedBox(height: 8),
               itemBuilder: (context, index) {
                 return _buildCompanyCard(results[index]);
               },
@@ -287,7 +333,24 @@ class _FindCompanyScreenState extends State<FindCompanyScreen> {
   Widget _buildCompanyCard(CompanyItem company) {
     return InkWell(
       onTap: () {
-        widget.onCompanySelected?.call(company);
+        if (widget.onCompanySelected != null) {
+          widget.onCompanySelected!(company);
+          return;
+        }
+        final details = company.details;
+        if (details == null) return;
+        Navigator.of(context).push(
+          MaterialPageRoute<String>(
+            builder: (_) => ShareInvitationPage(
+              subCompany: details,
+              companyName: details.subCompanyName,
+              projectName: details.projectName,
+              ownerCompanyName: details.companyName,
+              companyId: details.subCompanyNo,
+              trade: details.tradeName,
+            ),
+          ),
+        );
       },
       borderRadius: BorderRadius.circular(10),
       child: Container(
@@ -357,11 +420,16 @@ class _FindCompanyScreenState extends State<FindCompanyScreen> {
       width: double.infinity,
       height: 45,
       child: ElevatedButton.icon(
-        onPressed: widget.onCreateCompany ??
+        onPressed:
+            widget.onCreateCompany ??
             () {
               Navigator.of(context).push(
                 MaterialPageRoute<void>(
-                  builder: (_) => const AddCompaniesPage(),
+                  builder: (_) => AddCompaniesPage(
+                    projectId: widget.projectId,
+                    companyId: widget.companyId,
+                    projectName: widget.projectName,
+                  ),
                 ),
               );
             },

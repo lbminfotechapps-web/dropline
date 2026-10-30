@@ -8,6 +8,8 @@ import 'package:dropline/features/companies/presentation/companies_people.dart';
 class ProjectSetupPage extends StatelessWidget {
   const ProjectSetupPage({
     super.key,
+    this.projectId = '',
+    this.companyId = '',
     this.projectName = 'Laxmi Gauri',
     this.companyName = 'Apex Build',
     this.onCompaniesAndPeople,
@@ -17,6 +19,8 @@ class ProjectSetupPage extends StatelessWidget {
     this.onBackToProject,
   });
 
+  final String projectId;
+  final String companyId;
   final String projectName;
   final String companyName;
   final VoidCallback? onCompaniesAndPeople;
@@ -177,7 +181,12 @@ class ProjectSetupPage extends StatelessWidget {
                             onCompaniesAndPeople ??
                                 () => Navigator.of(context).push(
                                   MaterialPageRoute<void>(
-                                    builder: (_) => const CompaniesPeoplePage(),
+                                    builder: (_) => CompaniesPeoplePage(
+                                      projectId: projectId,
+                                      companyId: companyId,
+                                      projectName: projectName,
+                                      companyName: companyName,
+                                    ),
                                   ),
                                 ),
                           ),

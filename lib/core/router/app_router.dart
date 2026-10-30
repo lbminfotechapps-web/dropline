@@ -6,7 +6,7 @@ import 'package:dropline/features/masterFlow/presentation/pages/master_flow.dart
 import 'package:dropline/features/project_setup/presentation/pages/project_setup_pages.dart';
 import 'package:dropline/features/areas/presentation/pages/area_main_pages.dart';
 import 'package:dropline/core/di/global_di.dart';
-import 'package:dropline/features/me/presentation/me.dart';
+import 'package:dropline/features/me/presentation/pages/me.dart';
 import 'package:dropline/features/auth/presentation/pages/loginpage.dart';
 import 'package:dropline/features/auth/presentation/pages/choose_option.dart';
 import 'package:dropline/features/dashboard/presentation/pages/dashboard_page.dart';
@@ -85,6 +85,8 @@ class AppRouter {
       GoRoute(
         path: projectSetup,
         builder: (context, state) => ProjectSetupPage(
+          projectId: state.uri.queryParameters['projectId'] ?? '',
+          companyId: state.uri.queryParameters['companyId'] ?? '',
           projectName:
               state.uri.queryParameters['projectName'] ?? 'Laxmi Gauri',
           companyName: state.uri.queryParameters['companyName'] ?? 'Apex Build',
@@ -317,7 +319,11 @@ class AppRouter {
         path: findcompany,
         name: 'findcompany',
         builder: (context, state) {
-          return const FindCompanyScreen();
+          return FindCompanyScreen(
+            projectId: state.uri.queryParameters['projectId'] ?? '',
+            companyId: state.uri.queryParameters['companyId'] ?? '',
+            projectName: state.uri.queryParameters['projectName'] ?? '',
+          );
         },
       ),
       GoRoute(

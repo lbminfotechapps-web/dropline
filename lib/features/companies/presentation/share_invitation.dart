@@ -1,3 +1,4 @@
+import '../domain/entities/sub_company_entity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'invite_company_admin.dart';
@@ -5,6 +6,7 @@ import 'invite_company_admin.dart';
 class ShareInvitationPage extends StatelessWidget {
   const ShareInvitationPage({
     super.key,
+    this.subCompany,
     this.companyName = 'PlasterCo',
     this.adminName = 'Rahul Sharma',
     this.projectName = 'Laxmi Gauri',
@@ -14,6 +16,7 @@ class ShareInvitationPage extends StatelessWidget {
     this.onShareInvitation,
   });
 
+  final SubCompanyEntity? subCompany;
   final String companyName;
   final String adminName;
   final String projectName;
@@ -195,6 +198,9 @@ class ShareInvitationPage extends StatelessWidget {
                           () => Navigator.of(context).push<void>(
                             MaterialPageRoute<void>(
                               builder: (_) => InviteCompanyAdminPage(
+                                companyId: subCompany?.companyId ?? '',
+                                projectId: subCompany?.projectId ?? '',
+                                subCompanyId: subCompany?.id ?? '',
                                 companyName: companyName,
                                 projectName: projectName,
                               ),
