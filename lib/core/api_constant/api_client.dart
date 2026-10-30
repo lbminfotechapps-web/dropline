@@ -18,6 +18,8 @@ class ApiClient {
   static const String getTimeSlot = '/get_time_slot';
 
   static const String punchIn = "/submit_inpunch";
+
+  static const String submitProject = "/submit_project";
   static const String get_trade = "/get_trade";
   static const String submit_sub_company = "/submit_sub_company";
   static const String get_role_task_define = "/get_role_task_define";

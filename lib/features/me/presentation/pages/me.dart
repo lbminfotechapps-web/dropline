@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:dropline/core/router/app_router.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dropline/features/companies/presentation/start_work.dart';
+import 'package:dropline/features/project_setup/presentation/pages/project_setup_pages.dart';
+import 'package:dropline/features/newproject/presentation/pages/new_project.dart';
 import 'package:dropline/core/di/global_di.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/project_bloc.dart';
 import '../bloc/project_event.dart';
 import '../bloc/project_state.dart';
-import 'package:dropline/features/newproject/presentation/new_project.dart';
+
 
 /// The site overview, with proportions taken from the supplied screen reference.
 class MePage extends StatefulWidget {
