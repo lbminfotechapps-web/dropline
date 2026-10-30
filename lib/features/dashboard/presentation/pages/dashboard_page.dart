@@ -305,6 +305,7 @@ class _DashboardPageState extends State<DashboardPage> {
                             DashboardGreeting(
                               name: _userName,
                               dateTime: _currentTime,
+
                               onMe: () => context.push(AppRouter.me),
                               onLogout:
                                   _isLoggingOut ||

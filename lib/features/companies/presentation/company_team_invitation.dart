@@ -18,6 +18,9 @@ class CompanyTeamMember {
 class CompanyTeamInvitationPage extends StatelessWidget {
   const CompanyTeamInvitationPage({
     super.key,
+    this.companyId = '',
+    this.projectId = '',
+    this.subCompanyId = '',
     this.projectName = 'Laxmi Gauri',
     this.companyName = 'PlasterCo',
     this.members = const [
@@ -26,6 +29,7 @@ class CompanyTeamInvitationPage extends StatelessWidget {
     ],
   });
 
+  final String companyId, projectId, subCompanyId;
   final String projectName;
   final String companyName;
   final List<CompanyTeamMember> members;
@@ -167,7 +171,13 @@ class CompanyTeamInvitationPage extends StatelessWidget {
                           onPressed: () =>
                               Navigator.of(context).pushReplacement<void, void>(
                                 MaterialPageRoute<void>(
-                                  builder: (_) => const InvitePeoplePage(),
+                                  builder: (_) => InvitePeoplePage(
+                                    companyId: companyId,
+                                    projectId: projectId,
+                                    subCompanyId: subCompanyId,
+                                    companyName: companyName,
+                                    projectName: projectName,
+                                  ),
                                 ),
                               ),
                           style: outline(),
