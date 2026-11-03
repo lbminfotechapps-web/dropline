@@ -7,8 +7,9 @@ class ApiClient {
   static const String submit_company_admin_owner =
       '/submit_company_admin_owner';
   static const String getSubCompany = '/get_sub_company';
-  static const String baseUrl =
-      "http://192.168.1.253:85/dropline/MobileApi/App";
+  //static const String baseUrl =
+  //  "http://192.168.1.253:85/dropline/MobileApi/App";
+  static const String baseUrl = "https://lbmsites.in/dropline/MobileApi/App";
 
   static const String login = '/login';
 
