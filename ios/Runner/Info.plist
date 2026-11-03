@@ -2,12 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSCameraUsageDescription</key>
-	<string>Dropline uses your camera to attach photos to event notes.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Dropline uses your photo library to select prescription images for reading.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Dropline uses your microphone to record voice notes for events.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
@@ -32,6 +26,12 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Dropline uses your camera to attach photos to event notes.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Dropline uses your microphone to record voice notes for events.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Dropline uses your photo library to select prescription images for reading.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
