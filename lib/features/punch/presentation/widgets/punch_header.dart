@@ -1,55 +1,116 @@
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_text_styles.dart';
-
 class PunchHeader extends StatelessWidget {
   final String title;
+  final String workspace;
   final VoidCallback? onBack;
-  final double scale;
+  final VoidCallback? onMe;
 
   const PunchHeader({
     super.key,
     required this.title,
+    this.workspace = 'Business',
     this.onBack,
-    this.scale = 1,
+    this.onMe,
   });
 
   @override
   Widget build(BuildContext context) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Material(
-          color: AppColors.white.withValues(alpha: 0.10),
-          borderRadius: BorderRadius.circular(28 * scale),
-          child: InkWell(
-            onTap: onBack ?? () => Navigator.pop(context),
-            borderRadius: BorderRadius.circular(28 * scale),
-            child: Container(
-              width: 78 * scale,
-              height: 78 * scale,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(28 * scale),
-                border: Border.all(
-                  color: AppColors.white.withValues(alpha: 0.20),
-                ),
-              ),
-              child: Icon(
-                Icons.arrow_back_rounded,
-                color: AppColors.white,
-                size: 38 * scale,
-              ),
+        InkWell(
+          onTap: onBack ?? () => Navigator.maybePop(context),
+          borderRadius: BorderRadius.circular(13),
+          child: Container(
+            width: 43,
+            height: 43,
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(13),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: const Icon(
+              Icons.arrow_back_rounded,
+              color: AppColors.textPrimary,
+              size: 23,
             ),
           ),
         ),
-        SizedBox(width: 34 * scale),
+
+        const SizedBox(width: 14),
+
         Expanded(
-          child: Text(
-            title,
-            style: AppTextStyles.headingLarge.copyWith(
-              fontSize: 38 * scale,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 19,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+
+              const SizedBox(height: 5),
+
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(9),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.work_outline_rounded,
+                      size: 14,
+                      color: AppColors.iconColor,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      workspace,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(width: 8),
+
+        InkWell(
+          onTap: onMe,
+          borderRadius: BorderRadius.circular(50),
+          child: Container(
+            height: 50,
+            width: 50,
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(
+              color: AppColors.primary,
+              shape: BoxShape.circle,
+            ),
+            child: const Text(
+              'ME',
+              style: TextStyle(
+                color: AppColors.primaryText,
+                fontSize: 21,
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ),
         ),
@@ -57,3 +118,4 @@ class PunchHeader extends StatelessWidget {
     );
   }
 }
+

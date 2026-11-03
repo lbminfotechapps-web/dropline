@@ -19,7 +19,7 @@ import '../widgets/audio_recorder_dialog.dart';
 
 import 'package:dropline/core/theme/app_text_styles.dart';
 import 'package:dropline/core/theme/appcolors.dart';
-import 'package:dropline/core/utility/widgets/app_background.dart';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -462,7 +462,128 @@ class _AddEventPageState extends State<AddEventPage> {
 
     await context.push(
       AppRouter.mainAreas,
-      extra: LocationFlowArgs(scope: scope, projectName: widget.projectName,),
+      extra: LocationFlowArgs(scope: scope, projectName: widget.projectName),
+    );
+  }
+
+  String get _eventDateLabel {
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+
+    return '${days[_draftDate.weekday - 1]} '
+        '${_draftDate.day} '
+        '${months[_draftDate.month - 1]}';
+  }
+
+  Widget _buildDateHeader() {
+    return Row(
+      children: [
+        const Icon(
+          Icons.calendar_today_outlined,
+          color: AppColors.iconColor,
+          size: 15,
+        ),
+        const SizedBox(width: 7),
+        Text(
+          _eventDateLabel,
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const Spacer(),
+        if (_saveFailed)
+          TextButton(
+            onPressed: _saveDraft,
+            child: const Text(
+              'Retry save',
+              style: TextStyle(color: AppColors.error),
+            ),
+          )
+        else
+          const Text(
+            'Select time',
+            style: TextStyle(color: AppColors.primary, fontSize: 12),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildTimeSlots() {
+    if (_loadingTimeSlots) {
+      return const SizedBox(
+        height: 43,
+        child: Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+      );
+    }
+
+    if (_timeSlotsFailed || _timeSlots.isEmpty) {
+      return SizedBox(
+        height: 43,
+        child: TextButton(
+          onPressed: _loadTimeSlots,
+          child: const Text('Retry loading time slots'),
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 43,
+      child: ListView.separated(
+        controller: _timeController,
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 2),
+        itemCount: _timeSlots.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 7),
+        itemBuilder: (context, index) {
+          final selected = _selectedTime == index;
+
+          return InkWell(
+            onTap: _canEdit ? () => _selectTime(index) : null,
+            borderRadius: BorderRadius.circular(11),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              constraints: const BoxConstraints(minWidth: 61),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: selected ? AppColors.primary : AppColors.inputBackground,
+                borderRadius: BorderRadius.circular(11),
+                border: Border.all(
+                  color: selected ? AppColors.primary : AppColors.border,
+                ),
+              ),
+              child: Text(
+                _timeLabel(index),
+                style: TextStyle(
+                  color: selected
+                      ? AppColors.primaryText
+                      : AppColors.textPrimary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -477,7 +598,10 @@ class _AddEventPageState extends State<AddEventPage> {
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: AppColors.transparent,
+        systemNavigationBarColor: AppColors.background,
+      ),
       child: PopScope(
         canPop: _pendingSaves == 0 && !_picking && !_saveFailed,
         onPopInvokedWithResult: (didPop, result) {
@@ -490,447 +614,724 @@ class _AddEventPageState extends State<AddEventPage> {
           }
         },
         child: Scaffold(
-          backgroundColor: AppColors.eventBackgroundBottom,
-          body: AppBackground(
-            child: SafeArea(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final scale = (constraints.maxWidth / 390).clamp(0.8, 1.4);
-                  final horizontal = 26 * scale;
-                  final cardHeight = math.max(
-                    245.0,
-                    constraints.maxHeight - 305 * scale,
-                  );
-                  return SingleChildScrollView(
-                    keyboardDismissBehavior:
-                        ScrollViewKeyboardDismissBehavior.onDrag,
-                    padding: EdgeInsets.only(
-                      top: 18 * scale,
-                      bottom: 12 * scale,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: horizontal),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 30 * scale,
-                                height: 30 * scale,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: AppColors.white.withValues(
-                                    alpha: 0.08,
-                                  ),
-                                  border: Border.all(
-                                    color: AppColors.white.withValues(
-                                      alpha: 0.16,
-                                    ),
-                                  ),
-                                ),
-                                child: IconButton(
-                                  padding: EdgeInsets.zero,
-                                  tooltip: 'Back',
-                                  onPressed: () =>
-                                      Navigator.of(context).maybePop(),
-                                  icon: Icon(
-                                    Icons.arrow_back_rounded,
-                                    size: 24 * scale,
-                                    color: AppColors.white,
-                                  ),
-                                ),
+          backgroundColor: AppColors.background,
+          resizeToAvoidBottomInset: true,
+          body: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isSmall = constraints.maxHeight < 690;
+
+                return SingleChildScrollView(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 16),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 520),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildEventHeader(),
+
+                          const SizedBox(height: 14),
+
+                          _buildPreviewCard(previewHeight: isSmall ? 180 : 230),
+
+                          const SizedBox(height: 14),
+
+                          _buildItemsHeader(),
+
+                          const SizedBox(height: 10),
+
+                          _buildEventItems(),
+
+                          const SizedBox(height: 18),
+
+                          _buildDateHeader(),
+
+                          const SizedBox(height: 12),
+
+                          _buildTimeSlots(),
+
+                          const SizedBox(height: 16),
+
+                          _buildBottomTools(),
+
+                          const SizedBox(height: 18),
+
+                          _buildBottomActions(),
+
+                          const SizedBox(height: 6),
+
+                          Center(
+                            child: Text(
+                              _saveFailed
+                                  ? 'Save failed. Retry before leaving.'
+                                  : _pendingSaves > 0
+                                  ? 'Saving changes...'
+                                  : _loadingDraft || _loadingTimeSlots
+                                  ? 'Loading...'
+                                  : 'Changes are saved locally.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: _saveFailed
+                                    ? AppColors.error
+                                    : AppColors.textSecondary,
+                                fontSize: 11,
                               ),
-                              SizedBox(width: 10 * scale),
-                              Text(
-                                widget.projectName,
-                                style: AppTextStyles.titleSmall.copyWith(
-                                  fontSize: 20 * scale,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 1.2,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(height: 10 * scale),
-                        Container(
-                          height: cardHeight,
-                          margin: EdgeInsets.symmetric(horizontal: horizontal),
-                          padding: EdgeInsets.fromLTRB(
-                            12 * scale,
-                            10 * scale,
-                            12 * scale,
-                            4 * scale,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.eventNoteSurface,
-                            borderRadius: BorderRadius.circular(26 * scale),
-                            border: Border.all(
-                              color: AppColors.white.withValues(alpha: 0.15),
                             ),
                           ),
-                          child: Column(
-                            children: [
-                              Expanded(
-                                child: _loadingDraft
-                                    ? const Center(
-                                        child: CircularProgressIndicator(),
-                                      )
-                                    : _draftError != null
-                                    ? Center(
-                                        child: TextButton(
-                                          onPressed: _timeSlots.isEmpty
-                                              ? null
-                                              : _loadDraft,
-                                          child: Text(_draftError!),
-                                        ),
-                                      )
-                                    : _selectedItem != null &&
-                                          _selectedItem!.type !=
-                                              EventItemType.note
-                                    ? _previewFile == null
-                                          ? const Center(
-                                              child:
-                                                  CircularProgressIndicator(),
-                                            )
-                                          : EventAttachmentPreview(
-                                              key: ValueKey(
-                                                '${_selectedItem!.id}:$_previewVersion',
-                                              ),
-                                              file: _previewFile!,
-                                              item: _selectedItem!,
-                                              onEditPdf: _editPdf,
-                                            )
-                                    : TextField(
-                                        enabled: _canEdit,
-                                        onChanged: _noteChanged,
-                                        controller: _noteController,
-                                        focusNode: _noteFocus,
-                                        expands: true,
-                                        minLines: null,
-                                        maxLines: null,
-                                        textAlignVertical:
-                                            TextAlignVertical.top,
-                                        keyboardType: TextInputType.multiline,
-                                        cursorColor: AppColors.white,
-                                        style: AppTextStyles.inputText.copyWith(
-                                          fontSize: 16 * scale,
-                                          height: 1.5,
-                                        ),
-                                        decoration: InputDecoration(
-                                          hintText: 'Write a note...',
-                                          hintStyle: AppTextStyles.inputHint
-                                              .copyWith(
-                                                fontSize: 16 * scale,
-                                                color: AppColors.textSecondary,
-                                              ),
-                                          filled: false,
-                                          border: InputBorder.none,
-                                          enabledBorder: InputBorder.none,
-                                          focusedBorder: InputBorder.none,
-                                          contentPadding: EdgeInsets.all(
-                                            6 * scale,
-                                          ),
-                                        ),
-                                      ),
-                              ),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    _timeLabel(_selectedTime),
-                                    style: AppTextStyles.headingLarge.copyWith(
-                                      fontSize: 30 * scale,
-                                    ),
-                                  ),
-                                  IconButton(
-                                    tooltip: 'Record voice note',
-                                    onPressed:
-                                        widget.onRecordAudio ?? _openRecorder,
-                                    icon: const Icon(
-                                      Icons.mic_none_rounded,
-                                      color: AppColors.white,
-                                    ),
-                                  ),
-                                  IconButton(
-                                    tooltip: 'Edit note',
-                                    onPressed: !_canEdit
-                                        ? null
-                                        : () {
-                                            if (_selectedItem?.type ==
-                                                EventItemType.note) {
-                                              _noteFocus.requestFocus();
-                                            } else {
-                                              _newNote();
-                                            }
-                                          },
-                                    icon: const Icon(
-                                      Icons.edit_square,
-                                      color: AppColors.white,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(height: 13 * scale),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: horizontal),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  '${_draftDate.day}/${_draftDate.month}/${_draftDate.year} • '
-                                  '${_items.length} items',
-                                  style: AppTextStyles.bodySmall,
-                                ),
-                              ),
-                              if (_saveFailed)
-                                TextButton(
-                                  onPressed: _saveDraft,
-                                  child: const Text('Save failed. Retry'),
-                                )
-                              else
-                                Text(
-                                  _loadingTimeSlots || _loadingDraft
-                                      ? 'Loading…'
-                                      : _timeSlotsFailed || _draftError != null
-                                      ? 'Not loaded'
-                                      : _pendingSaves > 0 || _picking
-                                      ? 'Saving…'
-                                      : 'Saved locally',
-                                  style: AppTextStyles.bodySmall,
-                                ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(
-                          height: 64 * scale,
-                          child: _items.isEmpty
-                              ? Center(
-                                  child: Text(
-                                    'Add a note, PDF, photo or audio for this time slot.',
-                                    style: AppTextStyles.bodySmall,
-                                  ),
-                                )
-                              : ListView.separated(
-                                  scrollDirection: Axis.horizontal,
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: horizontal,
-                                  ),
-                                  itemCount: _items.length,
-                                  separatorBuilder: (_, _) =>
-                                      SizedBox(width: 10 * scale),
-                                  itemBuilder: (_, index) {
-                                    final item = _items[index];
-                                    return Semantics(
-                                      selected: _selectedCard == index,
-                                      child: Tooltip(
-                                        message: item.name,
-                                        child: InkWell(
-                                          onTap: _canEdit
-                                              ? () => _selectItem(index)
-                                              : null,
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                          child: Container(
-                                            width: 76 * scale,
-                                            padding: const EdgeInsets.all(5),
-                                            decoration: BoxDecoration(
-                                              color: AppColors.eventTileLight,
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                              border: Border.all(
-                                                color: _selectedCard == index
-                                                    ? AppColors
-                                                          .eventTimeSelected
-                                                    : Colors.transparent,
-                                                width: 2,
-                                              ),
-                                            ),
-                                            child: Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                Icon(
-                                                  switch (item.type) {
-                                                    EventItemType.note =>
-                                                      Icons.edit_note,
-                                                    EventItemType.pdf =>
-                                                      Icons.picture_as_pdf,
-                                                    EventItemType.photo =>
-                                                      Icons.photo_camera,
-                                                    EventItemType.audio =>
-                                                      Icons.audiotrack,
-                                                  },
-                                                  color: AppColors.black,
-                                                  size: 22 * scale,
-                                                ),
-                                                Text(
-                                                  item.name,
-                                                  maxLines: 1,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  style: TextStyle(
-                                                    color: AppColors.black,
-                                                    fontSize: 10 * scale,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                        ),
-                        SizedBox(height: 17 * scale),
-                        SizedBox(
-                          height: 34 * scale,
-                          child: _loadingTimeSlots
-                              ? const Center(child: CircularProgressIndicator())
-                              : _timeSlotsFailed || _timeSlots.isEmpty
-                              ? Center(
-                                  child: TextButton(
-                                    onPressed: _loadTimeSlots,
-                                    child: Text(
-                                      _timeSlotsFailed
-                                          ? 'Unable to load time slots. Retry'
-                                          : 'No time slots available. Retry',
-                                    ),
-                                  ),
-                                )
-                              : ListView.separated(
-                                  controller: _timeController,
-                                  scrollDirection: Axis.horizontal,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                  ),
-                                  itemCount: _timeSlots.length,
-                                  separatorBuilder: (_, index) =>
-                                      SizedBox(width: 7 * scale),
-                                  itemBuilder: (context, index) => Semantics(
-                                    selected: _selectedTime == index,
-                                    child: InkWell(
-                                      borderRadius: BorderRadius.circular(18),
-                                      onTap: () => _selectTime(index),
-                                      child: Container(
-                                        width: 76 * scale,
-                                        alignment: Alignment.center,
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 9 * scale,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: AppColors.white.withValues(
-                                            alpha: 0.06,
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            18,
-                                          ),
-                                          border: Border.all(
-                                            color: _selectedTime == index
-                                                ? AppColors.eventTimeSelected
-                                                : AppColors.white.withValues(
-                                                    alpha: 0.18,
-                                                  ),
-                                            width: _selectedTime == index
-                                                ? 2
-                                                : 1,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          _timeLabel(index),
-                                          style: AppTextStyles.titleSmall
-                                              .copyWith(fontSize: 15 * scale),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                        ),
-                        SizedBox(height: 14 * scale),
-                        Container(
-                          margin: EdgeInsets.symmetric(horizontal: 19 * scale),
-                          padding: EdgeInsets.all(13 * scale),
-                          decoration: BoxDecoration(
-                            color: AppColors.white.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(28 * scale),
-                            border: Border.all(
-                              color: AppColors.white.withValues(alpha: 0.2),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              _tool(
-                                'Attach PDF',
-                                Icons.picture_as_pdf_outlined,
-                                AppColors.eventToolBlue,
-                                () => _pickAttachment(FileType.custom),
-                                scale,
-                              ),
-                              _tool(
-                                'Write note',
-                                Icons.edit_note_rounded,
-                                AppColors.eventToolMint,
-                                _newNote,
-                                scale,
-                              ),
-                              _tool(
-                                'Add photo',
-                                Icons.camera_alt_outlined,
-                                AppColors.eventToolPurple,
-                                widget.onCamera ?? _takePhoto,
-                                scale,
-                              ),
-                              _tool(
-                                'Record voice note',
-                                Icons.mic_none_rounded,
-                                AppColors.eventToolOrange,
-                                widget.onRecordAudio ?? _openRecorder,
-                                scale,
-                              ),
-                              SizedBox(
-                                height: 48 * scale,
-                                child: FilledButton(
-                                  onPressed: _canEdit ? _completeEvent : null,
-                                  style: FilledButton.styleFrom(
-                                    backgroundColor: AppColors.eventToolCyan,
-                                    foregroundColor: AppColors.black,
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 18 * scale,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(
-                                        17 * scale,
-                                      ),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'Event',
-                                    style: AppTextStyles.titleSmall.copyWith(
-                                      color: AppColors.black,
-                                      fontSize: 15 * scale,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  );
-                },
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomActions() {
+    final busy = !_canEdit || _pendingSaves > 0 || _saveFailed || _picking;
+
+    final canContinue =
+        !busy &&
+        _userId.isNotEmpty &&
+        _userId != 'local' &&
+        widget.projectId.trim().isNotEmpty;
+
+    return Row(
+      children: [
+        Expanded(
+          child: SizedBox(
+            height: 49,
+            child: OutlinedButton.icon(
+              onPressed: canContinue ? _completeEvent : null,
+              icon: const Icon(Icons.layers_outlined, size: 17),
+              label: const Text('Add event'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.textPrimary,
+                side: const BorderSide(color: AppColors.border),
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
         ),
+
+        const SizedBox(width: 10),
+
+        Expanded(
+          child: SizedBox(
+            height: 49,
+            child: ElevatedButton.icon(
+              onPressed: busy
+                  ? null
+                  : () async {
+                      final saved = await _saveDraft();
+                      if (!mounted) return;
+
+                      if (saved) {
+                        _message('Event draft saved locally.');
+                      } else {
+                        _message('Unable to save event draft.');
+                      }
+                    },
+              icon: const Icon(Icons.check_rounded, size: 18),
+              label: const Text('Save update'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: AppColors.primaryText,
+                disabledBackgroundColor: AppColors.disabledButton,
+                disabledForegroundColor: AppColors.disabledText,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 7),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBottomTools() {
+    return Row(
+      children: [
+        Expanded(
+          child: _eventTool(
+            label: 'PDF',
+            icon: Icons.picture_as_pdf_outlined,
+            onTap: () => _pickAttachment(FileType.custom),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _eventTool(
+            label: 'Photo',
+            icon: Icons.camera_alt_outlined,
+            onTap: widget.onCamera ?? _takePhoto,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _eventTool(
+            label: 'Note',
+            icon: Icons.edit_note_rounded,
+            onTap: _newNote,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _eventTool(
+            label: 'Audio',
+            icon: Icons.mic_none_rounded,
+            onTap: widget.onRecordAudio ?? _openRecorder,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _eventTool({
+    required String label,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: _canEdit ? onTap : null,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          height: 65,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 21,
+                color: _canEdit ? AppColors.iconColor : AppColors.disabledText,
+              ),
+              const SizedBox(height: 5),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 11,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEventHeader() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Material(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(12),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () => Navigator.of(context).maybePop(),
+            child: Container(
+              height: 42,
+              width: 42,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: const Icon(
+                Icons.arrow_back_rounded,
+                color: AppColors.textPrimary,
+                size: 22,
+              ),
+            ),
+          ),
+        ),
+
+        const SizedBox(width: 12),
+
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.projectName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 19,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+
+              const SizedBox(height: 5),
+
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(7),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.work_outline_rounded,
+                      color: AppColors.iconColor,
+                      size: 13,
+                    ),
+                    SizedBox(width: 5),
+                    Text(
+                      'Project',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildItemsHeader() {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            '${_items.length} items',
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 12,
+            ),
+          ),
+        ),
+
+        TextButton(
+          onPressed: _canEdit ? _newNote : null,
+          child: const Text(
+            'Add note',
+            style: TextStyle(color: AppColors.primary, fontSize: 12),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEventItems() {
+    if (_items.isEmpty) {
+      return Container(
+        height: 65,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: const Text(
+          'No items added yet',
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 76,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: _items.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 9),
+        itemBuilder: (context, index) {
+          final item = _items[index];
+          final selected = _selectedCard == index;
+
+          final icon = switch (item.type) {
+            EventItemType.note => Icons.sticky_note_2_outlined,
+            EventItemType.pdf => Icons.picture_as_pdf_outlined,
+            EventItemType.photo => Icons.image_outlined,
+            EventItemType.audio => Icons.mic_none_rounded,
+          };
+
+          return InkWell(
+            onTap: _canEdit ? () => _selectItem(index) : null,
+            borderRadius: BorderRadius.circular(12),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              width: 88,
+              padding: const EdgeInsets.all(7),
+              decoration: BoxDecoration(
+                color: AppColors.cardBackground,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: selected ? AppColors.primary : AppColors.border,
+                  width: selected ? 1.5 : 1,
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    icon,
+                    color: selected ? AppColors.primary : AppColors.iconColor,
+                    size: 25,
+                  ),
+
+                  const SizedBox(height: 7),
+
+                  Text(
+                    item.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildPreviewCard({required double previewHeight}) {
+    final item = _selectedItem;
+
+    String typeLabel = 'NOTE';
+
+    if (item != null) {
+      typeLabel = switch (item.type) {
+        EventItemType.note => 'NOTE',
+        EventItemType.pdf => 'PDF',
+        EventItemType.photo => 'PHOTO',
+        EventItemType.audio => 'AUDIO',
+      };
+    }
+
+    final itemName = item?.name ?? 'New event';
+
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Text(
+                typeLabel,
+                style: const TextStyle(
+                  color: AppColors.iconColor,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+
+              const SizedBox(width: 7),
+
+              Expanded(
+                child: Text(
+                  itemName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+
+              Text(
+                _selectedCard >= 0
+                    ? '${_selectedCard + 1} / ${_items.length}'
+                    : '0 / ${_items.length}',
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 11,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 11),
+
+          Container(
+            height: previewHeight,
+            padding: const EdgeInsets.all(9),
+            decoration: BoxDecoration(
+              color: AppColors.inputBackground,
+              borderRadius: BorderRadius.circular(13),
+            ),
+            child: _buildSelectedPreview(),
+          ),
+
+          const SizedBox(height: 9),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.inputBackground,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  _timeLabel(_selectedTime),
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+
+              if (item?.type == EventItemType.pdf)
+                TextButton.icon(
+                  onPressed: _canEdit ? _editPdf : null,
+                  icon: const Icon(Icons.edit_outlined, size: 15),
+                  label: const Text('Edit PDF'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    textStyle: const TextStyle(fontSize: 12),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _editSelectedTag() async {
+    final item = _selectedItem;
+    if (!_canEdit || item == null) return;
+    final scope = _scope;
+    FocusScope.of(context).unfocus();
+    final controller = TextEditingController(text: item.tag);
+    String? tag;
+    try {
+      tag = await showDialog<String>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          backgroundColor: AppColors.surface,
+          surfaceTintColor: AppColors.transparent,
+          title: Text(
+            item.tag.isEmpty ? 'Add tag' : 'Edit tag',
+            style: const TextStyle(color: AppColors.textPrimary),
+          ),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            textInputAction: TextInputAction.done,
+            cursorColor: AppColors.primary,
+            style: const TextStyle(color: AppColors.textPrimary),
+            decoration: const InputDecoration(
+              labelText: 'Tag',
+              hintText: 'Enter a tag',
+              hintStyle: TextStyle(color: AppColors.hintText),
+              labelStyle: TextStyle(color: AppColors.textSecondary),
+            ),
+            onSubmitted: (value) =>
+                Navigator.of(dialogContext).pop(value.trim()),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: AppColors.primaryText,
+              ),
+              onPressed: () =>
+                  Navigator.of(dialogContext).pop(controller.text.trim()),
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      );
+    } finally {
+      // Wait for the closing dialog animation before disposing its controller.
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      controller.dispose();
+    }
+    if (!mounted || tag == null || !_canEdit || scope != _scope) return;
+    final index = _items.indexWhere((entry) => entry.id == item.id);
+    if (index < 0) return;
+    setState(() => _items[index] = _items[index].withTag(tag!));
+    await _saveDraft();
+  }
+
+  Widget _buildSelectedPreview() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Align(
+          alignment: Alignment.topRight,
+          child: OutlinedButton.icon(
+            onPressed: _canEdit && _selectedItem != null
+                ? _editSelectedTag
+                : null,
+            icon: const Icon(Icons.sell_outlined, size: 16),
+            label: Text(
+              _selectedItem?.tag.isNotEmpty == true
+                  ? _selectedItem!.tag
+                  : 'Tag',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.primary,
+              disabledForegroundColor: AppColors.disabledText,
+              side: const BorderSide(color: AppColors.border),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              minimumSize: const Size(0, 36),
+              visualDensity: VisualDensity.compact,
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Expanded(child: _buildSelectedPreviewContent()),
+      ],
+    );
+  }
+
+  Widget _buildSelectedPreviewContent() {
+    if (_loadingDraft) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.primary),
+      );
+    }
+
+    if (_draftError != null) {
+      return Center(
+        child: TextButton(
+          onPressed: _timeSlots.isEmpty ? null : _loadDraft,
+          child: Text(_draftError!, textAlign: TextAlign.center),
+        ),
+      );
+    }
+
+    final item = _selectedItem;
+
+    if (item == null) {
+      return const Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.add_photo_alternate_outlined,
+              color: AppColors.iconColor,
+              size: 34,
+            ),
+            SizedBox(height: 9),
+            Text(
+              'No event selected',
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(height: 5),
+            Text(
+              'Add a photo, PDF, note or audio.',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (item.type != EventItemType.note) {
+      if (_previewFile == null) {
+        return const Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        );
+      }
+
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: EventAttachmentPreview(
+          key: ValueKey('${item.id}:$_previewVersion'),
+          file: _previewFile!,
+          item: item,
+          onEditPdf: _editPdf,
+        ),
+      );
+    }
+
+    return TextField(
+      enabled: _canEdit,
+      controller: _noteController,
+      focusNode: _noteFocus,
+      onChanged: _noteChanged,
+      expands: true,
+      minLines: null,
+      maxLines: null,
+      keyboardType: TextInputType.multiline,
+      textAlignVertical: TextAlignVertical.top,
+      cursorColor: AppColors.primary,
+      style: const TextStyle(
+        color: AppColors.textPrimary,
+        fontSize: 14,
+        height: 1.5,
+      ),
+      decoration: const InputDecoration(
+        hintText: 'Write your site note...',
+        hintStyle: TextStyle(color: AppColors.hintText, fontSize: 13),
+        border: InputBorder.none,
+        enabledBorder: InputBorder.none,
+        focusedBorder: InputBorder.none,
+        contentPadding: EdgeInsets.all(8),
       ),
     );
   }
@@ -950,7 +1351,7 @@ class _AddEventPageState extends State<AddEventPage> {
         onPressed: onTap,
         style: IconButton.styleFrom(
           backgroundColor: colour,
-          foregroundColor: AppColors.black,
+          foregroundColor: AppColors.primaryText,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16 * scale),
           ),

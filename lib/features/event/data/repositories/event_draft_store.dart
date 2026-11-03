@@ -13,6 +13,7 @@ class EventDraftItem {
     required this.type,
     required this.name,
     this.text = '',
+    this.tag = '',
     this.fileName,
   });
 
@@ -20,6 +21,7 @@ class EventDraftItem {
   final EventItemType type;
   final String name;
   final String text;
+  final String tag;
   final String? fileName;
 
   EventDraftItem withText(String value) => EventDraftItem(
@@ -27,6 +29,16 @@ class EventDraftItem {
     type: type,
     name: name,
     text: value,
+    tag: tag,
+    fileName: fileName,
+  );
+
+  EventDraftItem withTag(String value) => EventDraftItem(
+    id: id,
+    type: type,
+    name: name,
+    text: text,
+    tag: value,
     fileName: fileName,
   );
 
@@ -35,6 +47,7 @@ class EventDraftItem {
     'type': type.name,
     'name': name,
     'text': text,
+    'tag': tag,
     'fileName': fileName,
   };
 
@@ -43,6 +56,7 @@ class EventDraftItem {
     type: EventItemType.values.byName(json['type'] as String),
     name: json['name'] as String,
     text: json['text'] as String? ?? '',
+    tag: json['tag'] as String? ?? '',
     fileName: json['fileName'] as String?,
   );
 }

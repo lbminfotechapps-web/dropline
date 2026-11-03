@@ -1,196 +1,159 @@
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_text_styles.dart';
 
 class PunchOutSlideBar extends StatefulWidget {
-  final String actionText;
-  final String timeText;
   final VoidCallback onCompleted;
   final bool isLoading;
-  final double scale;
 
   const PunchOutSlideBar({
     super.key,
-    required this.actionText,
-    required this.timeText,
     required this.onCompleted,
     this.isLoading = false,
-    this.scale = 1,
   });
 
   @override
-  State<PunchOutSlideBar> createState() => _PunchOutSlideBarState();
+  State<PunchOutSlideBar> createState() =>
+      _PunchOutSlideBarState();
 }
 
 class _PunchOutSlideBarState extends State<PunchOutSlideBar> {
   double _drag = 0;
 
-  double get _barHeight => 150 * widget.scale;
-  double get _handleSize => 88 * widget.scale;
-  double get _padding => 42 * widget.scale;
-
   void _reset() {
-    if (!mounted) return;
-    setState(() => _drag = 0);
+    if (mounted) {
+      setState(() => _drag = 0);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final maxDrag = (constraints.maxWidth - _handleSize - (_padding * 2))
-            .clamp(0.0, double.infinity)
-            .toDouble();
+    const barHeight = 64.0;
+    const handleSize = 52.0;
+    const padding = 5.0;
 
-        final drag = _drag.clamp(0.0, maxDrag);
+    return SizedBox(
+      height: barHeight,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final maxDrag =
+              (constraints.maxWidth - handleSize - padding * 2)
+                  .clamp(0.0, double.infinity)
+                  .toDouble();
 
-        return Container(
-          height: _barHeight,
-          decoration: BoxDecoration(
-            color: AppColors.cardBackground.withValues(alpha: 0.78),
-            borderRadius: BorderRadius.circular(52 * widget.scale),
-            border: Border.all(
-              color: AppColors.cardBorder.withValues(alpha: 0.55),
+          final drag = _drag.clamp(0.0, maxDrag);
+
+          return Container(
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(40),
+              border: Border.all(
+                color: AppColors.border,
+                width: 1.2,
+              ),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.shadow,
-                blurRadius: 16,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: Stack(
-            children: [
-              Positioned(
-                left: 24 * widget.scale,
-                top: 14 * widget.scale,
-                bottom: 14 * widget.scale,
-                width: (constraints.maxWidth * 0.57 + drag).clamp(
-                  0.0,
-                  constraints.maxWidth - 48 * widget.scale,
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                      colors: [Color(0xFF48688D), Color(0xFF4C5A69)],
-                    ),
-                    borderRadius: BorderRadius.circular(70 * widget.scale),
-                    border: Border.all(
-                      color: AppColors.white.withValues(alpha: 0.12),
-                    ),
-                  ),
-                ),
-              ),
-
-              Positioned.fill(
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    left: _padding + _handleSize,
-                    right: 24 * widget.scale,
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 12 * widget.scale,
-                          ),
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.center,
-                            child: Text(
-                              widget.actionText,
-                              style: AppTextStyles.buttonLarge.copyWith(
-                                fontSize: 36 * widget.scale,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 12 * widget.scale,
-                          ),
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              widget.timeText,
-                              style: AppTextStyles.displaySmall.copyWith(
-                                fontSize: 64 * widget.scale,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: -1,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              Positioned(
-                left: _padding + drag,
-                top: (_barHeight - _handleSize) / 2,
-                child: GestureDetector(
-                  onHorizontalDragUpdate: widget.isLoading
-                      ? null
-                      : (details) {
-                          setState(() {
-                            _drag = (_drag + details.delta.dx).clamp(
-                              0.0,
-                              maxDrag,
-                            );
-                          });
-                        },
-                  onHorizontalDragEnd: widget.isLoading
-                      ? null
-                      : (_) {
-                          final completed =
-                              maxDrag > 0 && _drag >= maxDrag * 0.85;
-                          _reset();
-                          if (completed) {
-                            widget.onCompleted();
-                          }
-                        },
-                  onHorizontalDragCancel: _reset,
+            child: Stack(
+              children: [
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: (drag + handleSize + padding)
+                      .clamp(0.0, constraints.maxWidth)
+                      .toDouble(),
                   child: Container(
-                    width: _handleSize,
-                    height: _handleSize,
                     decoration: BoxDecoration(
-                      color: AppColors.primaryDark,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.white, width: 1.5),
+                      color: AppColors.primary.withValues(
+                        alpha: 0.16,
+                      ),
+                      borderRadius: BorderRadius.circular(40),
                     ),
-                    child: Center(
+                  ),
+                ),
+
+                Positioned.fill(
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        left: 55,
+                        right: 12,
+                      ),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          widget.isLoading
+                              ? 'PLEASE WAIT...'
+                              : 'Slide to clock out',
+                          style: const TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                Positioned(
+                  left: padding + drag,
+                  top: padding,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onHorizontalDragUpdate: widget.isLoading
+                        ? null
+                        : (details) {
+                            setState(() {
+                              _drag = (_drag + details.delta.dx)
+                                  .clamp(0.0, maxDrag);
+                            });
+                          },
+                    onHorizontalDragEnd: widget.isLoading
+                        ? null
+                        : (_) {
+                            final completed = maxDrag > 0 &&
+                                _drag >= maxDrag * 0.85;
+                            _reset();
+
+                            if (completed) {
+                              widget.onCompleted();
+                            }
+                          },
+                    onHorizontalDragCancel: _reset,
+                    child: Container(
+                      height: handleSize,
+                      width: handleSize,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.primaryText,
+                          width: 1.4,
+                        ),
+                      ),
+                      alignment: Alignment.center,
                       child: widget.isLoading
                           ? const SizedBox(
-                              height: 24,
-                              width: 24,
+                              width: 23,
+                              height: 23,
                               child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: AppColors.white,
+                                strokeWidth: 2.5,
+                                color: AppColors.primaryText,
                               ),
                             )
-                          : Icon(
+                          : const Icon(
                               Icons.keyboard_double_arrow_right_rounded,
-                              color: AppColors.white,
-                              size: 44 * widget.scale,
+                              color: AppColors.primaryText,
+                              size: 31,
                             ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        );
-      },
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }

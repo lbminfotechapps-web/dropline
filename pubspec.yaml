@@ -53,6 +53,7 @@ dependencies:
   showcaseview: ^5.1.0
   fluttertoast: ^10.0.2
   intl: ^0.20.3
+  country_code_picker: ^3.4.1
 
 dev_dependencies:
   flutter_test:

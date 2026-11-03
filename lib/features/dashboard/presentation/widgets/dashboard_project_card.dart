@@ -1,25 +1,29 @@
-import 'package:dropline/core/utility/widgets/app_background.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 
 import 'package:dropline/features/dashboard/domain/entity/project_entity.dart';
 import 'package:dropline/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:dropline/features/dashboard/presentation/bloc/dashboard_event.dart';
 import 'package:dropline/features/dashboard/presentation/bloc/dashboard_state.dart';
+import 'package:dropline/features/dashboard/presentation/widgets/dashboard_clock_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/theme/app_text_styles.dart';
+// ======================================================
+// PROJECT SELECTOR ON DASHBOARD
+// ======================================================
 
 class DashboardProjectCard extends StatefulWidget {
   final ProjectEntity? selectedProject;
   final ValueChanged<ProjectEntity>? onProjectSelected;
   final VoidCallback? onRemoveProject;
+  final String workspaceLabel;
 
   const DashboardProjectCard({
     super.key,
     this.selectedProject,
     this.onProjectSelected,
     this.onRemoveProject,
+    this.workspaceLabel = 'Personal · Private',
   });
 
   @override
@@ -31,231 +35,190 @@ class _DashboardProjectCardState extends State<DashboardProjectCard> {
 
   Future<void> _openProjectPicker() async {
     if (_isOpening) return;
-    _isOpening = true;
-    final bloc = context.read<DashboardBloc>();
-    if (bloc.state.dashboardStatus == DashboardStatus.initial) {
-      bloc.add(const GetProjectList());
-    }
+
+    setState(() => _isOpening = true);
+
     try {
-      final project = await Navigator.of(context).push<ProjectEntity>(
-        PageRouteBuilder<ProjectEntity>(
-          transitionDuration: const Duration(milliseconds: 350),
-          reverseTransitionDuration: const Duration(milliseconds: 300),
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              BlocProvider.value(
-                value: bloc,
-                child: const _ProjectPickerPage(),
-              ),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            final curved = CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOutCubic,
-              reverseCurve: Curves.easeInCubic,
-            );
-            return SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0, 1),
-                end: Offset.zero,
-              ).animate(curved),
-              child: child,
-            );
-          },
+      final bloc = context.read<DashboardBloc>();
+
+      if (bloc.state.dashboardStatus == DashboardStatus.initial) {
+        bloc.add(const GetProjectList());
+      }
+
+      final selectedProject = await showModalBottomSheet<ProjectEntity>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        backgroundColor: AppColors.sheetBackground,
+        barrierColor: AppColors.black.withValues(alpha: 0.65),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
+        builder: (sheetContext) {
+          return BlocProvider.value(
+            value: bloc,
+            child: _ProjectBottomSheet(workspaceLabel: widget.workspaceLabel),
+          );
+        },
       );
-      if (mounted && project != null) {
-        widget.onProjectSelected?.call(project);
+
+      if (!mounted) return;
+
+      if (selectedProject != null) {
+        widget.onProjectSelected?.call(selectedProject);
       }
     } finally {
-      _isOpening = false;
+      if (mounted) {
+        setState(() => _isOpening = false);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final scale = MediaQuery.sizeOf(context).width / 591;
     final project = widget.selectedProject;
-    return Container(
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.cardBackgroundLight, AppColors.primaryDark],
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'PROJECT',
+          style: TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1,
+          ),
         ),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: _openProjectPicker,
-              borderRadius: BorderRadius.circular(28),
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.18),
-                        ),
-                      ),
-                      child: const Icon(
-                        Icons.work_outline_rounded,
-                        color: Colors.white,
-                        size: 26,
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'SELECT PROJECT',
-                            style: AppTextStyles.titleLarge.copyWith(
-                              fontSize: 30 * scale,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            project == null
-                                ? 'Choose where you’re working today'
-                                : 'Tap to change your project',
-                            style: AppTextStyles.bodyMedium.copyWith(
-                              color: AppColors.textSecondary,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      color: Colors.white,
-                      size: 28,
-                    ),
-                  ],
-                ),
+
+        const SizedBox(height: 7),
+
+        Material(
+          color: AppColors.transparent,
+          child: InkWell(
+            onTap: _openProjectPicker,
+            borderRadius: BorderRadius.circular(13),
+            child: Container(
+              height: 52,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              decoration: BoxDecoration(
+                color: AppColors.inputBackground,
+                borderRadius: BorderRadius.circular(13),
+                border: Border.all(color: AppColors.border),
               ),
-            ),
-          ),
-          if (project != null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Material(
-                color: const Color(0xFFF0F3FB),
-                borderRadius: BorderRadius.circular(18),
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  onTap: _openProjectPicker,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.check_circle_rounded,
-                          color: AppColors.primaryDark,
-                          size: 24,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'CURRENT PROJECT',
-                                style: AppTextStyles.labelSmall.copyWith(
-                                  color: AppColors.primaryDark,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 1.1,
-                                ),
-                              ),
-                              const SizedBox(height: 5),
-                              Text(
-                                project.projectName,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: AppTextStyles.titleLarge.copyWith(
-                                  color: Colors.black,
-                                  fontSize: 30 * scale,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          tooltip: 'Remove project',
-                          onPressed: widget.onRemoveProject,
-                          icon: const Icon(
-                            Icons.close_rounded,
-                            color: AppColors.primaryDark,
-                            size: 20,
-                          ),
-                        ),
-                      ],
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      project?.projectName ?? 'Select project',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: project == null
+                            ? AppColors.textSecondary
+                            : AppColors.textPrimary,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
-                ),
+
+                  if (project != null)
+                    IconButton(
+                      tooltip: 'Remove project',
+                      onPressed: widget.onRemoveProject,
+                      icon: const Icon(
+                        Icons.close_rounded,
+                        color: AppColors.textSecondary,
+                        size: 19,
+                      ),
+                    ),
+
+                  const Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: AppColors.textSecondary,
+                    size: 22,
+                  ),
+                ],
               ),
             ),
-        ],
-      ),
+          ),
+        ),
+      ],
     );
   }
 }
 
-class _ProjectPickerPage extends StatefulWidget {
-  const _ProjectPickerPage();
+// ======================================================
+// PROJECT BOTTOM SHEET
+// ======================================================
+
+class _ProjectBottomSheet extends StatefulWidget {
+  final String workspaceLabel;
+
+  const _ProjectBottomSheet({required this.workspaceLabel});
 
   @override
-  State<_ProjectPickerPage> createState() => _ProjectPickerPageState();
+  State<_ProjectBottomSheet> createState() => _ProjectBottomSheetState();
 }
 
-class _ProjectPickerPageState extends State<_ProjectPickerPage> {
-  final TextEditingController _searchController = TextEditingController();
-  final FocusNode _searchFocusNode = FocusNode();
-  String _searchQuery = '';
-  bool _showSearch = false;
+class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
+  final TextEditingController _projectController = TextEditingController();
 
-  void _openSearch() {
-    setState(() => _showSearch = true);
+  final FocusNode _projectFocusNode = FocusNode();
+
+  bool _showAddProject = false;
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _projectController.dispose();
+    _projectFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _openAddProject() {
+    setState(() {
+      _showAddProject = true;
+    });
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _searchFocusNode.requestFocus();
+      if (mounted) {
+        _projectFocusNode.requestFocus();
+      }
     });
   }
 
-  // =========================================
-  // MANUAL PROJECT SELECTION
-  // =========================================
+  void _closeAddProject() {
+    _projectFocusNode.unfocus();
+    _projectController.clear();
 
-  void _selectManualProject() {
-    final projectName = _searchController.text.trim();
+    setState(() {
+      _showAddProject = false;
+    });
+  }
 
-    if (projectName.isEmpty) return;
+  void _selectProject(ProjectEntity project) {
+    _projectFocusNode.unfocus();
+    Navigator.of(context).pop(project);
+  }
+
+  // ======================================================
+  // ADD MANUAL PROJECT (EXISTING FUNCTIONALITY)
+  // ======================================================
+
+  void _addManualProject() {
+    final projectName = _projectController.text.trim();
+
+    if (projectName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter project name')),
+      );
+      return;
+    }
 
     final projects = context.read<DashboardBloc>().state.projectList;
 
-    // If the name exactly matches an API project,
-    // select its real ID instead of creating a manual entry.
     ProjectEntity? existingProject;
 
     for (final project in projects) {
@@ -266,321 +229,143 @@ class _ProjectPickerPageState extends State<_ProjectPickerPage> {
       }
     }
 
+    // Preserve the original project ID for an existing project.
+    // New manual projects use the same empty ID as your old code.
     final selected =
         existingProject ??
         ProjectEntity(projectId: '', projectName: projectName);
 
-    _onProjectTap(selected);
+    _selectProject(selected);
   }
-  // =========================================
-  // SEARCH PROJECT
-  // =========================================
-
-  void _onSearchChanged(String value) {
-    setState(() {
-      _searchQuery = value.trim().toLowerCase();
-    });
-  }
-
-  // =========================================
-  // FILTER PROJECTS
-  // =========================================
 
   List<ProjectEntity> _filterProjects(List<ProjectEntity> projects) {
-    if (_searchQuery.isEmpty) {
-      return projects;
-    }
+    if (_searchQuery.isEmpty) return projects;
 
     return projects.where((project) {
-      final name = project.projectName.toLowerCase();
-      final id = project.projectId.toLowerCase();
-
-      return name.contains(_searchQuery) || id.contains(_searchQuery);
+      return project.projectName.toLowerCase().contains(_searchQuery) ||
+          project.projectId.toLowerCase().contains(_searchQuery);
     }).toList();
-  }
-
-  // =========================================
-  // PROJECT SELECTION
-  // =========================================
-
-  void _onProjectTap(ProjectEntity project) {
-    _searchFocusNode.unfocus();
-    Navigator.of(context).pop(project);
-  }
-
-  // =========================================
-  // CLEAR SEARCH
-  // =========================================
-
-  void _clearSearch() {
-    _searchController.clear();
-
-    setState(() {
-      _searchQuery = '';
-    });
-
-    _searchFocusNode.requestFocus();
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    _searchFocusNode.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: AppBackground(
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'SELECT PROJECT',
-                        style: AppTextStyles.titleLarge.copyWith(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w800,
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: keyboardInset),
+      child: SizedBox(
+        height: (screenHeight * 0.75 - keyboardInset).clamp(
+          0.0,
+          double.infinity,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // DRAG HANDLE
+              Center(
+                child: Container(
+                  width: 54,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: AppColors.sheetHandle,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // TITLE + ADD BUTTON
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Select project',
+                          style: TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 25,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          widget.workspaceLabel,
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  Material(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(12),
+                    child: InkWell(
+                      onTap: _showAddProject
+                          ? _closeAddProject
+                          : _openAddProject,
+                      borderRadius: BorderRadius.circular(12),
+                      child: SizedBox(
+                        width: 42,
+                        height: 42,
+                        child: Icon(
+                          _showAddProject
+                              ? Icons.close_rounded
+                              : Icons.add_rounded,
+                          color: AppColors.primaryText,
+                          size: 25,
                         ),
                       ),
                     ),
-                    IconButton(
-                      tooltip: 'Close project selection',
-                      onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(Icons.close_rounded),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Expanded(child: _buildProjectList()),
-                const SizedBox(height: 18),
-                if (_showSearch)
-                  _buildSearchField()
-                else
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: IconButton.filled(
-                      tooltip: 'Search existing or enter new project',
-                      onPressed: _openSearch,
-                      icon: const Icon(Icons.add_rounded, color: Colors.white),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // =========================================
-  // SEARCH FIELD
-  // =========================================
-
-  Widget _buildSearchField() {
-    return _buildProjectSearchInput();
-  }
-
-  Widget _buildProjectSearchInput() {
-    return TextField(
-      controller: _searchController,
-      focusNode: _searchFocusNode,
-      cursorColor: Colors.white,
-      textInputAction: TextInputAction.done,
-      style: AppTextStyles.inputText,
-
-      onChanged: _onSearchChanged,
-
-      // Submit manually entered project
-      onSubmitted: (_) => _selectManualProject(),
-
-      decoration: InputDecoration(
-        hintText: 'Search existing or enter new project',
-        hintStyle: AppTextStyles.inputHint,
-        focusedBorder: const UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.white, width: 2),
-        ),
-
-        prefixIcon: const Icon(
-          Icons.search_rounded,
-          color: AppColors.iconSecondary,
-        ),
-
-        suffixIcon: _searchQuery.isNotEmpty
-            ? Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (_searchQuery.isNotEmpty)
-                    IconButton(
-                      tooltip: 'Clear search',
-                      onPressed: _clearSearch,
-                      icon: const Icon(Icons.close_rounded),
-                    ),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 6),
-                    child: IconButton.filled(
-                      tooltip: 'Add and select entered project',
-                      onPressed: _selectManualProject,
-                      icon: const Icon(Icons.add_rounded, color: Colors.white),
-                    ),
                   ),
                 ],
-              )
-            : null,
+              ),
 
-        // Keep all your existing decoration
-      ),
-    );
-  }
+              const SizedBox(height: 22),
 
-  // =========================================
-  // PROJECT LIST USING BLOC
-  // =========================================
-
-  Widget _buildProjectList() {
-    return BlocBuilder<DashboardBloc, DashboardState>(
-      builder: (context, state) {
-        // LOADING
-        if (state.dashboardStatus == DashboardStatus.loading) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 24),
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        // FAILURE
-        if (state.dashboardStatus == DashboardStatus.failure) {
-          return _buildErrorState(state.errorMessage);
-        }
-
-        // INITIAL
-        if (state.dashboardStatus == DashboardStatus.initial) {
-          return const SizedBox.shrink();
-        }
-
-        // SUCCESS
-        final projects = _filterProjects(state.projectList);
-
-        if (projects.isEmpty) {
-          return _buildEmptyState();
-        }
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // PROJECT COUNT HEADER
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'AVAILABLE PROJECTS',
-                    style: AppTextStyles.labelMedium.copyWith(
-                      color: AppColors.textSecondary,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                ),
-
-                Text(
-                  '${projects.length} Projects',
-                  style: AppTextStyles.labelSmall.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                ),
+              // ADD PROJECT FIELD
+              if (_showAddProject) ...[
+                _buildAddProjectField(),
+                const SizedBox(height: 15),
               ],
-            ),
 
-            const SizedBox(height: 12),
+              // SEARCH EXISTING PROJECTS
+              if (!_showAddProject) ...[
+                _buildSearchField(),
+                const SizedBox(height: 16),
+              ],
 
-            // PROJECT LIST
-            Expanded(
-              child: ListView.separated(
-                shrinkWrap: true,
-                physics: const ClampingScrollPhysics(),
-                itemCount: projects.length,
-                separatorBuilder: (context, index) {
-                  return Divider(
-                    height: 1,
-                    color: AppColors.cardBorder.withValues(alpha: 0.3),
-                  );
-                },
-                itemBuilder: (context, index) {
-                  final project = projects[index];
+              // PROJECT LIST FROM API
+              Flexible(child: _buildProjectList()),
 
-                  return _buildProjectItem(project);
-                },
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
+              const SizedBox(height: 22),
 
-  // =========================================
-  // PROJECT ITEM
-  // =========================================
-
-  Widget _buildProjectItem(ProjectEntity project) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => _onProjectTap(project),
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.inputBackground,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.folder_outlined,
-                  color: AppColors.iconSecondary,
-                  size: 22,
-                ),
-              ),
-
-              const SizedBox(width: 12),
-
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      project.projectName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+              // CANCEL BUTTON
+              SizedBox(
+                height: 53,
+                child: OutlinedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.textPrimary,
+                    side: const BorderSide(color: AppColors.border),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
                     ),
-
-                    const SizedBox(height: 4),
-
-                    Text(
-                      'Project ID: ${project.projectId}',
-                      style: AppTextStyles.bodySmall,
-                    ),
-                  ],
+                  ),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
                 ),
-              ),
-
-              const SizedBox(width: 8),
-
-              const Icon(
-                Icons.chevron_right_rounded,
-                color: AppColors.iconSecondary,
               ),
             ],
           ),
@@ -589,68 +374,252 @@ class _ProjectPickerPageState extends State<_ProjectPickerPage> {
     );
   }
 
-  // =========================================
-  // EMPTY PROJECT STATE
-  // =========================================
+  // ======================================================
+  // SEARCH TEXTFIELD
+  // ======================================================
 
-  Widget _buildEmptyState() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 24),
-      child: Center(
-        child: Column(
-          children: [
-            const Icon(
-              Icons.folder_off_outlined,
-              color: AppColors.iconSecondary,
-              size: 36,
-            ),
-
-            const SizedBox(height: 10),
-
-            Text(
-              _searchQuery.isNotEmpty
-                  ? 'No matching projects found'
-                  : 'No projects available',
-              style: AppTextStyles.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
-          ],
+  Widget _buildSearchField() {
+    return SizedBox(
+      height: 47,
+      child: TextField(
+        style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
+        cursorColor: AppColors.primary,
+        onChanged: (value) {
+          setState(() {
+            _searchQuery = value.trim().toLowerCase();
+          });
+        },
+        decoration: InputDecoration(
+          hintText: 'Search project',
+          hintStyle: const TextStyle(color: AppColors.hintText),
+          prefixIcon: const Icon(
+            Icons.search_rounded,
+            color: AppColors.iconColor,
+            size: 20,
+          ),
+          filled: true,
+          fillColor: AppColors.inputBackground,
+          contentPadding: const EdgeInsets.symmetric(vertical: 12),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(13),
+            borderSide: const BorderSide(color: AppColors.border),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(13),
+            borderSide: const BorderSide(color: AppColors.primary),
+          ),
         ),
       ),
     );
   }
 
-  // =========================================
+  // ======================================================
+  // MANUAL PROJECT INPUT
+  // ======================================================
+
+  Widget _buildAddProjectField() {
+    return Row(
+      children: [
+        Expanded(
+          child: SizedBox(
+            height: 49,
+            child: TextField(
+              controller: _projectController,
+              focusNode: _projectFocusNode,
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) => _addManualProject(),
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 14,
+              ),
+              cursorColor: AppColors.primary,
+              decoration: InputDecoration(
+                hintText: 'Enter project name',
+                hintStyle: const TextStyle(color: AppColors.hintText),
+                filled: true,
+                fillColor: AppColors.inputBackground,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.border),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.primary),
+                ),
+              ),
+            ),
+          ),
+        ),
+
+        const SizedBox(width: 10),
+
+        SizedBox(
+          height: 49,
+          child: ElevatedButton(
+            onPressed: _addManualProject,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.primaryText,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text(
+              'Add',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ======================================================
+  // PROJECT LIST USING EXISTING DASHBOARD BLOC
+  // ======================================================
+
+  Widget _buildProjectList() {
+    return BlocBuilder<DashboardBloc, DashboardState>(
+      builder: (context, state) {
+        if (state.dashboardStatus == DashboardStatus.loading) {
+          return const Center(
+            child: CircularProgressIndicator(color: AppColors.primary),
+          );
+        }
+
+        if (state.dashboardStatus == DashboardStatus.failure) {
+          return _buildErrorState(state.errorMessage);
+        }
+
+        if (state.dashboardStatus == DashboardStatus.initial) {
+          return const Center(
+            child: Text(
+              'Loading projects...',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
+          );
+        }
+
+        final projects = _filterProjects(state.projectList);
+
+        if (projects.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 25),
+              child: Text(
+                _searchQuery.isNotEmpty
+                    ? 'No matching projects found'
+                    : 'No projects available',
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          );
+        }
+
+        return ListView.separated(
+          shrinkWrap: true,
+          padding: EdgeInsets.zero,
+          itemCount: projects.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 11),
+          itemBuilder: (context, index) {
+            final project = projects[index];
+
+            return _buildProjectItem(project);
+          },
+        );
+      },
+    );
+  }
+
+  // ======================================================
+  // SINGLE PROJECT ITEM
+  // ======================================================
+
+  Widget _buildProjectItem(ProjectEntity project) {
+    return Material(
+      color: AppColors.transparent,
+      child: InkWell(
+        onTap: () => _selectProject(project),
+        borderRadius: BorderRadius.circular(15),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 65),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+          decoration: BoxDecoration(
+            color: AppColors.cardBackground,
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  project.projectName,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+
+              const SizedBox(width: 12),
+
+              const Text(
+                'Select',
+                style: TextStyle(
+                  color: AppColors.primary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ======================================================
   // ERROR STATE
-  // =========================================
+  // ======================================================
 
   Widget _buildErrorState(String message) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
+    return Center(
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           const Icon(
             Icons.error_outline_rounded,
-            color: Colors.redAccent,
+            color: AppColors.error,
             size: 30,
           ),
-
-          const SizedBox(height: 8),
-
+          const SizedBox(height: 10),
           Text(
             message.isNotEmpty ? message : 'Unable to load projects',
             textAlign: TextAlign.center,
-            style: AppTextStyles.bodySmall,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 13,
+            ),
           ),
-
           const SizedBox(height: 12),
-
           TextButton.icon(
             onPressed: () {
               context.read<DashboardBloc>().add(const GetProjectList());
             },
             icon: const Icon(Icons.refresh_rounded),
             label: const Text('Retry'),
+            style: TextButton.styleFrom(foregroundColor: AppColors.primary),
           ),
         ],
       ),

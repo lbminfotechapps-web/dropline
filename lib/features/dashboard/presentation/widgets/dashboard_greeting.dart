@@ -1,87 +1,155 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_text_styles.dart';
+
+import 'package:dropline/core/theme/appcolors.dart';
+import 'package:flutter/material.dart';
 
 class DashboardGreeting extends StatelessWidget {
   final String name;
   final DateTime dateTime;
-  final VoidCallback? onLogout;
   final VoidCallback? onMe;
+  final VoidCallback? onLogout;
 
   const DashboardGreeting({
     super.key,
     required this.name,
     required this.dateTime,
-    this.onLogout,
     this.onMe,
+    this.onLogout,
   });
 
+  static const _days = [
+    'MONDAY',
+    'TUESDAY',
+    'WEDNESDAY',
+    'THURSDAY',
+    'FRIDAY',
+    'SATURDAY',
+    'SUNDAY',
+  ];
+
+  static const _months = [
+    'JAN',
+    'FEB',
+    'MAR',
+    'APR',
+    'MAY',
+    'JUN',
+    'JUL',
+    'AUG',
+    'SEP',
+    'OCT',
+    'NOV',
+    'DEC',
+  ];
+
   String get greeting {
-    if (dateTime.hour < 12) {
-      return 'Good Morning';
-    } else if (dateTime.hour < 17) {
-      return 'Good Afternoon';
-    } else {
-      return 'Good Evening';
-    }
+    if (dateTime.hour < 12) return 'Good Morning';
+    if (dateTime.hour < 17) return 'Good Afternoon';
+    return 'Good Evening';
+  }
+
+  String get formattedDate {
+    return '${_days[dateTime.weekday - 1]}, '
+        '${dateTime.day.toString().padLeft(2, '0')} '
+        '${_months[dateTime.month - 1]} '
+        '${dateTime.year}';
   }
 
   @override
   Widget build(BuildContext context) {
-    final scale = MediaQuery.sizeOf(context).width / 591;
-    final s = MediaQuery.sizeOf(context).width / 210;
-    const muted = Color(0xFF8EB5C9);
+    final firstName = name.trim().isEmpty
+        ? 'There'
+        : name.trim().split(RegExp(r'\s+')).first;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Expanded(
-          child: Text(
-            '$greeting $name!',
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.headingMedium.copyWith(
-              fontSize: 36 * scale,
-              height: 1.2,
-              fontWeight: FontWeight.w400,
-            ),
-          ),
-        ),
-        IconButton(
-          tooltip: 'Logout',
-          onPressed: onLogout,
-          icon: const Icon(Icons.logout),
-          color: AppTextStyles.headingMedium.color,
-        ),
-        TextButton(
-          onPressed: onMe,
-          style: TextButton.styleFrom(
-            foregroundColor: AppTextStyles.headingMedium.color,
-            minimumSize: const Size(40, 48),
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-          ),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 22 * s,
-                height: 22 * s,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: muted),
-                ),
-                child: Icon(Icons.person_outline, color: muted, size: 15 * s),
-              ),
-              SizedBox(height: 2 * s),
               Text(
-                'ME',
-                style: TextStyle(
-                  fontSize: 5 * s,
-                  color: muted,
-                  fontWeight: FontWeight.w400,
-                  letterSpacing: .15 * s,
+                '$greeting $firstName!',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 21,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: -0.4,
+                ),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                formattedDate,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 10,
+                  letterSpacing: 1.2,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
+          ),
+        ),
+
+        const SizedBox(width: 12),
+
+        PopupMenuButton<String>(
+          tooltip: 'Profile options',
+          color: AppColors.surface,
+          onSelected: (value) {
+            if (value == 'profile') {
+              context.push('/profile');
+              // onMe?.call();
+            } else if (value == 'logout') {
+              onLogout?.call();
+            }
+          },
+          itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 'profile',
+              child: Text(
+                'My Profile',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ),
+            if (onLogout != null)
+              const PopupMenuItem(
+                value: 'logout',
+                child: Text(
+                  'Logout',
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+          ],
+          child: Container(
+            height: 54,
+            width: 54,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: AppColors.border,
+                width: 1.5,
+              ),
+            ),
+            child:Icon(Icons.person_2_rounded,color: AppColors.primaryText,)
+            //  const Text(
+            //   'ME',
+            //   style: TextStyle(
+            //     color: AppColors.primaryText,
+            //     fontSize: 21,
+            //     fontWeight: FontWeight.w800,
+            //   ),
+            // ),
           ),
         ),
       ],

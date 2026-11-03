@@ -4,14 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:dropline/core/router/app_router.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dropline/features/companies/presentation/start_work.dart';
-import 'package:dropline/features/project_setup/presentation/pages/project_setup_pages.dart';
 import 'package:dropline/features/newproject/presentation/pages/new_project.dart';
 import 'package:dropline/core/di/global_di.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/project_bloc.dart';
 import '../bloc/project_event.dart';
 import '../bloc/project_state.dart';
-
 
 /// The site overview, with proportions taken from the supplied screen reference.
 class MePage extends StatefulWidget {
@@ -115,215 +113,204 @@ class _MePageState extends State<MePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _background,
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final s = constraints.maxWidth / 210;
-            Text text(
-              String value,
-              double size, {
-              Color? color,
-              bool bold = false,
-            }) => Text(
-              value,
-              style: TextStyle(
-                fontSize: size * s,
-                color: color ?? const Color(0xFFF0F4FC),
-                fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
-                letterSpacing: .15 * s,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final s = constraints.maxWidth / 210;
+          Text text(
+            String value,
+            double size, {
+            Color? color,
+            bool bold = false,
+          }) => Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: size * s,
+              color: color ?? const Color(0xFFF0F4FC),
+              fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
+              letterSpacing: .15 * s,
+            ),
+          );
+          Widget panel({required Widget child, double? height}) => Container(
+            height: height == null ? null : height * s,
+            padding: EdgeInsets.symmetric(horizontal: 7 * s),
+            decoration: BoxDecoration(
+              color: _surface,
+              border: Border.all(color: _border),
+              borderRadius: BorderRadius.circular(6 * s),
+            ),
+            child: child,
+          );
+          Widget shortcut(
+            IconData icon,
+            String title,
+            String subtitle, {
+            required VoidCallback onTap,
+          }) => Expanded(
+            child: GestureDetector(
+              onTap: onTap,
+              child: panel(
+                height: 32,
+                child: Row(
+                  children: [
+                    Icon(icon, size: 14 * s, color: _muted),
+                    SizedBox(width: 6 * s),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          text(title, 7.5, bold: true),
+                          SizedBox(height: 4 * s),
+                          text(subtitle, 5.6, color: _muted),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            );
-            Widget panel({required Widget child, double? height}) => Container(
-              height: height == null ? null : height * s,
-              padding: EdgeInsets.symmetric(horizontal: 7 * s),
-              decoration: BoxDecoration(
-                color: _surface,
-                border: Border.all(color: _border),
-                borderRadius: BorderRadius.circular(6 * s),
-              ),
-              child: child,
-            );
-            Widget shortcut(
-              IconData icon,
-              String title,
-              String subtitle, {
-              required VoidCallback onTap,
-            }) => Expanded(
-              child: GestureDetector(
-                onTap: onTap,
-                child: panel(
-                  height: 42,
+            ),
+          );
+          Widget invitationCard(
+            String title,
+            IconData icon,
+            int count, {
+            VoidCallback? onTap,
+          }) => Expanded(
+            child: GestureDetector(
+              onTap: onTap,
+              behavior: HitTestBehavior.opaque,
+              child: panel(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 7 * s),
                   child: Row(
                     children: [
-                      Icon(icon, size: 14 * s, color: _muted),
-                      SizedBox(width: 6 * s),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            text(title, 7.5, bold: true),
-                            SizedBox(height: 4 * s),
-                            text(subtitle, 5.6, color: _muted),
-                          ],
+                      Icon(icon, color: _lime, size: 10 * s),
+                      SizedBox(width: 5 * s),
+                      Expanded(child: text(title, 6.5, bold: true)),
+                      SizedBox(width: 3 * s),
+                      Container(
+                        constraints: BoxConstraints(minWidth: 17 * s),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 4 * s,
+                          vertical: 2 * s,
                         ),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: _lime.withValues(alpha: .12),
+                          borderRadius: BorderRadius.circular(8 * s),
+                        ),
+                        child: text('$count', 6.5, color: _lime, bold: true),
                       ),
                     ],
                   ),
                 ),
               ),
-            );
-            Widget invitationCard(
-              String title,
-              IconData icon,
-              int count, {
-              VoidCallback? onTap,
-            }) => Expanded(
-              child: GestureDetector(
-                onTap: onTap,
-                behavior: HitTestBehavior.opaque,
-                child: panel(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 9 * s),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+            ),
+          );
+          return SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(10 * s, 10 * s, 10 * s, 100),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(child: text('Dropline Site', 13, bold: true)),
+                    Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Row(
+                        PopupMenuButton<String>(
+                          tooltip: 'Choose language',
+                          initialValue: _language,
+                          color: _surface,
+                          onSelected: (value) =>
+                              setState(() => _language = value),
+                          itemBuilder: (_) => [
+                            for (final language in ['English', 'Hindi'])
+                              CheckedPopupMenuItem<String>(
+                                value: language,
+                                checked: _language == language,
+                                child: text(language, 7),
+                              ),
+                          ],
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 6 * s,
+                              vertical: 7 * s,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.language,
+                                  color: _muted,
+                                  size: 10 * s,
+                                ),
+                                SizedBox(width: 3 * s),
+                                text(
+                                  _language == 'English' ? 'EN' : 'HI',
+                                  6.5,
+                                  color: _muted,
+                                  bold: true,
+                                ),
+                                Icon(
+                                  Icons.expand_more,
+                                  color: _muted,
+                                  size: 9 * s,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 4 * s),
+                        Column(
                           children: [
                             Container(
-                              padding: EdgeInsets.all(5 * s),
+                              width: 22 * s,
+                              height: 22 * s,
                               decoration: BoxDecoration(
-                                color: _lime.withValues(alpha: .1),
-                                borderRadius: BorderRadius.circular(6 * s),
+                                shape: BoxShape.circle,
+                                border: Border.all(color: _muted),
                               ),
-                              child: Icon(icon, color: _lime, size: 12 * s),
-                            ),
-                            const Spacer(),
-                            Container(
-                              constraints: BoxConstraints(minWidth: 19 * s),
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 5 * s,
-                                vertical: 3 * s,
-                              ),
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: _lime,
-                                borderRadius: BorderRadius.circular(10 * s),
-                              ),
-                              child: text(
-                                '$count',
-                                7,
-                                color: _background,
-                                bold: true,
+                              child: Icon(
+                                Icons.person_outline,
+                                color: _muted,
+                                size: 15 * s,
                               ),
                             ),
+                            SizedBox(height: 2 * s),
+                            text('ME', 5, color: _muted),
                           ],
-                        ),
-                        SizedBox(height: 8 * s),
-                        Text(
-                          title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 6 * s,
-                            color: const Color(0xFFF0F4FC),
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: .15 * s,
-                          ),
                         ),
                       ],
                     ),
-                  ),
+                  ],
                 ),
-              ),
-            );
-            return SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(10 * s, 10 * s, 10 * s, 10 * s),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                SizedBox(height: 4 * s),
+                text('Hello, Rahul', 15, bold: true),
+                SizedBox(height: 10 * s),
+                panel(
+                  height: 32,
+                  child: Row(
                     children: [
-                      text('Dropline · Site', 13, bold: true),
-                      Column(
-                        children: [
-                          Container(
-                            width: 22 * s,
-                            height: 22 * s,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: _muted),
-                            ),
-                            child: Icon(
-                              Icons.person_outline,
-                              color: _muted,
-                              size: 15 * s,
-                            ),
-                          ),
-                          SizedBox(height: 2 * s),
-                          text('ME', 5, color: _muted),
-                        ],
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 4 * s),
-                  text('Hello, Rahul', 15, bold: true),
-                  SizedBox(height: 7 * s),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      SizedBox(
-                        width: 80 * s,
-                        height: 20 * s,
-                        child: panel(
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              value: _language,
-                              isExpanded: true,
-                              dropdownColor: _surface,
-                              icon: Icon(
-                                Icons.expand_more,
-                                size: 10 * s,
-                                color: _muted,
-                              ),
-                              items: ['English', 'Hindi']
-                                  .map(
-                                    (language) => DropdownMenuItem(
-                                      value: language,
-                                      child: text(language, 6),
-                                    ),
-                                  )
-                                  .toList(),
-                              onChanged: (value) =>
-                                  setState(() => _language = value!),
-                            ),
-                          ),
+                      Container(
+                        width: 25 * s,
+                        height: 25 * s,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: _muted),
+                        ),
+                        child: Icon(
+                          Icons.work_outline,
+                          size: 15 * s,
+                          color: _muted,
                         ),
                       ),
-                    ],
-                  ),
-                  SizedBox(height: 10 * s),
-                  panel(
-                    height: 37,
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 25 * s,
-                          height: 25 * s,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: _muted),
-                          ),
-                          child: Icon(
-                            Icons.work_outline,
-                            size: 15 * s,
-                            color: _muted,
-                          ),
-                        ),
-                        SizedBox(width: 8 * s),
-                        Column(
+                      SizedBox(width: 8 * s),
+                      Expanded(
+                        child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -336,334 +323,332 @@ class _MePageState extends State<MePage> {
                             ),
                           ],
                         ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 7 * s),
+                Row(
+                  children: [
+                    shortcut(
+                      Icons.person_outline,
+                      'My card',
+                      'View & share',
+                      onTap: () {},
+                    ),
+                    SizedBox(width: 6 * s),
+                    shortcut(
+                      Icons.article_outlined,
+                      'My certificates',
+                      'View & manage',
+                      onTap: () {
+                        context.push('/certificateList');
+                      },
+                    ),
+                  ],
+                ),
+                SizedBox(height: 6 * s),
+                Row(
+                  children: [
+                    shortcut(
+                      Icons.article_outlined,
+                      'My reports',
+                      'Photos, notes & audio',
+                      onTap: () {},
+                    ),
+                    SizedBox(width: 6 * s),
+                    shortcut(
+                      Icons.account_tree_outlined,
+                      'Handovers',
+                      'View handovers',
+                      onTap: () {},
+                    ),
+                  ],
+                ),
+                SizedBox(height: 10 * s),
+                text('Invitations', 9, bold: true),
+                SizedBox(height: 7 * s),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    invitationCard(
+                      'Sent',
+                      Icons.send_outlined,
+                      widget.sentInvitationCount,
+                      onTap: _openSentInvitations,
+                    ),
+                    SizedBox(width: 6 * s),
+                    invitationCard(
+                      'Received',
+                      Icons.mark_email_unread_outlined,
+                      widget.receivedInvitationCount,
+                    ),
+                  ],
+                ),
+                SizedBox(height: 10 * s),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    text('My projects', 13, bold: true),
+                    InkWell(
+                      onTap: () =>
+                          Navigator.of(context, rootNavigator: true).push(
+                            MaterialPageRoute<Map<String, Object?>>(
+                              builder: (_) => const NewProjectPage(),
+                            ),
+                          ),
+                      borderRadius: BorderRadius.circular(6 * s),
+                      child: Container(
+                        width: 43 * s,
+                        height: 19 * s,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: _lime,
+                          borderRadius: BorderRadius.circular(6 * s),
+                        ),
+                        child: text(
+                          '+ New',
+                          6.5,
+                          color: _background,
+                          bold: true,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 7 * s),
+                SizedBox(
+                  height: 23 * s,
+                  child: TextField(
+                    onChanged: (value) => setState(() => _query = value),
+                    style: TextStyle(fontSize: 7 * s, color: Colors.white),
+                    decoration: InputDecoration(
+                      hintText: 'Search projects',
+                      hintStyle: TextStyle(fontSize: 6.5 * s, color: _muted),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 8 * s),
+                      filled: true,
+                      fillColor: _background,
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6 * s),
+                        borderSide: const BorderSide(color: _border),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6 * s),
+                        borderSide: const BorderSide(color: _muted),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 6 * s),
+                Row(
+                  children: ['All', 'Business', 'Personal']
+                      .map(
+                        (category) => Expanded(
+                          child: Padding(
+                            padding: EdgeInsets.only(
+                              right: category == 'Personal' ? 0 : 4 * s,
+                            ),
+                            child: SizedBox(
+                              height: 20 * s,
+                              child: OutlinedButton(
+                                style: OutlinedButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  backgroundColor: _category == category
+                                      ? _lime
+                                      : _surface,
+                                  side: BorderSide(
+                                    color: _category == category
+                                        ? _lime
+                                        : _border,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(6 * s),
+                                  ),
+                                ),
+                                onPressed: () =>
+                                    setState(() => _category = category),
+                                child: text(
+                                  category,
+                                  6.5,
+                                  color: _category == category
+                                      ? _background
+                                      : _muted,
+                                  bold: true,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
+                SizedBox(height: 10 * s),
+                BlocBuilder<ProjectBloc, ProjectState>(
+                  bloc: _projectBloc,
+                  builder: (context, state) {
+                    if (state is ProjectInitial || state is ProjectLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (state is ProjectError) {
+                      return Column(
+                        children: [
+                          text(state.message, 7, color: _muted),
+                          TextButton(
+                            onPressed: () =>
+                                _projectBloc.add(const FetchProjectsEvent()),
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      );
+                    }
+                    if (state is! ProjectLoaded) {
+                      return const SizedBox.shrink();
+                    }
+                    final query = _query.trim().toLowerCase();
+                    final projects = state.projects.where((project) {
+                      final matchesCategory =
+                          _category == 'All' ||
+                          project.projectType.toLowerCase() ==
+                              _category.toLowerCase();
+                      final matchesQuery =
+                          project.projectName.toLowerCase().contains(query) ||
+                          project.companyName.toLowerCase().contains(query);
+                      return matchesCategory && matchesQuery;
+                    }).toList();
+                    if (projects.isEmpty) {
+                      return SizedBox(
+                        height: 42 * s,
+                        child: Center(
+                          child: text('No projects found', 7, color: _muted),
+                        ),
+                      );
+                    }
+                    return Column(
+                      children: [
+                        for (final project in projects)
+                          Padding(
+                            padding: EdgeInsets.only(bottom: 6 * s),
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () => context.push(
+                                Uri(
+                                  path: AppRouter.projectSetup,
+                                  queryParameters: {
+                                    'projectName': project.projectName,
+                                    'projectId': project.projectId,
+                                    'companyId': project.companyId,
+                                    'companyName': project.companyName,
+                                  },
+                                ).toString(),
+                              ),
+                              child: panel(
+                                child: ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    minHeight: 42 * s,
+                                  ),
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      vertical: 7 * s,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              text(
+                                                project.projectName,
+                                                10,
+                                                bold: true,
+                                              ),
+                                              SizedBox(height: 5 * s),
+                                              text(
+                                                project.companyName,
+                                                5.8,
+                                                color: _muted,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Container(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 8 * s,
+                                            vertical: 2 * s,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            border: Border.all(color: _border),
+                                            borderRadius: BorderRadius.circular(
+                                              9 * s,
+                                            ),
+                                          ),
+                                          child: text(
+                                            project.projectType,
+                                            5,
+                                            color: _muted,
+                                          ),
+                                        ),
+                                        Icon(
+                                          Icons.chevron_right,
+                                          size: 13 * s,
+                                          color: _muted,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                ),
+                SizedBox(height: 15 * s),
+                SizedBox(
+                  height: 27 * s,
+                  child: FilledButton(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: _lime,
+                      foregroundColor: _background,
+                      disabledBackgroundColor: _lime,
+                      disabledForegroundColor: _background,
+                      padding: EdgeInsets.zero,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(7 * s),
+                      ),
+                    ),
+                    onPressed: () => Navigator.of(context).push<void>(
+                      MaterialPageRoute<void>(
+                        builder: (_) =>
+                            StartWorkPage(onStartWork: widget.onStartWork),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.access_time, size: 11 * s),
+                        SizedBox(width: 4 * s),
+                        Text(
+                          'Start work',
+                          style: TextStyle(
+                            fontSize: 7 * s,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                  SizedBox(height: 7 * s),
-                  Row(
-                    children: [
-                      shortcut(
-                        Icons.person_outline,
-                        'My card',
-                        'View & share',
-                        onTap: () {},
-                      ),
-                      SizedBox(width: 6 * s),
-                      shortcut(
-                        Icons.article_outlined,
-                        'My certificates',
-                        'View & manage',
-                        onTap: () {
-                          context.push('/certificateList');
-                        },
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 6 * s),
-                  Row(
-                    children: [
-                      shortcut(
-                        Icons.article_outlined,
-                        'My reports',
-                        'Photos, notes & audio',
-                        onTap: () {},
-                      ),
-                      SizedBox(width: 6 * s),
-                      shortcut(
-                        Icons.account_tree_outlined,
-                        'Handovers',
-                        'View handovers',
-                        onTap: () {},
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 14 * s),
-                  text('Invitations', 13, bold: true),
-                  SizedBox(height: 7 * s),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      invitationCard(
-                        'Sent invitations',
-                        Icons.send_outlined,
-                        widget.sentInvitationCount,
-                        onTap: _openSentInvitations,
-                      ),
-                      SizedBox(width: 6 * s),
-                      invitationCard(
-                        'Received invitations',
-                        Icons.mark_email_unread_outlined,
-                        widget.receivedInvitationCount,
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 14 * s),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      text('My projects', 13, bold: true),
-                      InkWell(
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute<Map<String, Object?>>(
-                            builder: (_) => const NewProjectPage(),
-                          ),
-                        ),
-                        borderRadius: BorderRadius.circular(6 * s),
-                        child: Container(
-                          width: 43 * s,
-                          height: 19 * s,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: _lime,
-                            borderRadius: BorderRadius.circular(6 * s),
-                          ),
-                          child: text(
-                            '+ New',
-                            6.5,
-                            color: _background,
-                            bold: true,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 7 * s),
-                  SizedBox(
-                    height: 23 * s,
-                    child: TextField(
-                      onChanged: (value) => setState(() => _query = value),
-                      style: TextStyle(fontSize: 7 * s, color: Colors.white),
-                      decoration: InputDecoration(
-                        hintText: 'Search projects',
-                        hintStyle: TextStyle(fontSize: 6.5 * s, color: _muted),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 8 * s),
-                        filled: true,
-                        fillColor: _background,
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6 * s),
-                          borderSide: const BorderSide(color: _border),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6 * s),
-                          borderSide: const BorderSide(color: _muted),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 6 * s),
-                  Row(
-                    children: ['All', 'Business', 'Personal']
-                        .map(
-                          (category) => Expanded(
-                            child: Padding(
-                              padding: EdgeInsets.only(
-                                right: category == 'Personal' ? 0 : 4 * s,
-                              ),
-                              child: SizedBox(
-                                height: 20 * s,
-                                child: OutlinedButton(
-                                  style: OutlinedButton.styleFrom(
-                                    padding: EdgeInsets.zero,
-                                    backgroundColor: _category == category
-                                        ? _lime
-                                        : _surface,
-                                    side: BorderSide(
-                                      color: _category == category
-                                          ? _lime
-                                          : _border,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(
-                                        6 * s,
-                                      ),
-                                    ),
-                                  ),
-                                  onPressed: () =>
-                                      setState(() => _category = category),
-                                  child: text(
-                                    category,
-                                    6.5,
-                                    color: _category == category
-                                        ? _background
-                                        : _muted,
-                                    bold: true,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        )
-                        .toList(),
-                  ),
-                  SizedBox(height: 10 * s),
-                  BlocBuilder<ProjectBloc, ProjectState>(
-                    bloc: _projectBloc,
-                    builder: (context, state) {
-                      if (state is ProjectInitial || state is ProjectLoading) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      if (state is ProjectError) {
-                        return Column(
-                          children: [
-                            text(state.message, 7, color: _muted),
-                            TextButton(
-                              onPressed: () =>
-                                  _projectBloc.add(const FetchProjectsEvent()),
-                              child: const Text('Retry'),
-                            ),
-                          ],
-                        );
-                      }
-                      if (state is! ProjectLoaded) {
-                        return const SizedBox.shrink();
-                      }
-                      final query = _query.trim().toLowerCase();
-                      final projects = state.projects.where((project) {
-                        final matchesCategory =
-                            _category == 'All' ||
-                            project.projectType.toLowerCase() ==
-                                _category.toLowerCase();
-                        final matchesQuery =
-                            project.projectName.toLowerCase().contains(query) ||
-                            project.companyName.toLowerCase().contains(query);
-                        return matchesCategory && matchesQuery;
-                      }).toList();
-                      if (projects.isEmpty) {
-                        return SizedBox(
-                          height: 42 * s,
-                          child: Center(
-                            child: text('No projects found', 7, color: _muted),
-                          ),
-                        );
-                      }
-                      return Column(
-                        children: [
-                          for (final project in projects)
-                            Padding(
-                              padding: EdgeInsets.only(bottom: 6 * s),
-                              child: GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onTap: () => context.push(
-                                  Uri(
-                                    path: AppRouter.projectSetup,
-                                    queryParameters: {
-                                      'projectName': project.projectName,
-                                      'projectId': project.projectId,
-                                      'companyId': project.companyId,
-                                      'companyName': project.companyName,
-                                    },
-                                  ).toString(),
-                                ),
-                                child: panel(
-                                  child: ConstrainedBox(
-                                    constraints: BoxConstraints(
-                                      minHeight: 42 * s,
-                                    ),
-                                    child: Padding(
-                                      padding: EdgeInsets.symmetric(
-                                        vertical: 7 * s,
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            child: Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                text(
-                                                  project.projectName,
-                                                  10,
-                                                  bold: true,
-                                                ),
-                                                SizedBox(height: 5 * s),
-                                                text(
-                                                  project.companyName,
-                                                  5.8,
-                                                  color: _muted,
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          Container(
-                                            padding: EdgeInsets.symmetric(
-                                              horizontal: 8 * s,
-                                              vertical: 2 * s,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              border: Border.all(
-                                                color: _border,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(9 * s),
-                                            ),
-                                            child: text(
-                                              project.projectType,
-                                              5,
-                                              color: _muted,
-                                            ),
-                                          ),
-                                          Icon(
-                                            Icons.chevron_right,
-                                            size: 13 * s,
-                                            color: _muted,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                      );
-                    },
-                  ),
-                  SizedBox(height: 15 * s),
-                  SizedBox(
-                    height: 27 * s,
-                    child: FilledButton(
-                      style: FilledButton.styleFrom(
-                        backgroundColor: _lime,
-                        foregroundColor: _background,
-                        disabledBackgroundColor: _lime,
-                        disabledForegroundColor: _background,
-                        padding: EdgeInsets.zero,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(7 * s),
-                        ),
-                      ),
-                      onPressed: () => Navigator.of(context).push<void>(
-                        MaterialPageRoute<void>(
-                          builder: (_) =>
-                              StartWorkPage(onStartWork: widget.onStartWork),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.access_time, size: 11 * s),
-                          SizedBox(width: 4 * s),
-                          Text(
-                            'Start work',
-                            style: TextStyle(
-                              fontSize: 7 * s,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  // SizedBox(height: 3 * s),
-                  // Center(child: text('Laxmi Gauri', 5, color: _muted)),
-                ],
-              ),
-            );
-          },
-        ),
+                ),
+                // SizedBox(height: 3 * s),
+                // Center(child: text('Laxmi Gauri', 5, color: _muted)),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
