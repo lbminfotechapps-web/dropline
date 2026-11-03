@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/appcolors.dart';
 import 'package:dropline/core/utility/showcase_once.dart';
 import 'dart:async';
 
@@ -64,6 +65,19 @@ class _PunchOutPageState extends State<PunchOutPage>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) _updateTime();
   }
+
+String get sessionDate {
+  const months = [
+    'January', 'February', 'March',
+    'April', 'May', 'June',
+    'July', 'August', 'September',
+    'October', 'November', 'December',
+  ];
+
+  final date = _punchInTime ?? _currentTime;
+
+  return '${date.day} ${months[date.month - 1]} ${date.year}';
+}
 
   @override
   void dispose() {
@@ -175,110 +189,141 @@ class _PunchOutPageState extends State<PunchOutPage>
     AppToast.success('Clock Out action triggered.');
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: AppBackground(
-        child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final scale = constraints.maxWidth / 739;
-              return SingleChildScrollView(
+ 
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: AppColors.background,
+    body: SafeArea(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(
+              20, 14, 20, 24,
+            ),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: 480,
+                ),
                 child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      54 * scale,
-                      48 * scale,
-                      54 * scale,
-                      30 * scale,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            PunchHeader(
-                              title: projectName.isNotEmpty
-                                  ? projectName
-                                  : 'No Project Selected',
-                              scale: scale,
-                              // onBack: () => Navigator.pop(context),
-                              onBack: () => context.push(AppRouter.dashboard),
-                            ),
-
-                            SizedBox(height: 121 * scale),
-
-                            PunchTimeCard(
-                              time: inTime.isNotEmpty ? inTime : '--:--',
-                              height: 200 * scale,
-                              fontSize: 116 * scale,
-                              radius: 54 * scale,
-                            ),
-                            SizedBox(height: 76 * scale),
-
-                            PunchTimeCard(
-                              time: workedDuration,
-                              height: 260 * scale,
-                              fontSize: 164 * scale,
-                              radius: 52 * scale,
-                            ),
-
-                            SizedBox(height: 78 * scale),
-
-                            Showcase(
-                              key: _workDetailsShowcaseKey,
-                              scope: _showcaseScope,
-                              title: 'Add your work details',
-                              description:
-                                  'Tap Event to record details of the work '
-                                  'you’ve done on this project.',
-                              targetPadding: const EdgeInsets.all(8),
-                              targetBorderRadius: BorderRadius.circular(
-                                88 * scale,
-                              ),
-                              tooltipPadding: const EdgeInsets.all(16),
-                              tooltipActions: [
-                                TooltipActionButton(
-                                  type: TooltipDefaultActionType.skip,
-                                  name: 'OK',
-                                  textStyle: const TextStyle(
-                                    color: Colors.white,
-                                  ),
-                                  onTap: _showcaseView.dismiss,
-                                ),
-                              ],
-                              disposeOnTap: true,
-                              onTargetClick: _onAddWorkDetails,
-                              child: WorkDetailsCard(
-                                title: 'ADD WORK DETAILS',
-                                value: workType,
-                                onTap: _onAddWorkDetails,
-                                scale: scale,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Padding(
-                          padding: EdgeInsets.only(top: 80 * scale),
-                          child: PunchOutSlideBar(
-                            actionText: 'CLOCK OUT',
-                            timeText: clockOutTime,
-                            onCompleted: _onClockOut,
-                            scale: scale,
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight - 38,
+                  ),
+                  child: Column(
+                    mainAxisAlignment:
+                        MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment:
+                        CrossAxisAlignment.stretch,
+                    children: [
+                      Column(
+                        crossAxisAlignment:
+                            CrossAxisAlignment.stretch,
+                        children: [
+                          PunchHeader(
+                            title: projectName.isNotEmpty
+                                ? projectName
+                                : 'No Project Selected',
+                            workspace: 'Business',
+                            onBack: () {
+                              context.go(AppRouter.dashboard);
+                            },
+                            onMe: () {
+                              context.push(AppRouter.me);
+                            },
                           ),
-                        ),
-                      ],
-                    ),
+    
+                          const SizedBox(height: 26),
+    
+                          const Text(
+                            'Work session',
+                            style: TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 29,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+    
+                          const SizedBox(height: 5),
+    
+                          Text(
+                            sessionDate,
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 15,
+                            ),
+                          ),
+    
+                          const SizedBox(height: 22),
+    
+                          PunchWorkSessionCard(
+                            workedDuration: workedDuration,
+                            clockInTime: inTime.isEmpty
+                                ? '--:--'
+                                : inTime,
+                            currentTime: clockOutTime,
+                            isLoading: isLoading,
+                          ),
+    
+                          const SizedBox(height: 24),
+    
+                          Showcase(
+                            key: _workDetailsShowcaseKey,
+                            scope: _showcaseScope,
+                            title: 'Add your work details',
+                            description:
+                                'Tap Add event to record quality, '
+                                'safety, progress and other '
+                                'work details.',
+                            targetPadding:
+                                const EdgeInsets.all(8),
+                            targetBorderRadius:
+                                BorderRadius.circular(16),
+                            tooltipPadding:
+                                const EdgeInsets.all(16),
+                            tooltipActions: [
+                              TooltipActionButton(
+                                type:
+                                    TooltipDefaultActionType.skip,
+                                name: 'OK',
+                                textStyle: const TextStyle(
+                                  color: AppColors.white,
+                                ),
+                                onTap: _showcaseView.dismiss,
+                              ),
+                            ],
+                            disposeOnTap: true,
+                            onTargetClick: _onAddWorkDetails,
+                            child: WorkDetailsCard(
+                              onTap: _onAddWorkDetails,
+                            ),
+                          ),
+                        ],
+                      ),
+    
+                      Column(
+                        crossAxisAlignment:
+                            CrossAxisAlignment.stretch,
+                        children: [
+                          const SizedBox(height: 48),
+    
+                          PunchOutSlideBar(
+                            isLoading: isLoading,
+                            onCompleted: _onClockOut,
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-              );
-            },
-          ),
-        ),
+              ),
+            ),
+          );
+        },
       ),
-    );
-  }
+    ),
+  );
+}
+
 }

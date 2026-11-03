@@ -1,8 +1,11 @@
 import 'package:dropline/features/areas/presentation/pages/area_editable_pages.dart';
+import 'package:dropline/core/router/bottom_navigation.dart';
 import 'package:dropline/features/certificate/presentation/pages/add_certificate_screen.dart';
 import 'package:dropline/features/certificate/presentation/pages/certificates.dart';
 import 'package:dropline/features/companies/presentation/find_company.dart';
 import 'package:dropline/features/masterFlow/presentation/pages/master_flow.dart';
+import 'package:dropline/features/profile/presentation/pages/personal_details_page.dart';
+import 'package:dropline/features/profile/presentation/pages/profile.dart';
 import 'package:dropline/features/project_setup/presentation/pages/project_setup_pages.dart';
 import 'package:dropline/features/areas/presentation/pages/area_main_pages.dart';
 import 'package:dropline/core/di/global_di.dart';
@@ -76,6 +79,8 @@ class AppRouter {
   static const String certificateList = '/certificateList';
 
   static const String addCertifiate = '/addCertifiate';
+  static const String profile = '/profile';
+  static const String personalDetails = '/PersonalDetails';
 
   static final GoRouter router = GoRouter(
     navigatorKey: navigatorKey,
@@ -119,11 +124,7 @@ class AppRouter {
           );
         },
       ),
-      GoRoute(
-        path: me,
-        builder: (context, state) =>
-            MePage(onStartWork: () => context.push(dashboard)),
-      ),
+
       GoRoute(
         path: chooseOption,
         builder: (context, state) => const ChooseOptionPage(),
@@ -152,14 +153,6 @@ class AppRouter {
         path: login,
         name: 'login',
         builder: (context, state) => const LoginScreen(),
-      ),
-
-      GoRoute(
-        path: dashboard,
-        name: 'dashboard',
-        builder: (context, state) {
-          return const DashboardPage();
-        },
       ),
 
       GoRoute(
@@ -340,6 +333,51 @@ class AppRouter {
         builder: (context, state) {
           return const AddCertificateScreen();
         },
+      ),
+
+      GoRoute(
+        path: personalDetails,
+        name: 'personalDetails',
+        builder: (context, state) {
+          return const PersonalDetailsPage();
+        },
+      ),
+
+     GoRoute(
+                path: profile,
+                name: 'profile',
+                builder: (context, state) => const MyProfilePage(),
+                // builder: (context, state) =>
+                //     MePage(onStartWork: () => context.go(dashboard)),
+              ),
+
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            HomeShell(navigationShell: navigationShell),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: dashboard,
+                name: 'dashboard',
+                builder: (context, state) => const DashboardPage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+               GoRoute(
+        path: me,
+        name: 'me',
+        builder: (context, state) {
+          return MePage();
+          //  MePage(onStartWork: () => context.go(dashboard));
+        },
+      ),
+            
+            ],
+          ),
+        ],
       ),
     ],
   );

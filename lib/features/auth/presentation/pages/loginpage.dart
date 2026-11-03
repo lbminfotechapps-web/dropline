@@ -251,24 +251,12 @@ class _LoginScreenState extends State<LoginScreen> {
       listener: (context, state) {
         if (state.status == LoginStatus.success) {
           AppToast.success('Signed in successfully.');
-          // ScaffoldMessenger.of(context)
-          //   ..clearSnackBars()
-          //   ..showSnackBar(
-          //     const SnackBar(
-          //       content: Text('Signed in successfully.'),
-          //       duration: Duration(seconds: 3),
-          //     ),
-          //   );
-          context.go(AppRouter.chooseOption);
+          context.go(AppRouter.dashboard);
         } else if (state.status == LoginStatus.failure) {
           setState(() {
             _isNavigating = false;
-            _slide = 0;
           });
           AppToast.error(state.message);
-          // ScaffoldMessenger.of(
-          //   context,
-          // ).showSnackBar(SnackBar(content: Text(state.message)));
         }
       },
       child: AbsorbPointer(
@@ -276,409 +264,413 @@ class _LoginScreenState extends State<LoginScreen> {
         child: AnnotatedRegion<SystemUiOverlayStyle>(
           value: SystemUiOverlayStyle.light.copyWith(
             statusBarColor: AppColors.transparent,
-            systemNavigationBarColor: AppColors.loginNavigationBar,
+            systemNavigationBarColor: AppColors.background,
+            statusBarIconBrightness: Brightness.light,
           ),
           child: Scaffold(
+            backgroundColor: AppColors.background,
             resizeToAvoidBottomInset: true,
-            body: LayoutBuilder(
-              builder: (context, constraints) {
-                final w = constraints.maxWidth;
-                final s = w / 591;
-                final showOtp = _mobileController.text.length == 10;
-                // Keep the design proportions on short screens and when the
-                // keyboard reduces the viewport; the scroll view handles the rest.
-                final h = math.max(
-                  constraints.maxHeight +
-                      MediaQuery.viewInsetsOf(context).bottom,
-                  1280 * s,
-                );
-                Widget place(
-                  double x,
-                  double y,
-                  double width,
-                  double height,
-                  Widget child,
-                ) {
-                  return Positioned(
-                    left: x * s,
-                    top: y / 1280 * h,
-                    width: width * s,
-                    height: height / 1280 * h,
-                    child: child,
-                  );
-                }
+            body: Container(
+              width: double.infinity,
+              height: double.infinity,
+              decoration: const BoxDecoration(
+                gradient: AppColors.backgroundGradient,
+              ),
+              child: SafeArea(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      keyboardDismissBehavior:
+                          ScrollViewKeyboardDismissBehavior.onDrag,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 16,
+                      ),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight - 32,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildLogo(),
 
-                Widget field(
-                  String hint,
-                  TextEditingController controller, {
-                  bool phone = false,
-                }) {
-                  return TextField(
-                    controller: controller,
-                    textInputAction: TextInputAction.next,
-                    onSubmitted: (_) => FocusScope.of(context).nextFocus(),
-                    onChanged: phone
-                        ? (value) {
-                            setState(() {
-                              for (final codeController in _codeControllers) {
-                                codeController.clear();
-                              }
-                            });
-                            if (value.length == 10) {
-                              FocusScope.of(context).unfocus();
-                            }
-                          }
-                        : null,
-                    keyboardType: phone
-                        ? TextInputType.phone
-                        : TextInputType.name,
-                    textCapitalization: phone
-                        ? TextCapitalization.none
-                        : TextCapitalization.words,
-                    style: AppTextStyles.inputText.copyWith(fontSize: 27 * s),
-                    cursorColor: AppColors.white,
-                    inputFormatters: phone
-                        ? [
-                            FilteringTextInputFormatter.digitsOnly,
-                            LengthLimitingTextInputFormatter(10),
-                          ]
-                        : null,
-                    decoration: InputDecoration(
-                      hintText: hint,
-                      hintStyle: AppTextStyles.inputHint.copyWith(
-                        color: AppColors.loginHint,
-                        fontSize: 27 * s,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      filled: false,
-                      contentPadding: EdgeInsets.only(bottom: 30 * s),
-                      enabledBorder: const UnderlineInputBorder(
-                        borderSide: BorderSide(
-                          color: AppColors.loginInputBorder,
-                        ),
-                      ),
-                      focusedBorder: const UnderlineInputBorder(
-                        borderSide: BorderSide(color: AppColors.white),
-                      ),
-                    ),
-                  );
-                }
+                            const SizedBox(height: 56),
 
-                return SingleChildScrollView(
-                  padding: EdgeInsets.only(
-                    bottom: MediaQuery.viewInsetsOf(context).bottom > 0
-                        ? MediaQuery.paddingOf(context).bottom + 24
-                        : 0,
-                  ),
-                  keyboardDismissBehavior:
-                      ScrollViewKeyboardDismissBehavior.onDrag,
-                  child: SizedBox(
-                    width: w,
-                    height: h,
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Image.asset(
-                          'assets/images/splash.png',
-                          fit: BoxFit.fill,
-                        ),
-                        place(
-                          (591 - 360) / 2,
-                          168,
-                          360,
-                          47,
-                          Image.asset(
-                            'assets/images/app_logo.png',
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                        place(
-                          43,
-                          423,
-                          505,
-                          49,
-                          Text(
-                            'Sign in',
-                            style: AppTextStyles.displaySmall.copyWith(
-                              fontSize: 36 * s,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: -1.2 * s,
-                            ),
-                          ),
-                        ),
-                        place(43, 522, 505, 67, field('Name', _nameController)),
-                        place(
-                          43,
-                          642,
-                          505,
-                          67,
-                          field('Mobile', _mobileController, phone: true),
-                        ),
-                        for (var i = 0; i < (showOtp ? 4 : 0); i++)
-                          place(
-                            51 + i * 123,
-                            803,
-                            86,
-                            95,
-                            Container(
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: AppColors.white.withValues(alpha: 0.025),
-                                borderRadius: BorderRadius.circular(32 * s),
-                                border: Border.all(
-                                  color: AppColors.white.withValues(
-                                    alpha: 0.16,
-                                  ),
-                                  width: 1.5 * s,
-                                ),
-                              ),
-                              child: TextField(
-                                controller: _codeControllers[i],
-                                focusNode: _codeFocusNodes[i],
-                                textAlign: TextAlign.center,
-                                textAlignVertical: TextAlignVertical.center,
-                                cursorColor: AppColors.white,
-                                scrollPadding: EdgeInsets.fromLTRB(
-                                  32,
-                                  32,
-                                  32,
-                                  h * (1280 - 803 - 108) / 1280 + 24,
-                                ),
-                                textInputAction: i < 3
-                                    ? TextInputAction.next
-                                    : TextInputAction.done,
-                                keyboardType: TextInputType.number,
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.digitsOnly,
-                                  LengthLimitingTextInputFormatter(1),
-                                ],
-                                style: AppTextStyles.displayMedium.copyWith(
-                                  height: 1,
-                                  fontSize: 48 * s,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                                decoration: InputDecoration(
-                                  border: InputBorder.none,
-                                  enabledBorder: InputBorder.none,
-                                  focusedBorder: InputBorder.none,
-                                  filled: false,
-                                  isCollapsed: true,
-                                ),
-                                onChanged: (value) {
-                                  if (value.isNotEmpty && i < 3) {
-                                    _codeFocusNodes[i + 1].requestFocus();
-                                  } else if (value.isEmpty && i > 0) {
-                                    final previous = _codeControllers[i - 1];
-                                    previous.selection =
-                                        TextSelection.collapsed(
-                                          offset: previous.text.length,
-                                        );
-                                    _codeFocusNodes[i - 1].requestFocus();
-                                  }
-                                },
+                            const Text(
+                              'Sign in',
+                              style: TextStyle(
+                                color: AppColors.textPrimary,
+                                fontSize: 30,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.7,
                               ),
                             ),
-                          ),
-                        place(
-                          97,
-                          showOtp ? 930 : 760,
-                          384,
-                          36,
-                          Showcase(
-                            key: _termsShowcaseKey,
-                            scope: _showcaseScope,
-                            title: 'Review before you sign in',
-                            description:
-                                'Tap Terms & Conditions to read them. '
-                                'If you agree, select the checkbox or tap '
-                                '“I agree” in the dialog, then slide to sign in.',
-                            targetPadding: const EdgeInsets.all(8),
-                            targetBorderRadius: BorderRadius.circular(12),
-                            tooltipPadding: const EdgeInsets.all(16),
-                            tooltipActions: [
-                              TooltipActionButton(
-                                type: TooltipDefaultActionType.skip,
-                                name: 'OK',
-                                textStyle: TextStyle(color: Colors.white),
-                                onTap: _showcaseView.dismiss,
-                              ),
-                            ],
-                            disposeOnTap: true,
-                            onTargetClick: _showTermsAndConditions,
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Row(
-                                children: [
-                                  GestureDetector(
-                                    onTap: () =>
-                                        setState(() => _agreed = !_agreed),
-                                    child: Container(
-                                      width: 34 * s,
-                                      height: 34 * s,
-                                      decoration: BoxDecoration(
-                                        color: _agreed
-                                            ? AppColors.loginAgreement
-                                            : AppColors.transparent,
-                                        borderRadius: BorderRadius.circular(
-                                          10 * s,
-                                        ),
-                                        border: Border.all(
-                                          color: AppColors.loginAgreement,
-                                        ),
-                                      ),
-                                      child: _agreed
-                                          ? Icon(
-                                              Icons.check_rounded,
-                                              color:
-                                                  AppColors.loginAgreementIcon,
-                                              size: 25 * s,
-                                            )
-                                          : null,
-                                    ),
-                                  ),
-                                  SizedBox(width: 17 * s),
-                                  Text(
-                                    'I agree to the',
-                                    style: AppTextStyles.inputText.copyWith(
-                                      color: AppColors.textSecondary,
-                                      fontSize: 20 * s,
-                                    ),
-                                  ),
-                                  SizedBox(width: 18 * s),
-                                  InkWell(
-                                    onTap: _showTermsAndConditions,
-                                    child: Text(
-                                      'Terms & Conditions',
-                                      style: AppTextStyles.link.copyWith(
-                                        color: AppColors.loginLink,
-                                        fontSize: 20 * s,
-                                        fontWeight: FontWeight.w600,
-                                        decoration: TextDecoration.underline,
-                                        decorationColor: AppColors.loginLink,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+
+                            const SizedBox(height: 5),
+
+                            const Text(
+                              'Enter your details to continue.',
+                              style: TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 14,
                               ),
                             ),
-                          ),
-                        ),
 
-                        place(
-                          43,
-                          showOtp ? 987 : 820,
-                          505,
-                          98,
-                          LayoutBuilder(
-                            builder: (context, sliderConstraints) {
-                              final knobSize = math.min(
-                                80 * s,
-                                sliderConstraints.maxHeight - 16 * s,
-                              );
-                              final travel = math.max(
-                                0.0,
-                                sliderConstraints.maxWidth - knobSize - 34 * s,
-                              );
-                              return GestureDetector(
-                                onTap: _continueLogin,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(60 * s),
-                                    gradient: AppColors.loginButtonGradient,
-                                    border: Border.all(
-                                      color: AppColors.white.withValues(
-                                        alpha: 0.18,
-                                      ),
-                                      width: 1.5 * s,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: AppColors.loginButtonGlow
-                                            .withValues(alpha: 0.1),
-                                        blurRadius: 10 * s,
-                                        offset: Offset(0, 3 * s),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Stack(
-                                    alignment: Alignment.center,
-                                    children: [
-                                      Positioned(
-                                        left: 160 * s,
-                                        child: Text(
-                                          _isNavigating
-                                              ? 'SIGNING IN...'
-                                              : 'SLIDE TO SIGN IN',
-                                          style: AppTextStyles.buttonLarge
-                                              .copyWith(
-                                                fontSize: 28 * s,
-                                                fontWeight: FontWeight.w800,
-                                                letterSpacing: -0.6 * s,
-                                              ),
-                                        ),
-                                      ),
-                                      Positioned(
-                                        left: 16 * s + _slide * travel,
-                                        child: GestureDetector(
-                                          onHorizontalDragUpdate: (details) {
-                                            if (travel > 0) {
-                                              setState(
-                                                () => _slide =
-                                                    (_slide +
-                                                            details.delta.dx /
-                                                                travel)
-                                                        .clamp(0.0, 1.0),
-                                              );
-                                            }
-                                          },
-                                          onHorizontalDragEnd: (_) {
-                                            if (_slide >= 0.85) {
-                                              _continueLogin();
-                                            } else {
-                                              setState(() => _slide = 0);
-                                            }
-                                          },
-                                          child: Container(
-                                            width: knobSize,
-                                            height: knobSize,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: AppColors.loginSliderKnob,
-                                              border: Border.all(
-                                                color: AppColors.white,
-                                                width: 1.5 * s,
-                                              ),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: AppColors.loginKnobGlow
-                                                      .withValues(alpha: 0.25),
-                                                  blurRadius: 15 * s,
-                                                ),
-                                              ],
-                                            ),
-                                            child: Icon(
-                                              Icons.keyboard_double_arrow_right,
-                                              color: AppColors.white,
-                                              size: 40 * s,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
+                            const SizedBox(height: 30),
+
+                            _buildLabel('Full name'),
+
+                            const SizedBox(height: 9),
+
+                            _buildInputField(
+                              controller: _nameController,
+                              hint: 'Your name',
+                              icon: Icons.person_outline_rounded,
+                              keyboardType: TextInputType.name,
+                            ),
+
+                            const SizedBox(height: 20),
+
+                            _buildLabel('Mobile number'),
+
+                            const SizedBox(height: 9),
+
+                            _buildInputField(
+                              controller: _mobileController,
+                              hint: 'Your mobile number',
+                              icon: Icons.phone_android_rounded,
+                              keyboardType: TextInputType.phone,
+                              isMobile: true,
+                            ),
+
+                            const SizedBox(height: 22),
+
+                            _buildLabel('4-digit PIN'),
+
+                            const SizedBox(height: 9),
+
+                            _buildPinFields(),
+
+                            const SizedBox(height: 22),
+
+                            _buildTermsCheckbox(),
+
+                            const SizedBox(height: 24),
+
+                            _buildSignInButton(),
+
+                            const SizedBox(height: 20),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                );
-              },
+                      ),
+                    );
+                  },
+                ),
+              ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  // LOGO
+  Widget _buildLogo() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Text(
+          'Dropline',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 21,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.6,
+          ),
+        ),
+        const Text(
+          '•',
+          style: TextStyle(
+            color: AppColors.primary,
+            fontSize: 21,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const Text(
+          'Site',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 21,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.6,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // LABEL
+  Widget _buildLabel(String title) {
+    return Text(
+      title,
+      style: const TextStyle(
+        color: AppColors.textPrimary,
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+  }
+
+  // NAME AND MOBILE INPUT
+  Widget _buildInputField({
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
+    required TextInputType keyboardType,
+    bool isMobile = false,
+  }) {
+    return Container(
+      height: 60,
+      decoration: BoxDecoration(
+        color: AppColors.inputBackground,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border, width: 1.2),
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 49,
+            child: Icon(icon, color: AppColors.textSecondary, size: 21),
+          ),
+
+          Container(height: 25, width: 1, color: AppColors.border),
+
+          Expanded(
+            child: TextField(
+              controller: controller,
+              keyboardType: keyboardType,
+              textCapitalization: isMobile
+                  ? TextCapitalization.none
+                  : TextCapitalization.words,
+              textInputAction: TextInputAction.next,
+              inputFormatters: isMobile
+                  ? [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(10),
+                    ]
+                  : null,
+              onChanged: isMobile
+                  ? (value) {
+                      for (final pin in _codeControllers) {
+                        pin.clear();
+                      }
+                      if (value.length == 10) {
+                        FocusScope.of(context).unfocus();
+                      }
+                    }
+                  : null,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+              cursorColor: AppColors.primary,
+              decoration: InputDecoration(
+                hintText: hint,
+                hintStyle: const TextStyle(
+                  color: AppColors.hintText,
+                  fontSize: 13,
+                ),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 16,
+                ),
+                isDense: true,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // FOUR PIN BOXES
+  Widget _buildPinFields() {
+    return Row(
+      children: [
+        for (var index = 0; index < 4; index++) ...[
+          if (index > 0) const SizedBox(width: 12),
+          Expanded(
+            child: Container(
+              height: 60,
+              decoration: BoxDecoration(
+                color: AppColors.inputBackground,
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(color: AppColors.border, width: 1.2),
+              ),
+              alignment: Alignment.center,
+              child: TextField(
+                controller: _codeControllers[index],
+                focusNode: _codeFocusNodes[index],
+                keyboardType: TextInputType.number,
+                textInputAction: index == 3
+                    ? TextInputAction.done
+                    : TextInputAction.next,
+                textAlign: TextAlign.center,
+                textAlignVertical: TextAlignVertical.center,
+                obscureText: true,
+                obscuringCharacter: '•',
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(1),
+                ],
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                ),
+                cursorColor: AppColors.primary,
+                decoration: const InputDecoration(
+                  isCollapsed: true,
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  contentPadding: EdgeInsets.zero,
+                  counterText: '',
+                ),
+                onChanged: (value) {
+                  if (value.isNotEmpty && index < 3) {
+                    _codeFocusNodes[index + 1].requestFocus();
+                  } else if (value.isEmpty && index > 0) {
+                    _codeFocusNodes[index - 1].requestFocus();
+                  } else if (value.isNotEmpty && index == 3) {
+                    FocusScope.of(context).unfocus();
+                  }
+                },
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  // TERMS AND CONDITIONS
+  Widget _buildTermsCheckbox() {
+    return Showcase(
+      key: _termsShowcaseKey,
+      scope: _showcaseScope,
+      title: 'Review before you sign in',
+      description: 'Read the Terms & Conditions and agree before signing in.',
+      targetPadding: const EdgeInsets.all(8),
+      targetBorderRadius: BorderRadius.circular(12),
+      tooltipPadding: const EdgeInsets.all(16),
+      tooltipActions: [
+        TooltipActionButton(
+          type: TooltipDefaultActionType.skip,
+          name: 'OK',
+          textStyle: const TextStyle(color: AppColors.white),
+          onTap: _showcaseView.dismiss,
+        ),
+      ],
+      disposeOnTap: true,
+      onTargetClick: _showTermsAndConditions,
+      child: Row(
+        children: [
+          InkWell(
+            onTap: () {
+              setState(() {
+                _agreed = !_agreed;
+              });
+            },
+            borderRadius: BorderRadius.circular(6),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              height: 23,
+              width: 23,
+              decoration: BoxDecoration(
+                color: _agreed ? AppColors.primary : AppColors.transparent,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: AppColors.primary, width: 1.5),
+              ),
+              child: _agreed
+                  ? const Icon(
+                      Icons.check_rounded,
+                      color: AppColors.primaryText,
+                      size: 17,
+                    )
+                  : null,
+            ),
+          ),
+
+          const SizedBox(width: 10),
+
+          const Text(
+            'I agree to the',
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+          ),
+
+          const SizedBox(width: 4),
+
+          Flexible(
+            child: InkWell(
+              onTap: _showTermsAndConditions,
+              child: const Text(
+                'Terms & Conditions',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // SIGN IN BUTTON
+  Widget _buildSignInButton() {
+    return SizedBox(
+      height: 52,
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _isNavigating ? null : _continueLogin,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.primaryText,
+          disabledBackgroundColor: AppColors.disabledButton,
+          disabledForegroundColor: AppColors.disabledText,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+        child: _isNavigating
+            ? const SizedBox(
+                height: 23,
+                width: 23,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: AppColors.primaryText,
+                ),
+              )
+            : const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Sign in',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                  ),
+                  SizedBox(width: 10),
+                  Icon(Icons.arrow_forward_rounded, size: 21),
+                ],
+              ),
       ),
     );
   }

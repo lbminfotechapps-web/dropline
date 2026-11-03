@@ -8,8 +8,9 @@ import 'package:dropline/features/dashboard/presentation/bloc/dashboard_bloc.dar
 import 'package:dropline/features/dashboard/presentation/bloc/dashboard_event.dart';
 import 'package:dropline/features/dashboard/presentation/bloc/dashboard_state.dart';
 import 'package:dropline/core/router/app_router.dart';
-import 'package:dropline/core/utility/widgets/app_background.dart';
 import 'package:dropline/features/dashboard/domain/entity/project_entity.dart';
+import 'package:dropline/features/dashboard/presentation/widgets/dashboard_background.dart';
+import 'package:dropline/features/punch/presentation/pages/punch_out.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,10 +18,10 @@ import 'package:go_router/go_router.dart';
 import 'package:showcaseview/showcaseview.dart';
 
 import '../widgets/dashboard_greeting.dart';
-import '../widgets/dashboard_date_card.dart';
 import '../widgets/dashboard_project_card.dart';
 import '../widgets/dashboard_clock_card.dart';
 import '../widgets/dashboard_slide_button.dart';
+import '../widgets/clock_in_confirmation_dialog.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -36,10 +37,15 @@ class _DashboardPageState extends State<DashboardPage> {
   late DateTime _currentTime;
   Timer? _clockTimer;
   DateTime? _lastBackPressed;
+  WorkspaceType _selectedWorkspace = WorkspaceType.personal;
 
+  DateTime? _editedClockInTime;
+
+  DateTime get _displayClockInTime => _editedClockInTime ?? _currentTime;
   ProjectEntity? _selectedProject;
   bool _isPreparingPunchIn = false;
   bool _isLoggingOut = false;
+
   String _userName = '';
 
   @override
@@ -80,6 +86,22 @@ class _DashboardPageState extends State<DashboardPage> {
     });
 
     loadLoginInData();
+  }
+
+  Future<void> _editClockInTime() async {
+    final selectedTime = await DashboardTimeBottomSheet.show(
+      context: context,
+      initialTime: _displayClockInTime,
+      workspaceLabel: _selectedWorkspace == WorkspaceType.personal
+          ? 'Personal · Private'
+          : 'Business · Shared projects',
+    );
+
+    if (!mounted || selectedTime == null) return;
+
+    setState(() {
+      _editedClockInTime = selectedTime;
+    });
   }
 
   @override
@@ -125,6 +147,18 @@ class _DashboardPageState extends State<DashboardPage> {
 
     setState(() => _isPreparingPunchIn = true);
     try {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => ClockInConfirmationDialog(
+          workspace: _selectedWorkspace == WorkspaceType.personal
+              ? 'Personal'
+              : 'Business',
+          projectName: project.projectName,
+          clockInTime: _displayClockInTime,
+        ),
+      );
+      if (!mounted || confirmed != true) return;
+
       final login = await sl<SecureStorage>().readLoginResponse();
       if (!mounted) return;
       if (login == null ||
@@ -262,89 +296,105 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
           );
       },
-      child: BlocConsumer<DashboardBloc, DashboardState>(
-        listenWhen: (previous, current) =>
-            previous.punchInStatus != current.punchInStatus,
-        listener: (context, state) {
-          if (state.punchInStatus == DashboardStatus.failure) {
-            _showMessage(state.errorMessage);
-          } else if (state.punchInStatus == DashboardStatus.success) {
-            context.push(AppRouter.punchOut);
-          }
-        },
-        builder: (context, state) => _buildDashboard(context, state),
+      child: Scaffold(
+        body: BlocConsumer<DashboardBloc, DashboardState>(
+          listenWhen: (previous, current) =>
+              previous.punchInStatus != current.punchInStatus,
+          listener: (context, state) {
+            if (state.punchInStatus == DashboardStatus.failure) {
+              _showMessage(state.errorMessage);
+            } else if (state.punchInStatus == DashboardStatus.success) {
+              context.push(AppRouter.punchOut);
+              // Navigator.of(
+              //   context,
+              // ).push(MaterialPageRoute(builder: (_) => const PunchOutPage()));
+            }
+          },
+          builder: (context, state) => _buildDashboard(context, state),
+        ),
       ),
     );
   }
 
   Widget _buildDashboard(BuildContext context, DashboardState state) {
-    return Scaffold(
-      body: AppBackground(
-        child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final scale = constraints.maxWidth / 591;
-              return SingleChildScrollView(
+    final isLoading =
+        _isPreparingPunchIn || state.punchInStatus == DashboardStatus.loading;
+
+    return DashboardBackground(
+      child: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isCompact = constraints.maxHeight < 650;
+
+            return SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+              child: Center(
                 child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      42 * scale,
-                      52 * scale,
-                      42 * scale,
-                      40 * scale,
+                  constraints: const BoxConstraints(maxWidth: 480),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight - 24,
                     ),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            // Greeting
                             DashboardGreeting(
                               name: _userName,
                               dateTime: _currentTime,
-
                               onMe: () => context.push(AppRouter.me),
-                              onLogout:
-                                  _isLoggingOut ||
-                                      _isPreparingPunchIn ||
-                                      state.punchInStatus ==
-                                          DashboardStatus.loading
+                              onLogout: _isLoggingOut || isLoading
                                   ? null
                                   : _logout,
                             ),
 
-                            SizedBox(height: 100 * scale),
+                            SizedBox(height: isCompact ? 65 : 112),
 
-                            DashboardDateCard(date: _currentTime),
+                            DashboardClockCard(
+                              dateTime: _displayClockInTime,
+                              onEdit:
+                                  _selectedWorkspace == WorkspaceType.personal
+                                  ? _editClockInTime
+                                  : null,
+                            ),
+                          ],
+                        ),
 
-                            SizedBox(height: 51 * scale),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            SizedBox(height: isCompact ? 28 : 60),
 
                             Showcase(
                               key: _projectShowcaseKey,
                               scope: _showcaseScope,
                               title: 'Choose your project',
                               description:
-                                  'Tap Select Project to search for and choose '
-                                  'the project you’re working on. Select a '
-                                  'project before sliding to clock in.',
+                                  'Select the project you are '
+                                  'working on before clocking in.',
                               targetPadding: const EdgeInsets.all(8),
-                              targetBorderRadius: BorderRadius.circular(28),
+                              targetBorderRadius: BorderRadius.circular(13),
                               tooltipPadding: const EdgeInsets.all(16),
                               tooltipActions: [
                                 TooltipActionButton(
                                   type: TooltipDefaultActionType.skip,
                                   name: 'OK',
                                   textStyle: const TextStyle(
-                                    color: Colors.white,
+                                    color: AppColors.white,
                                   ),
                                   onTap: _showcaseView.dismiss,
                                 ),
                               ],
                               child: DashboardProjectCard(
                                 selectedProject: _selectedProject,
+                                workspaceLabel:
+                                    _selectedWorkspace == WorkspaceType.personal
+                                    ? 'Personal · Private'
+                                    : 'Business · Shared projects',
                                 onProjectSelected: _onProjectSelected,
                                 onRemoveProject: () {
                                   setState(() {
@@ -353,32 +403,36 @@ class _DashboardPageState extends State<DashboardPage> {
                                 },
                               ),
                             ),
-                            SizedBox(height: 62 * scale),
 
-                            DashboardClockCard(dateTime: _currentTime),
-                          ],
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            SizedBox(height: 80 * scale),
+                            const SizedBox(height: 15),
+
+                            DashboardWorkspaceCard(
+                              selectedType: _selectedWorkspace,
+                              onChanged: (type) {
+                                setState(() {
+                                  _selectedWorkspace = type;
+                                });
+                              },
+                            ),
+
+                            const SizedBox(height: 12),
 
                             DashboardSlideButton(
-                              isLoading:
-                                  _isPreparingPunchIn ||
-                                  state.punchInStatus ==
-                                      DashboardStatus.loading,
+                              isLoading: isLoading,
+                              isClockedIn: false,
                               onCompleted: _onSlideCompleted,
                             ),
+
+                            const SizedBox(height: 8),
                           ],
                         ),
                       ],
                     ),
                   ),
                 ),
-              );
-            },
-          ),
+              ),
+            );
+          },
         ),
       ),
     );
