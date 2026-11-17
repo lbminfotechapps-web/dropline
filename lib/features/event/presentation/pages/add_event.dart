@@ -57,6 +57,20 @@ class _AddEventPageState extends State<AddEventPage> {
   late final EventDraftStore _store;
   final _draftDate = DateTime.now();
   List<EventDraftItem> _items = [];
+  bool _attachmentValidationAttempted = false;
+  final Set<String> _selectedAttachmentIds = {};
+
+  bool get _hasAttachment => _items.any(
+    (item) =>
+        _selectedAttachmentIds.contains(item.id) &&
+        (item.type == EventItemType.photo ||
+            item.type == EventItemType.pdf ||
+            item.type == EventItemType.audio),
+  );
+
+  bool get _attachmentInvalid =>
+      _attachmentValidationAttempted && !_hasAttachment;
+
   String _userId = 'local';
   String? _punchProjectName;
   bool _loadingDraft = true;
@@ -113,6 +127,7 @@ class _AddEventPageState extends State<AddEventPage> {
       projectId: widget.projectId,
       date: _draftDate,
       timeSlotId: _timeSlots[_selectedTime].id,
+      selectedItemIds: Set<String>.unmodifiable(_selectedAttachmentIds),
     );
   }
 
@@ -196,11 +211,10 @@ class _AddEventPageState extends State<AddEventPage> {
       }
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted || !_timeController.hasClients) return;
-        final scale = (MediaQuery.sizeOf(context).width / 390).clamp(0.8, 1.4);
         final offset =
-            12 +
-            selected * 83 * scale +
-            38 * scale -
+            2 +
+            selected * 88 +
+            40.5 -
             _timeController.position.viewportDimension / 2;
         _timeController.jumpTo(
           offset.clamp(0.0, _timeController.position.maxScrollExtent),
@@ -279,6 +293,10 @@ class _AddEventPageState extends State<AddEventPage> {
           _slotsWithData.remove(_timeSlots[_selectedTime].id);
         }
         _items = items;
+        _selectedAttachmentIds.removeWhere(
+          (id) => !items.any((item) => item.id == id),
+        );
+        _attachmentValidationAttempted = false;
         _selectedCard = items.isEmpty ? -1 : 0;
         _loadingDraft = false;
       });
@@ -561,6 +579,9 @@ class _AddEventPageState extends State<AddEventPage> {
   }
 
   Future<void> _completeEvent() async {
+    setState(() => _attachmentValidationAttempted = true);
+    if (_attachmentInvalid) return;
+
     if (!_canEdit ||
         _saveFailed ||
         _pendingSaves > 0 ||
@@ -581,6 +602,7 @@ class _AddEventPageState extends State<AddEventPage> {
       AppRouter.mainAreas,
       extra: LocationFlowArgs(scope: scope, projectName: widget.projectName),
     );
+    if (mounted) await _loadDraft();
   }
 
   String get _eventDateLabel {
@@ -658,44 +680,49 @@ class _AddEventPageState extends State<AddEventPage> {
 
     return SizedBox(
       height: 43,
-      child: ListView.separated(
+      child: ListView.builder(
         controller: _timeController,
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 2),
         itemCount: _timeSlots.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 7),
+        itemExtent: 88,
         itemBuilder: (context, index) {
           final selected = _selectedTime == index;
           final hasData = _slotsWithData.contains(_timeSlots[index].id);
 
-          return InkWell(
-            onTap: _canEdit ? () => _selectTime(index) : null,
-            borderRadius: BorderRadius.circular(11),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              constraints: const BoxConstraints(minWidth: 61),
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: hasData ? AppColors.primary : AppColors.inputBackground,
-                borderRadius: BorderRadius.circular(11),
-                border: Border.all(
-                  color: hasData
-                      ? AppColors.success
-                      : selected
+          return Padding(
+            padding: const EdgeInsets.only(right: 7),
+            child: InkWell(
+              onTap: _canEdit ? () => _selectTime(index) : null,
+              borderRadius: BorderRadius.circular(11),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                constraints: const BoxConstraints(minWidth: 61),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: selected || hasData
                       ? AppColors.primary
-                      : AppColors.border,
-                  width: selected || hasData ? 2 : 1,
+                      : AppColors.inputBackground,
+                  borderRadius: BorderRadius.circular(11),
+                  border: Border.all(
+                    color: hasData
+                        ? AppColors.success
+                        : selected
+                        ? AppColors.primary
+                        : AppColors.border,
+                    width: selected || hasData ? 2 : 1,
+                  ),
                 ),
-              ),
-              child: Text(
-                _timeLabel(index),
-                style: TextStyle(
-                  color: hasData
-                      ? AppColors.primaryText
-                      : AppColors.textPrimary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
+                child: Text(
+                  _timeLabel(index),
+                  style: TextStyle(
+                    color: selected || hasData
+                        ? AppColors.primaryText
+                        : AppColors.textPrimary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ),
@@ -811,7 +838,28 @@ class _AddEventPageState extends State<AddEventPage> {
 
                               const SizedBox(height: 16),
 
-                              _buildBottomTools(),
+                              Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: _attachmentInvalid
+                                      ? Border.all(
+                                          color: Colors.redAccent,
+                                          width: 1.5,
+                                        )
+                                      : null,
+                                ),
+                                child: _buildBottomTools(),
+                              ),
+                              if (_attachmentInvalid) ...[
+                                const SizedBox(height: 8),
+                                const Text(
+                                  'Select at least one image, PDF or audio attachment.',
+                                  style: TextStyle(
+                                    color: Colors.redAccent,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
 
                               const SizedBox(height: 18),
 
@@ -857,19 +905,13 @@ class _AddEventPageState extends State<AddEventPage> {
   Widget _buildBottomActions() {
     final busy = !_canEdit || _pendingSaves > 0 || _saveFailed || _picking;
 
-    final canContinue =
-        !busy &&
-        _userId.isNotEmpty &&
-        _userId != 'local' &&
-        widget.projectId.trim().isNotEmpty;
-
     return Row(
       children: [
         Expanded(
           child: SizedBox(
             height: 49,
             child: OutlinedButton.icon(
-              onPressed: canContinue ? _completeEvent : null,
+              onPressed: busy ? null : _completeEvent,
               icon: const Icon(
                 Icons.layers_outlined,
                 size: 17,
@@ -1059,7 +1101,7 @@ class _AddEventPageState extends State<AddEventPage> {
   }
 
   Widget _buildItemsHeader() => Text(
-    '${_items.length} items',
+    '${_items.length} items · ${_selectedAttachmentIds.length} selected',
     style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
   );
 
@@ -1098,7 +1140,18 @@ class _AddEventPageState extends State<AddEventPage> {
           };
 
           return InkWell(
-            onTap: _canEdit ? () => _selectItem(index) : null,
+            onTap: _canEdit
+                ? () {
+                    if (item.type != EventItemType.note) {
+                      setState(() {
+                        if (!_selectedAttachmentIds.add(item.id)) {
+                          _selectedAttachmentIds.remove(item.id);
+                        }
+                      });
+                    }
+                    _selectItem(index);
+                  }
+                : null,
             borderRadius: BorderRadius.circular(12),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 180),
@@ -1112,39 +1165,63 @@ class _AddEventPageState extends State<AddEventPage> {
                   width: selected ? 1.5 : 1,
                 ),
               ),
-              child: item.type == EventItemType.photo
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(9),
-                      child: FutureBuilder<File>(
-                        future: _store.file(_scope, item),
-                        builder: (context, snapshot) {
-                          final file = snapshot.data;
-                          if (file == null) {
-                            return Icon(
-                              icon,
-                              color: AppColors.iconColor,
-                              size: 25,
-                            );
-                          }
-                          return Image.file(
-                            file,
-                            width: double.infinity,
-                            height: double.infinity,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => Icon(
-                              icon,
-                              color: AppColors.iconColor,
-                              size: 25,
-                            ),
-                          );
-                        },
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  item.type == EventItemType.photo
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(9),
+                          child: FutureBuilder<File>(
+                            future: _store.file(_scope, item),
+                            builder: (context, snapshot) {
+                              final file = snapshot.data;
+                              if (file == null) {
+                                return Icon(
+                                  icon,
+                                  color: AppColors.iconColor,
+                                  size: 25,
+                                );
+                              }
+                              return Image.file(
+                                file,
+                                width: double.infinity,
+                                height: double.infinity,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, _, _) => Icon(
+                                  icon,
+                                  color: AppColors.iconColor,
+                                  size: 25,
+                                ),
+                              );
+                            },
+                          ),
+                        )
+                      : Icon(
+                          icon,
+                          color: selected
+                              ? AppColors.primary
+                              : AppColors.iconColor,
+                          size: 25,
+                        ),
+                  if (item.type != EventItemType.note)
+                    Positioned(
+                      top: 2,
+                      right: 2,
+                      child: Icon(
+                        _selectedAttachmentIds.contains(item.id)
+                            ? Icons.check_circle
+                            : Icons.radio_button_unchecked,
+                        color: _selectedAttachmentIds.contains(item.id)
+                            ? AppColors.primary
+                            : Colors.white,
+                        size: 23,
+                        shadows: const [
+                          Shadow(color: Colors.black54, blurRadius: 3),
+                        ],
                       ),
-                    )
-                  : Icon(
-                      icon,
-                      color: selected ? AppColors.primary : AppColors.iconColor,
-                      size: 25,
                     ),
+                ],
+              ),
             ),
           );
         },

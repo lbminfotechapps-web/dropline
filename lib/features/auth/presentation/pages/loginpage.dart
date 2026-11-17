@@ -5,7 +5,6 @@ import 'package:dropline/features/auth/presentation/bloc/login_bloc.dart';
 import 'package:dropline/features/auth/presentation/bloc/login_event.dart';
 import 'package:dropline/features/auth/presentation/bloc/login_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'dart:math' as math;
 import 'package:dropline/core/router/app_router.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:dropline/core/theme/app_text_styles.dart';
@@ -54,7 +53,13 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-  double _slide = 0;
+  bool _validationAttempted = false;
+
+  bool get _nameInvalid =>
+      _validationAttempted && _nameController.text.trim().isEmpty;
+  bool get _mobileInvalid =>
+      _validationAttempted && _mobileController.text.length != 10;
+  bool get _termsInvalid => _validationAttempted && !_agreed;
 
   Future<void> _showTermsAndConditions() async {
     FocusScope.of(context).unfocus();
@@ -191,30 +196,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _continueLogin() {
     if (_isNavigating) return;
-    if (_nameController.text.trim().isEmpty ||
-        _mobileController.text.length != 10) {
-      setState(() => _slide = 0);
-      AppToast.error('Enter your name and 10-digit mobile number.');
-      // ScaffoldMessenger.of(context).showSnackBar(
-      //   const SnackBar(
-      //     content: Text('Enter your name and 10-digit mobile number.'),
-      //   ),
-      // );
-      return;
-    }
-    if (_codeControllers.any((controller) => controller.text.length != 1)) {
-      setState(() => _slide = 0);
-      AppToast.error('Enter the complete 4-digit OTP.');
-      return;
-    }
-    if (!_agreed) {
-      setState(() => _slide = 0);
-      AppToast.error('Please agree to the Terms & Conditions to continue.');
-      // ScaffoldMessenger.of(context).showSnackBar(
-      //   const SnackBar(
-      //     content: Text('Please agree to the Terms & Conditions to continue.'),
-      //   ),
-      // );
+    setState(() => _validationAttempted = true);
+    if (_nameInvalid ||
+        _mobileInvalid ||
+        _codeControllers.any((controller) => controller.text.length != 1) ||
+        !_agreed) {
       return;
     }
     setState(() => _isNavigating = true);
@@ -434,7 +420,12 @@ class _LoginScreenState extends State<LoginScreen> {
       decoration: BoxDecoration(
         color: AppColors.inputBackground,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border, width: 1.2),
+        border: Border.all(
+          color: (isMobile ? _mobileInvalid : _nameInvalid)
+              ? Colors.redAccent
+              : AppColors.border,
+          width: 1.2,
+        ),
       ),
       child: Row(
         children: [
@@ -474,7 +465,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         });
                       }
                     }
-                  : null,
+                  : (_) => setState(() {}),
               style: const TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 14,
@@ -515,7 +506,14 @@ class _LoginScreenState extends State<LoginScreen> {
               decoration: BoxDecoration(
                 color: AppColors.inputBackground,
                 borderRadius: BorderRadius.circular(15),
-                border: Border.all(color: AppColors.border, width: 1.2),
+                border: Border.all(
+                  color:
+                      _validationAttempted &&
+                          _codeControllers[index].text.isEmpty
+                      ? Colors.redAccent
+                      : AppColors.border,
+                  width: 1.2,
+                ),
               ),
               alignment: Alignment.center,
               child: TextField(
@@ -548,6 +546,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   counterText: '',
                 ),
                 onChanged: (value) {
+                  setState(() {});
                   if (value.isNotEmpty && index < 3) {
                     _codeFocusNodes[index + 1].requestFocus();
                   } else if (value.isEmpty && index > 0) {
@@ -600,7 +599,10 @@ class _LoginScreenState extends State<LoginScreen> {
               decoration: BoxDecoration(
                 color: _agreed ? AppColors.primary : AppColors.transparent,
                 borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: AppColors.primary, width: 1.5),
+                border: Border.all(
+                  color: _termsInvalid ? Colors.redAccent : AppColors.primary,
+                  width: 1.5,
+                ),
               ),
               child: _agreed
                   ? const Icon(

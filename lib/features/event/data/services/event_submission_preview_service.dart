@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 import 'dart:io';
 
@@ -12,25 +11,21 @@ class EventSubmissionPreviewService {
   EventSubmissionPreviewService({
     Future<Directory> Function()? directoryProvider,
   }) : _directoryProvider =
-            directoryProvider ?? getApplicationDocumentsDirectory;
+           directoryProvider ?? getApplicationDocumentsDirectory;
 
   final Future<Directory> Function() _directoryProvider;
 
   bool _busy = false;
 
   String _encodeFolder(String value) {
-    return base64Url
-        .encode(utf8.encode(value))
-        .replaceAll('=', '');
+    return base64Url.encode(utf8.encode(value)).replaceAll('=', '');
   }
 
   Future<List<dynamic>> _readJsonList(File file) async {
     final decoded = jsonDecode(await file.readAsString());
 
     if (decoded is! List) {
-      throw FormatException(
-        'Invalid JSON list: ${file.path}',
-      );
+      throw FormatException('Invalid JSON list: ${file.path}');
     }
 
     return decoded;
@@ -40,86 +35,70 @@ class EventSubmissionPreviewService {
   // CONVERT FLAT HIERARCHY TO NESTED JSON
   // =============================================
 
-
-List<Map<String, dynamic>> buildNestedHierarchy(
-  List<dynamic> hierarchy,
-) {
-  final nodes = hierarchy.map((item) {
-    return Map<String, dynamic>.from(item as Map);
-  }).toList();
-
-  // =========================================
-  // FIND CHILDREN BY PARENT ID AND LEVEL
-  // =========================================
-
-  List<Map<String, dynamic>> getChildren(
-    String? parentId,
-    String level,
-  ) {
-    return nodes.where((node) {
-      return node['parentId']?.toString() == parentId &&
-          node['level']?.toString() == level;
+  List<Map<String, dynamic>> buildNestedHierarchy(List<dynamic> hierarchy) {
+    final nodes = hierarchy.map((item) {
+      return Map<String, dynamic>.from(item as Map);
     }).toList();
-  }
 
-  // =========================================
-  // BUILD AREAS
-  // =========================================
+    // =========================================
+    // FIND CHILDREN BY PARENT ID AND LEVEL
+    // =========================================
 
-  final List<Map<String, dynamic>> areas = [];
+    List<Map<String, dynamic>> getChildren(String? parentId, String level) {
+      return nodes.where((node) {
+        return node['parentId']?.toString() == parentId &&
+            node['level']?.toString() == level;
+      }).toList();
+    }
 
-  final mainAreas = getChildren(
-    null,
-    'mainArea',
-  );
+    // =========================================
+    // BUILD AREAS
+    // =========================================
 
-  for (final mainArea in mainAreas) {
-    final List<Map<String, dynamic>> subAreas = [];
+    final List<Map<String, dynamic>> areas = [];
 
-    final subAreaNodes = getChildren(
-      mainArea['id'].toString(),
-      'subArea',
-    );
+    final mainAreas = getChildren(null, 'mainArea');
 
-    for (final subArea in subAreaNodes) {
-      final List<Map<String, dynamic>> locations = [];
+    for (final mainArea in mainAreas) {
+      final List<Map<String, dynamic>> subAreas = [];
 
-      final locationNodes = getChildren(
-        subArea['id'].toString(),
-        'location',
-      );
+      final subAreaNodes = getChildren(mainArea['id'].toString(), 'subArea');
 
-      for (final location in locationNodes) {
-        final specificLocationNodes = getChildren(
-          location['id'].toString(),
-          'specificLocation',
-        );
+      for (final subArea in subAreaNodes) {
+        final List<Map<String, dynamic>> locations = [];
 
-        final specificLocations = specificLocationNodes
-            .map((node) => node['name'].toString())
-            .toList();
+        final locationNodes = getChildren(subArea['id'].toString(), 'location');
 
-        locations.add({
-          'location_name': location['name'].toString(),
-          'specific_locations': specificLocations,
+        for (final location in locationNodes) {
+          final specificLocationNodes = getChildren(
+            location['id'].toString(),
+            'specificLocation',
+          );
+
+          final specificLocations = specificLocationNodes
+              .map((node) => node['name'].toString())
+              .toList();
+
+          locations.add({
+            'location_name': location['name'].toString(),
+            'specific_locations': specificLocations,
+          });
+        }
+
+        subAreas.add({
+          'sub_area_name': subArea['name'].toString(),
+          'locations': locations,
         });
       }
 
-      subAreas.add({
-        'sub_area_name': subArea['name'].toString(),
-        'locations': locations,
+      areas.add({
+        'area_name': mainArea['name'].toString(),
+        'sub_areas': subAreas,
       });
     }
 
-    areas.add({
-      'area_name': mainArea['name'].toString(),
-      'sub_areas': subAreas,
-    });
+    return areas;
   }
-
-  return areas;
-}
-
 
   // =============================================
   // PREVIEW ONLY - NO DELETE
@@ -130,9 +109,7 @@ List<Map<String, dynamic>> buildNestedHierarchy(
     required String projectName,
   }) async {
     if (_busy) {
-      throw StateError(
-        'Event preview is already in progress',
-      );
+      throw StateError('Event preview is already in progress');
     }
 
     _busy = true;
@@ -165,9 +142,7 @@ List<Map<String, dynamic>> buildNestedHierarchy(
       // LOAD NOTES / PDF / PHOTO / AUDIO
       // ==========================================
 
-      final draftFile = File(
-        '${eventFolder.path}/draft.json',
-      );
+      final draftFile = File('${eventFolder.path}/draft.json');
 
       final items = <Map<String, dynamic>>[];
 
@@ -176,16 +151,17 @@ List<Map<String, dynamic>> buildNestedHierarchy(
 
         for (final entry in savedItems) {
           if (entry is! Map) {
-            throw const FormatException(
-              'Invalid event draft item',
-            );
+            throw const FormatException('Invalid event draft item');
           }
 
           final item = Map<String, dynamic>.from(entry);
+          if (scope.selectedItemIds != null &&
+              !scope.selectedItemIds!.contains(item['id']?.toString())) {
+            continue;
+          }
 
           final type = item['type']?.toString() ?? '';
-          final fileName =
-              item['fileName']?.toString().trim() ?? '';
+          final fileName = item['fileName']?.toString().trim() ?? '';
 
           if (type != 'note') {
             if (fileName.isEmpty ||
@@ -193,24 +169,17 @@ List<Map<String, dynamic>> buildNestedHierarchy(
                 fileName.contains('\\') ||
                 fileName == '.' ||
                 fileName == '..') {
-              throw StateError(
-                'Invalid attachment filename: $fileName',
-              );
+              throw StateError('Invalid attachment filename: $fileName');
             }
 
-            final attachment = File(
-              '${eventFolder.path}/$fileName',
-            );
+            final attachment = File('${eventFolder.path}/$fileName');
 
             if (!await attachment.exists()) {
-              throw StateError(
-                'Attachment not found: $fileName',
-              );
+              throw StateError('Attachment not found: $fileName');
             }
 
             item['local_file_path'] = attachment.path;
-            item['file_size_bytes'] =
-                await attachment.length();
+            item['file_size_bytes'] = await attachment.length();
           }
 
           items.add(item);
@@ -226,14 +195,11 @@ List<Map<String, dynamic>> buildNestedHierarchy(
       // LOAD SAVED HIERARCHY
       // ==========================================
 
-      final hierarchyFile = File(
-        '${locationFolder.path}/hierarchy.json',
-      );
+      final hierarchyFile = File('${locationFolder.path}/hierarchy.json');
 
-      final List<dynamic> hierarchy =
-          await hierarchyFile.exists()
-              ? await _readJsonList(hierarchyFile)
-              : [];
+      final List<dynamic> hierarchy = await hierarchyFile.exists()
+          ? await _readJsonList(hierarchyFile)
+          : [];
 
       // ==========================================
       // CONVERT HIERARCHY
@@ -270,76 +236,75 @@ List<Map<String, dynamic>> buildNestedHierarchy(
     }
   }
 
+  Future<Map<String, dynamic>> previewAndClear({
+    required EventDraftScope scope,
+    required String projectName,
+  }) async {
+    // STEP 1: Prepare the same JSON used by Finish Setup.
+    final payload = await previewOnly(scope: scope, projectName: projectName);
 
-  
-Future<Map<String, dynamic>> previewAndClear({
-  required EventDraftScope scope,
-  required String projectName,
-}) async {
-  // STEP 1: Prepare the same JSON used by Finish Setup.
-  final payload = await previewOnly(
-    scope: scope,
-    projectName: projectName,
-  );
+    // STEP 2: Print the complete JSON before deleting.
+    final jsonString = const JsonEncoder.withIndent('  ').convert(payload);
 
-  // STEP 2: Print the complete JSON before deleting.
-  final jsonString =
-      const JsonEncoder.withIndent('  ').convert(payload);
+    debugPrintSynchronously('========== USE LOCATION JSON START ==========');
 
-  debugPrintSynchronously(
-    '========== USE LOCATION JSON START ==========',
-  );
+    for (var i = 0; i < jsonString.length; i += 800) {
+      final end = i + 800 < jsonString.length ? i + 800 : jsonString.length;
 
-  for (var i = 0; i < jsonString.length; i += 800) {
-    final end = i + 800 < jsonString.length
-        ? i + 800
-        : jsonString.length;
+      debugPrintSynchronously(jsonString.substring(i, end));
+    }
 
-    debugPrintSynchronously(
-      jsonString.substring(i, end),
+    debugPrintSynchronously('========== USE LOCATION JSON END ==========');
+
+    // STEP 3: Resolve only the selected time slot's folders.
+    final root = await _directoryProvider();
+
+    final eventStorageKey = jsonEncode([
+      scope.userId,
+      projectName,
+      scope.date.year,
+      scope.date.month,
+      scope.date.day,
+      scope.timeSlotId,
+    ]);
+
+    final eventFolder = Directory(
+      '${root.path}/event_drafts/'
+      '${_encodeFolder(eventStorageKey)}',
     );
+
+    final locationFolder = Directory(
+      '${root.path}/event_location_drafts/'
+      '${scope.folderKey}',
+    );
+
+    // STEP 4: Delete only this time slot's persisted data.
+    if (await eventFolder.exists()) {
+      if (scope.selectedItemIds == null) {
+        await eventFolder.delete(recursive: true);
+      } else {
+        final draftFile = File('${eventFolder.path}/draft.json');
+        if (await draftFile.exists()) {
+          final remaining = (await _readJsonList(draftFile))
+              .where(
+                (entry) => !scope.selectedItemIds!.contains(
+                  (entry as Map)['id']?.toString(),
+                ),
+              )
+              .toList();
+          final temporary = File('${eventFolder.path}/draft.tmp');
+          await temporary.writeAsString(jsonEncode(remaining), flush: true);
+          await temporary.rename(draftFile.path);
+        }
+      }
+    }
+
+    if (await locationFolder.exists()) {
+      await locationFolder.delete(recursive: true);
+    }
+
+    debugPrint('TIME SLOT ${scope.timeSlotId} PRINTED AND CLEARED');
+
+    return payload;
   }
-
-  debugPrintSynchronously(
-    '========== USE LOCATION JSON END ==========',
-  );
-
-  // STEP 3: Resolve only the selected time slot's folders.
-  final root = await _directoryProvider();
-
-  final eventStorageKey = jsonEncode([
-    scope.userId,
-    projectName,
-    scope.date.year,
-    scope.date.month,
-    scope.date.day,
-    scope.timeSlotId,
-  ]);
-
-  final eventFolder = Directory(
-    '${root.path}/event_drafts/'
-    '${_encodeFolder(eventStorageKey)}',
-  );
-
-  final locationFolder = Directory(
-    '${root.path}/event_location_drafts/'
-    '${scope.folderKey}',
-  );
-
-  // STEP 4: Delete only this time slot's persisted data.
-  if (await eventFolder.exists()) {
-    await eventFolder.delete(recursive: true);
-  }
-
-  if (await locationFolder.exists()) {
-    await locationFolder.delete(recursive: true);
-  }
-
-  debugPrint(
-    'TIME SLOT ${scope.timeSlotId} PRINTED AND CLEARED',
-  );
-
-  return payload;
-}
-
 }

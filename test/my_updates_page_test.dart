@@ -4,6 +4,77 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets('filter dependencies, count, clear and cancel', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MyUpdatesPage(
+          recordsLoader: () async => [
+            EventDraftRecord(
+              date: DateTime(2026, 11, 17),
+              projectName: 'Alpha',
+              item: const EventDraftItem(
+                id: '1',
+                type: EventItemType.note,
+                name: 'Inspection',
+                text: 'Inspection',
+                area: 'Level 1',
+                category: 'Quality',
+                event: 'Check',
+              ),
+            ),
+            EventDraftRecord(
+              date: DateTime(2026, 11, 16),
+              projectName: 'Beta',
+              item: const EventDraftItem(
+                id: '2',
+                type: EventItemType.note,
+                name: 'Delivery',
+                text: 'Delivery',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Filters'));
+    await tester.pumpAndSettle();
+    expect(find.text('Choose project first'), findsOneWidget);
+    expect(find.text('Choose category first'), findsOneWidget);
+    Future<void> choose(String current, String value) async {
+      await tester.tap(find.text(current).last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(value).last);
+      await tester.pumpAndSettle();
+    }
+
+    await choose('All projects', 'Alpha');
+    await choose('Any area', 'Level 1');
+    await choose('Any category', 'Quality');
+    await choose('Any event', 'Check');
+    expect(find.text('Show 1 record'), findsOneWidget);
+    await tester.tap(find.text('Show 1 record'));
+    await tester.pumpAndSettle();
+    expect(find.text('Filters · 4'), findsOneWidget);
+    expect(find.text('Delivery'), findsNothing);
+    await tester.tap(find.text('Filters · 4'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Clear'));
+    await tester.pumpAndSettle();
+    expect(find.text('Show 2 records'), findsOneWidget);
+    await tester.tap(find.byTooltip('Close filters'));
+    await tester.pumpAndSettle();
+    expect(find.text('Filters · 4'), findsOneWidget);
+    await tester.tap(find.text('Filters · 4'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Clear'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Show 2 records'));
+    await tester.pumpAndSettle();
+    expect(find.text('Delivery'), findsOneWidget);
+    expect(find.text('Filters'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
   for (final size in [const Size(320, 568), const Size(390, 844)]) {
     testWidgets('records grid filters and opens notes at $size', (
       tester,
@@ -72,8 +143,12 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Filters'));
       await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(ChoiceChip, 'Yesterday'));
-      await tester.tap(find.text('Apply filters'));
+      await tester.ensureVisible(find.text('Any date'));
+      await tester.tap(find.text('Any date'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Yesterday').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Show 1 record'));
       await tester.pumpAndSettle();
       expect(find.text('Today'), findsNothing);
       expect(find.text('Skirting boards arrived'), findsOneWidget);

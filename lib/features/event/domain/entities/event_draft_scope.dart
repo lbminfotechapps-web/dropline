@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 
 class EventDraftScope {
@@ -6,34 +5,30 @@ class EventDraftScope {
   final String projectId;
   final DateTime date;
   final String timeSlotId;
+  final Set<String>? selectedItemIds;
 
   const EventDraftScope({
     required this.userId,
     required this.projectId,
     required this.date,
     required this.timeSlotId,
+    this.selectedItemIds,
   });
 
-  String get sessionKey => jsonEncode([
-        userId,
-        projectId,
-        date.year,
-        date.month,
-        date.day,
-      ]);
+  String get sessionKey =>
+      jsonEncode([userId, projectId, date.year, date.month, date.day]);
 
   String get storageKey => jsonEncode([
-        userId,
-        projectId,
-        date.year,
-        date.month,
-        date.day,
-        timeSlotId,
-      ]);
+    userId,
+    projectId,
+    date.year,
+    date.month,
+    date.day,
+    timeSlotId,
+  ]);
 
-  String get folderKey => base64Url
-      .encode(utf8.encode(storageKey))
-      .replaceAll('=', '');
+  String get folderKey =>
+      base64Url.encode(utf8.encode(storageKey)).replaceAll('=', '');
 
   bool belongsToSameSession(EventDraftScope other) {
     return sessionKey == other.sessionKey;
