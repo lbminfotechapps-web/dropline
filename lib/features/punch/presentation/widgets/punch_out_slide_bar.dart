@@ -1,7 +1,6 @@
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:flutter/material.dart';
 
-
 class PunchOutSlideBar extends StatefulWidget {
   final VoidCallback onCompleted;
   final bool isLoading;
@@ -13,8 +12,7 @@ class PunchOutSlideBar extends StatefulWidget {
   });
 
   @override
-  State<PunchOutSlideBar> createState() =>
-      _PunchOutSlideBarState();
+  State<PunchOutSlideBar> createState() => _PunchOutSlideBarState();
 }
 
 class _PunchOutSlideBarState extends State<PunchOutSlideBar> {
@@ -36,21 +34,17 @@ class _PunchOutSlideBarState extends State<PunchOutSlideBar> {
       height: barHeight,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final maxDrag =
-              (constraints.maxWidth - handleSize - padding * 2)
-                  .clamp(0.0, double.infinity)
-                  .toDouble();
+          final maxDrag = (constraints.maxWidth - handleSize - padding * 2)
+              .clamp(0.0, double.infinity)
+              .toDouble();
 
           final drag = _drag.clamp(0.0, maxDrag);
 
           return Container(
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: Color(0xFFB1FA70),
               borderRadius: BorderRadius.circular(40),
-              border: Border.all(
-                color: AppColors.border,
-                width: 1.2,
-              ),
+              border: Border.all(color: AppColors.border, width: 1.2),
             ),
             child: Stack(
               children: [
@@ -63,9 +57,7 @@ class _PunchOutSlideBarState extends State<PunchOutSlideBar> {
                       .toDouble(),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(
-                        alpha: 0.16,
-                      ),
+                      color: AppColors.primary.withValues(alpha: 0.16),
                       borderRadius: BorderRadius.circular(40),
                     ),
                   ),
@@ -74,10 +66,7 @@ class _PunchOutSlideBarState extends State<PunchOutSlideBar> {
                 Positioned.fill(
                   child: Center(
                     child: Padding(
-                      padding: const EdgeInsets.only(
-                        left: 55,
-                        right: 12,
-                      ),
+                      padding: const EdgeInsets.only(left: 55, right: 12),
                       child: FittedBox(
                         fit: BoxFit.scaleDown,
                         child: Text(
@@ -85,9 +74,9 @@ class _PunchOutSlideBarState extends State<PunchOutSlideBar> {
                               ? 'PLEASE WAIT...'
                               : 'Slide to clock out',
                           style: const TextStyle(
-                            color: AppColors.textPrimary,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
+                            color: AppColors.primaryText,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
@@ -104,15 +93,17 @@ class _PunchOutSlideBarState extends State<PunchOutSlideBar> {
                         ? null
                         : (details) {
                             setState(() {
-                              _drag = (_drag + details.delta.dx)
-                                  .clamp(0.0, maxDrag);
+                              _drag = (_drag + details.delta.dx).clamp(
+                                0.0,
+                                maxDrag,
+                              );
                             });
                           },
                     onHorizontalDragEnd: widget.isLoading
                         ? null
                         : (_) {
-                            final completed = maxDrag > 0 &&
-                                _drag >= maxDrag * 0.85;
+                            final completed =
+                                maxDrag > 0 && _drag >= maxDrag * 0.85;
                             _reset();
 
                             if (completed) {
@@ -124,7 +115,7 @@ class _PunchOutSlideBarState extends State<PunchOutSlideBar> {
                       height: handleSize,
                       width: handleSize,
                       decoration: BoxDecoration(
-                        color: AppColors.primary,
+                        color: Color(0xFFE0FFBF),
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: AppColors.primaryText,

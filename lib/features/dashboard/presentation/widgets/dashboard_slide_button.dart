@@ -1,10 +1,6 @@
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../core/theme/app_text_styles.dart';
-
-import 'package:dropline/core/theme/appcolors.dart';
-import 'package:flutter/material.dart';
+import 'package:dropline/core/theme/app_text_styles.dart';
 
 class DashboardSlideButton extends StatefulWidget {
   final VoidCallback onCompleted;
@@ -19,12 +15,10 @@ class DashboardSlideButton extends StatefulWidget {
   });
 
   @override
-  State<DashboardSlideButton> createState() =>
-      _DashboardSlideButtonState();
+  State<DashboardSlideButton> createState() => _DashboardSlideButtonState();
 }
 
-class _DashboardSlideButtonState
-    extends State<DashboardSlideButton> {
+class _DashboardSlideButtonState extends State<DashboardSlideButton> {
   double _dragPosition = 0;
 
   void _reset() {
@@ -35,24 +29,24 @@ class _DashboardSlideButtonState
 
   @override
   Widget build(BuildContext context) {
-    const height = 56.0;
-    const handleSize = 46.0;
+    final compact = MediaQuery.sizeOf(context).width < 390;
+    final height = compact ? 58.0 : 62.0;
+    final handleSize = compact ? 48.0 : 52.0;
     const padding = 4.0;
 
     return SizedBox(
       height: height,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final maxDrag =
-              (constraints.maxWidth - handleSize - padding * 2)
-                  .clamp(0.0, double.infinity)
-                  .toDouble();
+          final maxDrag = (constraints.maxWidth - handleSize - padding * 2)
+              .clamp(0.0, double.infinity)
+              .toDouble();
 
           final drag = _dragPosition.clamp(0.0, maxDrag);
 
           return Container(
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: Color(0xFFB1FA70),
               borderRadius: BorderRadius.circular(40),
               border: Border.all(color: AppColors.border),
             ),
@@ -62,13 +56,13 @@ class _DashboardSlideButtonState
                   left: 0,
                   top: 0,
                   bottom: 0,
-                  width: (drag + handleSize + padding)
-                      .clamp(0.0, constraints.maxWidth),
+                  width: (drag + handleSize + padding).clamp(
+                    0.0,
+                    constraints.maxWidth,
+                  ),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(
-                        alpha: 0.15,
-                      ),
+                      color: AppColors.primary.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(40),
                     ),
                   ),
@@ -76,23 +70,17 @@ class _DashboardSlideButtonState
 
                 Center(
                   child: Padding(
-                    padding: const EdgeInsets.only(
-                      left: 55,
-                      right: 12,
-                    ),
+                    padding: const EdgeInsets.only(left: 55, right: 12),
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
                       child: Text(
                         widget.isLoading
                             ? 'PLEASE WAIT...'
                             : widget.isClockedIn
-                                ? 'SLIDE TO CLOCK OUT'
-                                : 'SLIDE TO CLOCK IN',
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.6,
+                            ? 'SLIDE TO CLOCK OUT'
+                            : 'Slide to clock in',
+                        style: AppTextStyles.buttonMedium.copyWith(
+                          color: AppColors.primaryText,
                         ),
                       ),
                     ),
@@ -108,16 +96,15 @@ class _DashboardSlideButtonState
                         ? null
                         : (details) {
                             setState(() {
-                              _dragPosition =
-                                  (_dragPosition + details.delta.dx)
-                                      .clamp(0.0, maxDrag);
+                              _dragPosition = (_dragPosition + details.delta.dx)
+                                  .clamp(0.0, maxDrag);
                             });
                           },
                     onHorizontalDragEnd: widget.isLoading
                         ? null
                         : (_) {
-                            final completed = maxDrag > 0 &&
-                                _dragPosition >= maxDrag * 0.85;
+                            final completed =
+                                maxDrag > 0 && _dragPosition >= maxDrag * 0.85;
 
                             _reset();
 
@@ -130,12 +117,9 @@ class _DashboardSlideButtonState
                       height: handleSize,
                       width: handleSize,
                       decoration: BoxDecoration(
-                        color: AppColors.primary,
+                        color: Color(0xFFE0FFBF),
                         shape: BoxShape.circle,
-                        border: Border.all(
-                          color: AppColors.primaryText,
-                          width: 1,
-                        ),
+                        border: Border.all(color: Color(0xFFBBEC8D), width: 1),
                       ),
                       child: widget.isLoading
                           ? const Padding(

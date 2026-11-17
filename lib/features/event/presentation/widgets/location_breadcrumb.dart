@@ -86,7 +86,7 @@ class LocationBreadcrumb extends StatelessWidget {
               color: isActive
                   ? const Color(0xFFB9F27D)
                   : AppColors.white,
-              fontWeight: FontWeight.w400,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ),

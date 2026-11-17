@@ -137,7 +137,7 @@ class _AreaEditablePageState extends State<AreaEditablePage> {
         children: [
           Text(
             'Names · one per line',
-            style: small.copyWith(fontWeight: FontWeight.w700),
+            style: small.copyWith(fontWeight: FontWeight.w500),
           ),
           SizedBox(height: 6 * s),
           TextField(
@@ -201,7 +201,7 @@ class _AreaEditablePageState extends State<AreaEditablePage> {
                     foregroundColor: _bg,
                     shape: shape,
                     minimumSize: Size(0, 30 * s),
-                    textStyle: small.copyWith(fontWeight: FontWeight.w700),
+                    textStyle: small.copyWith(fontWeight: FontWeight.w500),
                   ),
                   child: Text('Save $count ${count == 1 ? 'name' : 'names'}'),
                 ),
@@ -243,7 +243,7 @@ class _AreaEditablePageState extends State<AreaEditablePage> {
             fontSize: size * s,
             color: color,
             height: 1.3,
-            fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
+            fontWeight: bold ? FontWeight.w500 : FontWeight.w500,
           );
           final selectedNames = _selected
               .whereType<_AreaNode>()

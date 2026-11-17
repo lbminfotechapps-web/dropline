@@ -68,7 +68,7 @@ class LocationSelectionDropdown extends StatelessWidget {
                     color: selected != null
                         ? const Color(0xFF253322)
                         : AppColors.white,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),

@@ -9,7 +9,15 @@ class ProjectEventCategory {
 }
 
 class AddCategoryPage extends StatefulWidget {
-  const AddCategoryPage({super.key, this.projectName = 'Laxmi Gauri'});
+  const AddCategoryPage({
+    super.key,
+    this.projectName = 'Laxmi Gauri',
+    this.initialCategory,
+    this.existingCategoryNames = const [],
+  });
+
+  final ProjectEventCategory? initialCategory;
+  final List<String> existingCategoryNames;
 
   final String projectName;
 
@@ -26,16 +34,37 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
   static const _lime = Color(0xFFB5FF65);
 
   final _formKey = GlobalKey<FormState>();
-  final _name = TextEditingController(text: 'Quality');
-  final _events = TextEditingController(
-    text: 'Workmanship issue\nDrawing mismatch',
-  );
+  late final TextEditingController _name;
+  late final TextEditingController _events;
+
+  @override
+  void initState() {
+    super.initState();
+    final category = widget.initialCategory;
+    _name = TextEditingController(text: category?.name ?? '');
+    _events = TextEditingController(
+      text: _NumberedEventsFormatter.number(category?.events.join('\n') ?? ''),
+    );
+  }
 
   List<String> get _eventLines => _events.text
       .split('\n')
-      .map((line) => line.trim())
+      .map(_NumberedEventsFormatter.content)
       .where((line) => line.isNotEmpty)
       .toList();
+
+  String? _validateName(String? value) {
+    final name = value?.trim() ?? '';
+    if (name.isEmpty) return 'Enter a category name';
+    String normalize(String text) =>
+        text.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+    if (widget.existingCategoryNames.any(
+      (existing) => normalize(existing) == normalize(name),
+    )) {
+      return 'A category with this name already exists';
+    }
+    return null;
+  }
 
   @override
   void dispose() {
@@ -48,7 +77,7 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
     final data = await Clipboard.getData(Clipboard.kTextPlain);
     if (!mounted || data?.text == null) return;
     setState(() {
-      _events.text = data!.text!;
+      _events.text = _NumberedEventsFormatter.number(data!.text!);
       _events.selection = TextSelection.collapsed(offset: _events.text.length);
     });
   }
@@ -71,7 +100,7 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
               style: TextStyle(
                 color: color,
                 fontSize: size * s,
-                fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
+                fontWeight: bold ? FontWeight.w500 : FontWeight.w500,
                 letterSpacing: .15 * s,
               ),
             );
@@ -134,7 +163,9 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
                             SizedBox(width: 7 * s),
                             Expanded(
                               child: label(
-                                'New category',
+                                widget.initialCategory == null
+                                    ? 'New category'
+                                    : 'Edit category',
                                 size: 12,
                                 bold: true,
                               ),
@@ -157,10 +188,8 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
                           textCapitalization: TextCapitalization.words,
                           decoration: decoration(),
                           onChanged: (_) => setState(() {}),
-                          validator: (value) =>
-                              value == null || value.trim().isEmpty
-                              ? 'Enter a category name'
-                              : null,
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
+                          validator: _validateName,
                         ),
                         SizedBox(height: 12 * s),
                         Row(
@@ -173,25 +202,13 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
                                 bold: true,
                               ),
                             ),
-                            SizedBox(
-                              width: 43 * s,
-                              height: 24 * s,
-                              child: OutlinedButton(
-                                onPressed: _paste,
-                                style: outline(),
-                                child: label(
-                                  'Paste',
-                                  size: 6.5,
-                                  color: _lime,
-                                  bold: true,
-                                ),
-                              ),
-                            ),
                           ],
                         ),
                         SizedBox(height: 7 * s),
                         TextFormField(
                           controller: _events,
+                          inputFormatters: [_NumberedEventsFormatter()],
+                          textInputAction: TextInputAction.newline,
                           minLines: 8,
                           maxLines: 8,
                           keyboardType: TextInputType.multiline,
@@ -203,6 +220,7 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
                           ),
                           decoration: decoration(),
                           onChanged: (_) => setState(() {}),
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
                           validator: (_) => _eventLines.isEmpty
                               ? 'Enter at least one event'
                               : null,
@@ -252,6 +270,63 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
           },
         ),
       ),
+    );
+  }
+}
+
+class _NumberedEventsFormatter extends TextInputFormatter {
+  static final _prefix = RegExp(r'^\s*\d+\.\s*');
+
+  static String content(String line) => line.replaceFirst(_prefix, '').trim();
+
+  static String number(String text) => text
+      .split('\n')
+      .indexed
+      .map((entry) {
+        return '${entry.$1 + 1}. ${entry.$2.replaceFirst(_prefix, '')}';
+      })
+      .join('\n');
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    if (!newValue.composing.isCollapsed) return newValue;
+    final lines = newValue.text.split('\n');
+    final numbered = number(newValue.text);
+    int offset(int position) {
+      if (position < 0) return numbered.length;
+      var originalStart = 0;
+      var numberedStart = 0;
+      for (var index = 0; index < lines.length; index++) {
+        final line = lines[index];
+        final removed = _prefix.firstMatch(line)?.end ?? 0;
+        final prefixLength = '${index + 1}. '.length;
+        final lineLength = prefixLength + line.length - removed;
+        if (position <= originalStart + line.length) {
+          return numberedStart +
+              prefixLength +
+              (position - originalStart - removed).clamp(
+                0,
+                line.length - removed,
+              );
+        }
+        originalStart += line.length + 1;
+        numberedStart += lineLength + 1;
+      }
+      return numbered.length;
+    }
+
+    return newValue.copyWith(
+      text: numbered,
+      selection: TextSelection(
+        baseOffset: offset(newValue.selection.baseOffset),
+        extentOffset: offset(newValue.selection.extentOffset),
+        affinity: newValue.selection.affinity,
+        isDirectional: newValue.selection.isDirectional,
+      ),
+      composing: TextRange.empty,
     );
   }
 }

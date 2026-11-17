@@ -66,7 +66,7 @@ class DashboardDateCard extends StatelessWidget {
               dateText,
               style: AppTextStyles.headingLarge.copyWith(
                 fontSize: 40 * scale,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),
@@ -79,7 +79,7 @@ class DashboardDateCard extends StatelessWidget {
               color: AppColors.textSecondary,
               fontSize: 28 * scale,
               letterSpacing: 4 * scale,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],

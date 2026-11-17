@@ -144,7 +144,7 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
                 style: TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 22,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
 
@@ -238,7 +238,7 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
                       style: const TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 15,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -313,7 +313,7 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
                       style: TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 21,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
@@ -333,7 +333,7 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
                         headerForegroundColor: AppColors.textPrimary,
                         weekdayStyle: TextStyle(
                           color: AppColors.textSecondary,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w500,
                         ),
                         dayStyle: TextStyle(color: AppColors.textPrimary),
                         yearStyle: TextStyle(color: AppColors.textPrimary),
@@ -369,7 +369,7 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
                         'Confirm date',
                         style: TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
@@ -461,7 +461,7 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
         style: const TextStyle(
           color: AppColors.textPrimary,
           fontSize: 13,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w500,
         ),
       ),
     );
@@ -549,7 +549,7 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
                     style: const TextStyle(
                       color: AppColors.textPrimary,
                       fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                   const SizedBox(height: 5),
@@ -643,7 +643,7 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
               style: TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 14,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),
@@ -677,7 +677,7 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
         icon: const Icon(Icons.check_rounded, size: 21),
         label: const Text(
           'Save certificate',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         ),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,

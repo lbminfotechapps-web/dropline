@@ -35,7 +35,7 @@ class ChooseOptionPage extends StatelessWidget {
                           textAlign: TextAlign.center,
                           style: AppTextStyles.titleLarge.copyWith(
                             fontSize: 28 * scale,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w500,
                             letterSpacing: 0.7,
                           ),
                         ),
@@ -105,7 +105,7 @@ class ChooseOptionPage extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.titleLarge.copyWith(
                         fontSize: 28 * scale,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w500,
                         letterSpacing: 0.7,
                       ),
                     ),

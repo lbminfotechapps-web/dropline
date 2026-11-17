@@ -36,7 +36,7 @@ class ClockInConfirmationDialog extends StatelessWidget {
               children: [
                 const Text(
                   'Confirm clock-in',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 4),
                 const Text('Please check your details.'),
@@ -50,13 +50,13 @@ class ClockInConfirmationDialog extends StatelessWidget {
                 ),
                 const Text(
                   'Clock-in time',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
                 ),
                 Text(
                   time,
                   style: const TextStyle(
                     fontSize: 38,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -72,7 +72,7 @@ class ClockInConfirmationDialog extends StatelessWidget {
                   ),
                   child: const Text(
                     'OK, clock in',
-                    style: TextStyle(fontWeight: FontWeight.w700),
+                    style: TextStyle(fontWeight: FontWeight.w500),
                   ),
                 ),
                 TextButton(
@@ -94,12 +94,12 @@ class ClockInConfirmationDialog extends StatelessWidget {
     children: [
       Text(
         label,
-        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
       ),
       const SizedBox(height: 2),
       Text(
         value,
-        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
+        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w500),
       ),
     ],
   );

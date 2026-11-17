@@ -99,7 +99,7 @@ class _AreaMainPageState extends State<AreaMainPage> {
               fontSize: size * s,
               color: color,
               height: 1.25,
-              fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
+              fontWeight: bold ? FontWeight.w500 : FontWeight.w500,
               letterSpacing: 0.1 * s,
             );
             Widget field(int index, String title, String example) => Padding(

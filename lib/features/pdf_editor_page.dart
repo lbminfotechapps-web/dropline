@@ -473,7 +473,7 @@ class _PdfEditorPageState extends State<PdfEditorPage> {
                 label,
                 style: TextStyle(
                   fontSize: 11,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w500,
                   color: color,
                 ),
               ),
@@ -578,7 +578,7 @@ class _PdfEditorPageState extends State<PdfEditorPage> {
             const SizedBox(height: 20),
             const Text(
               'PDF Editor',
-              style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 23, fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 10),
             const Text(
@@ -626,7 +626,7 @@ class _PdfEditorPageState extends State<PdfEditorPage> {
           children: [
             const Text(
               'PDF Editor',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
             ),
             if (selectedFileName != null)
               Text(
@@ -635,7 +635,7 @@ class _PdfEditorPageState extends State<PdfEditorPage> {
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   fontSize: 11,
-                  fontWeight: FontWeight.normal,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
           ],

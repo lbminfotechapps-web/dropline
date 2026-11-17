@@ -441,7 +441,7 @@ class _SelectLocationPageState extends State<SelectLocationPage> {
             'Select Location',
             style: AppTextStyles.headingLarge.copyWith(
               fontSize: 28,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ),
@@ -492,7 +492,7 @@ class _SelectLocationPageState extends State<SelectLocationPage> {
                 _isSubmitting ? 'Preparing event data...' : 'Use Location',
                 style: AppTextStyles.buttonMedium.copyWith(
                   color: const Color(0xFF151C29),
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               style: ElevatedButton.styleFrom(

@@ -87,6 +87,28 @@ void main() {
     }
   });
 
+  test(
+    'Records combine slots by date and exclude other users and projects',
+    () async {
+      const note = EventDraftItem(
+        id: 'note',
+        type: EventItemType.note,
+        name: 'Note',
+      );
+      await store.save(scope('1'), [note]);
+      await store.save(scope('2'), [note]);
+      await store.save(scope('1', day: 17), [note]);
+      await store.save(scope('1', user: 'other'), [note]);
+      await store.save(scope('1', project: 'other'), [note]);
+      final records = await store.records(userId: '1', project: 'TRIBECA');
+      expect(records.length, 3);
+      expect(records.map((record) => record.date.day), [17, 16, 16]);
+      final allProjects = await store.records(userId: '1');
+      expect(allProjects.length, 4);
+      expect(allProjects.map((record) => record.projectName).toSet(), {'TRIBECA', 'other'});
+    },
+  );
+
   test('Rapid autosaves preserve the most recent text', () async {
     final writes = <Future<void>>[];
     for (var i = 0; i < 20; i++) {

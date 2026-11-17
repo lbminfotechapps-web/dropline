@@ -189,7 +189,7 @@ class _PersonalDetailsPageState extends State<PersonalDetailsPage> {
                           headerTextStyle: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w500,
                           ),
                           closeIcon: const Icon(
                             Icons.close,
@@ -337,7 +337,7 @@ class _PersonalDetailsPageState extends State<PersonalDetailsPage> {
             style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 13,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 8),
@@ -431,7 +431,7 @@ class _PersonalDetailsPageState extends State<PersonalDetailsPage> {
             style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 13,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 8),
@@ -509,7 +509,7 @@ class _PersonalDetailsPageState extends State<PersonalDetailsPage> {
                       style: TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 15,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
@@ -618,7 +618,7 @@ class _PersonalDetailsPageState extends State<PersonalDetailsPage> {
           ),
           child: const Text(
             'Save changes',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
           ),
         ),
       ),

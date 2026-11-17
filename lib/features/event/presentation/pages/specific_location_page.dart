@@ -178,7 +178,7 @@ class SpecificLocationPage extends StatelessWidget {
                                     Text(
                                       'Specific Locations',
                                       style: AppTextStyles.titleMedium.copyWith(
-                                        fontWeight: FontWeight.w700,
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     ),
 
@@ -332,7 +332,7 @@ class SpecificLocationPage extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: AppTextStyles.headingMedium.copyWith(
               fontSize: 26,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ),
@@ -370,7 +370,7 @@ class SpecificLocationPage extends StatelessWidget {
                     '+ Add Specific Location',
                     style: AppTextStyles.buttonMedium.copyWith(
                       color: const Color(0xFF151C29),
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),

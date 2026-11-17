@@ -7,6 +7,26 @@ import '../datasources/time_slot_remote_datasource.dart';
 
 enum EventItemType { note, pdf, photo, audio }
 
+class EventDraftRecord {
+  const EventDraftRecord({
+    required this.date,
+    required this.item,
+    this.file,
+    this.projectName = '',
+  });
+  final String projectName;
+  final DateTime date;
+  final EventDraftItem item;
+  final File? file;
+
+  DateTime? get createdAt {
+    final timestamp = int.tryParse(item.id);
+    return timestamp == null
+        ? null
+        : DateTime.fromMicrosecondsSinceEpoch(timestamp);
+  }
+}
+
 class EventDraftItem {
   const EventDraftItem({
     required this.id,
@@ -134,6 +154,61 @@ class EventDraftStore {
               EventDraftItem.fromJson(Map<String, dynamic>.from(item as Map)),
         )
         .toList();
+  }
+
+  /// All slots for this user's project, newest dates and items first.
+  Future<List<EventDraftRecord>> records({
+    required String userId,
+    String? project,
+  }) async {
+    await _writes;
+    final root = await _directory();
+    final directory = Directory('${root.path}/event_drafts');
+    if (!await directory.exists()) return [];
+    final records = <EventDraftRecord>[];
+    await for (final folder in directory.list(followLinks: false)) {
+      if (folder is! Directory) continue;
+      List<dynamic> scope;
+      try {
+        final key = folder.uri.pathSegments.where((s) => s.isNotEmpty).last;
+        scope =
+            jsonDecode(utf8.decode(base64Url.decode(base64Url.normalize(key))))
+                as List;
+      } on FormatException {
+        continue;
+      }
+      if (scope.length != 6 ||
+          scope[0] != userId ||
+          (project != null && scope[1] != project)) {
+        continue;
+      }
+      final date = DateTime(scope[2] as int, scope[3] as int, scope[4] as int);
+      final metadata = File('${folder.path}/draft.json');
+      if (!await metadata.exists()) continue;
+      final items = jsonDecode(await metadata.readAsString()) as List;
+      for (final data in items) {
+        final item = EventDraftItem.fromJson(
+          Map<String, dynamic>.from(data as Map),
+        );
+        records.add(
+          EventDraftRecord(
+            projectName: scope[1] as String,
+            date: date,
+            item: item,
+            file: item.fileName == null
+                ? null
+                : File('${folder.path}/${item.fileName}'),
+          ),
+        );
+      }
+    }
+    records.sort((a, b) {
+      final date = b.date.compareTo(a.date);
+      return date != 0
+          ? date
+          : (b.createdAt ?? b.date).compareTo(a.createdAt ?? a.date);
+    });
+    return records;
   }
 
   Future<void> save(String scope, List<EventDraftItem> items) {

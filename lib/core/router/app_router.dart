@@ -1,12 +1,17 @@
 import 'package:dropline/features/areas/presentation/pages/area_editable_pages.dart';
 import 'package:dropline/core/router/bottom_navigation.dart';
+import 'package:dropline/features/certificate/presentation/pages/dropline_card.dart';
+import 'package:dropline/features/event/presentation/pages/my_updates_page.dart';
 import 'package:dropline/features/certificate/presentation/pages/add_certificate_screen.dart';
 import 'package:dropline/features/certificate/presentation/pages/certificates.dart';
 import 'package:dropline/features/companies/presentation/find_company.dart';
 import 'package:dropline/features/masterFlow/presentation/pages/master_flow.dart';
+import 'package:dropline/features/masterFlow/presentation/pages/handovers_page.dart';
 import 'package:dropline/features/profile/presentation/pages/personal_details_page.dart';
 import 'package:dropline/features/profile/presentation/pages/profile.dart';
 import 'package:dropline/features/project_setup/presentation/pages/project_setup_pages.dart';
+import 'package:dropline/features/project_setup/presentation/pages/project_overview_page.dart';
+import 'package:dropline/features/project_setup/presentation/pages/project_home_page.dart';
 import 'package:dropline/features/areas/presentation/pages/area_main_pages.dart';
 import 'package:dropline/core/di/global_di.dart';
 import 'package:dropline/features/me/presentation/pages/me.dart';
@@ -63,8 +68,12 @@ class AppRouter {
   static const String login = '/login';
   static const String chooseOption = '/choose-option';
   static const String dashboard = '/dashboard';
+  static const String myUpdates = '/my-updates';
   static const String me = '/me';
   static const String projectSetup = '/project-setup';
+  static const String projectOverview = '/me/project';
+  static const String projectHome = '/me/project-home';
+  static const String handovers = '/me/project-home/handovers';
   static const String areaLabels = '/area-labels';
   static const String areas = '/areas';
   static const String addEvent = '/add-event';
@@ -81,6 +90,7 @@ class AppRouter {
   static const String addCertifiate = '/addCertifiate';
   static const String profile = '/profile';
   static const String personalDetails = '/PersonalDetails';
+  static const String droplineCard = '/droplineCard';
 
   static final GoRouter router = GoRouter(
     navigatorKey: navigatorKey,
@@ -301,14 +311,6 @@ class AppRouter {
       ),
 
       GoRoute(
-        path: masterFlow,
-        name: 'masterFlow',
-        builder: (context, state) {
-          return const MasterFlowsScreen();
-        },
-      ),
-
-      GoRoute(
         path: findcompany,
         name: 'findcompany',
         builder: (context, state) {
@@ -343,13 +345,21 @@ class AppRouter {
         },
       ),
 
-     GoRoute(
-                path: profile,
-                name: 'profile',
-                builder: (context, state) => const MyProfilePage(),
-                // builder: (context, state) =>
-                //     MePage(onStartWork: () => context.go(dashboard)),
-              ),
+      GoRoute(
+        path: profile,
+        name: 'profile',
+        builder: (context, state) => const MyProfilePage(),
+        // builder: (context, state) =>
+        //     MePage(onStartWork: () => context.go(dashboard)),
+      ),
+      GoRoute(
+        path: droplineCard,
+        name: 'droplineCard',
+        builder: (context, state) => const DroplineCard(),
+
+        // builder: (context, state) =>
+        //     MePage(onStartWork: () => context.go(dashboard)),
+      ),
 
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
@@ -366,15 +376,84 @@ class AppRouter {
           ),
           StatefulShellBranch(
             routes: [
-               GoRoute(
-        path: me,
-        name: 'me',
-        builder: (context, state) {
-          return MePage();
-          //  MePage(onStartWork: () => context.go(dashboard));
-        },
-      ),
-            
+              GoRoute(
+                path: me,
+                name: 'me',
+                builder: (context, state) {
+                  return MePage();
+                  //  MePage(onStartWork: () => context.go(dashboard));
+                },
+                routes: [
+                  GoRoute(
+                    path: 'project-home',
+                    builder: (context, state) => ProjectHomePage(
+                      projectId: state.uri.queryParameters['projectId'] ?? '',
+                      companyId: state.uri.queryParameters['companyId'] ?? '',
+                      projectName:
+                          state.uri.queryParameters['projectName'] ?? '',
+                      companyName:
+                          state.uri.queryParameters['companyName'] ?? '',
+                      projectType:
+                          state.uri.queryParameters['projectType'] ??
+                          'Business',
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: 'handovers',
+                        builder: (context, state) => HandoversPage(
+                          projectId:
+                              state.uri.queryParameters['projectId'] ?? '',
+                          companyId:
+                              state.uri.queryParameters['companyId'] ?? '',
+                          projectName:
+                              state.uri.queryParameters['projectName'] ?? '',
+                          companyName:
+                              state.uri.queryParameters['companyName'] ?? '',
+                        ),
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: 'project',
+                    builder: (context, state) => ProjectOverviewPage(
+                      projectId: state.uri.queryParameters['projectId'] ?? '',
+                      companyId: state.uri.queryParameters['companyId'] ?? '',
+                      projectName:
+                          state.uri.queryParameters['projectName'] ?? '',
+                      companyName:
+                          state.uri.queryParameters['companyName'] ?? '',
+                      projectType:
+                          state.uri.queryParameters['projectType'] ??
+                          'Business',
+                    ),
+                  ),
+                ],
+              ),
+              GoRoute(
+                path: masterFlow,
+                name: 'masterFlow',
+                builder: (context, state) {
+                  return MasterFlowsScreen(
+                    projectId: state.uri.queryParameters['projectId'] ?? '',
+                    companyId: state.uri.queryParameters['companyId'] ?? '',
+                    projectName:
+                        state.uri.queryParameters['projectName'] ??
+                        'Laxmi Gauri',
+                    companyName:
+                        state.uri.queryParameters['companyName'] ??
+                        'Apex Build',
+                  );
+                },
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: myUpdates,
+                name: 'myUpdates',
+                builder: (context, state) => const MyUpdatesPage(),
+              ),
             ],
           ),
         ],

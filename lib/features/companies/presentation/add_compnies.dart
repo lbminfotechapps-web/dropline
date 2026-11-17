@@ -180,7 +180,7 @@ class _AddCompaniesPageState extends State<AddCompaniesPage> {
               style: TextStyle(
                 fontSize: size * s,
                 color: color,
-                fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
+                fontWeight: bold ? FontWeight.w500 : FontWeight.w500,
                 letterSpacing: .15 * s,
               ),
             );

@@ -40,6 +40,8 @@ class SecureStorage {
 
   Future<void> clearLoginResponse() => storage.delete(key: loginResponseKey);
 
+  Future<void> clearAll() => storage.deleteAll();
+
   Future<void> savePunchInResult(List<InPunchEntity> result) async {
     final jsonList = result.map((punch) {
       return {

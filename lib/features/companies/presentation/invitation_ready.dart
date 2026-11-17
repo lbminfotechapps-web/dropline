@@ -162,7 +162,7 @@ class _InvitationReadyPageState extends State<InvitationReadyPage> {
                 style: TextStyle(
                   color: color,
                   fontSize: size * s,
-                  fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
+                  fontWeight: bold ? FontWeight.w500 : FontWeight.w500,
                   height: 1.4,
                 ),
               );

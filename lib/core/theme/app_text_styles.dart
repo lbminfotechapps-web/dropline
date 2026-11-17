@@ -9,7 +9,7 @@ class AppTextStyles {
   // FONT FAMILY
   // ==========================================
 
-  static const String fontFamily = 'Roboto';
+  static const String fontFamily = 'Poppins';
 
   // ==========================================
   // DISPLAY TEXT
@@ -19,7 +19,7 @@ class AppTextStyles {
   static const TextStyle displayLarge = TextStyle(
     fontFamily: fontFamily,
     fontSize: 72,
-    fontWeight: FontWeight.w700,
+    fontWeight: FontWeight.w500,
     color: AppColors.textPrimary,
     height: 1.1,
   );
@@ -27,7 +27,7 @@ class AppTextStyles {
   static const TextStyle displayMedium = TextStyle(
     fontFamily: fontFamily,
     fontSize: 48,
-    fontWeight: FontWeight.w700,
+    fontWeight: FontWeight.w500,
     color: AppColors.textPrimary,
     height: 1.15,
   );
@@ -35,7 +35,7 @@ class AppTextStyles {
   static const TextStyle displaySmall = TextStyle(
     fontFamily: fontFamily,
     fontSize: 36,
-    fontWeight: FontWeight.w700,
+    fontWeight: FontWeight.w500,
     color: AppColors.textPrimary,
   );
 
@@ -46,21 +46,21 @@ class AppTextStyles {
   static const TextStyle headingLarge = TextStyle(
     fontFamily: fontFamily,
     fontSize: 30,
-    fontWeight: FontWeight.w700,
+    fontWeight: FontWeight.w500,
     color: AppColors.textPrimary,
   );
 
   static const TextStyle headingMedium = TextStyle(
     fontFamily: fontFamily,
     fontSize: 26,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w500,
     color: AppColors.textPrimary,
   );
 
   static const TextStyle headingSmall = TextStyle(
     fontFamily: fontFamily,
     fontSize: 22,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w500,
     color: AppColors.textPrimary,
   );
 
@@ -71,21 +71,21 @@ class AppTextStyles {
   static const TextStyle titleLarge = TextStyle(
     fontFamily: fontFamily,
     fontSize: 20,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w500,
     color: AppColors.textPrimary,
   );
 
   static const TextStyle titleMedium = TextStyle(
     fontFamily: fontFamily,
     fontSize: 18,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w500,
     color: AppColors.textPrimary,
   );
 
   static const TextStyle titleSmall = TextStyle(
     fontFamily: fontFamily,
     fontSize: 16,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w500,
     color: AppColors.textPrimary,
   );
 
@@ -96,7 +96,7 @@ class AppTextStyles {
   static const TextStyle bodyLarge = TextStyle(
     fontFamily: fontFamily,
     fontSize: 16,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.w500,
     color: AppColors.textPrimary,
     height: 1.5,
   );
@@ -104,7 +104,7 @@ class AppTextStyles {
   static const TextStyle bodyMedium = TextStyle(
     fontFamily: fontFamily,
     fontSize: 14,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.w500,
     color: AppColors.textPrimary,
     height: 1.5,
   );
@@ -112,7 +112,7 @@ class AppTextStyles {
   static const TextStyle bodySmall = TextStyle(
     fontFamily: fontFamily,
     fontSize: 12,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.w500,
     color: AppColors.textSecondary,
     height: 1.4,
   );
@@ -149,7 +149,7 @@ class AppTextStyles {
   static const TextStyle buttonLarge = TextStyle(
     fontFamily: fontFamily,
     fontSize: 18,
-    fontWeight: FontWeight.w700,
+    fontWeight: FontWeight.w500,
     color: AppColors.buttonText,
     letterSpacing: 0.5,
   );
@@ -157,14 +157,14 @@ class AppTextStyles {
   static const TextStyle buttonMedium = TextStyle(
     fontFamily: fontFamily,
     fontSize: 16,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w500,
     color: AppColors.buttonText,
   );
 
   static const TextStyle buttonSmall = TextStyle(
     fontFamily: fontFamily,
     fontSize: 14,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w500,
     color: AppColors.buttonText,
   );
 
@@ -175,7 +175,7 @@ class AppTextStyles {
   static const TextStyle inputText = TextStyle(
     fontFamily: fontFamily,
     fontSize: 16,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.w500,
     color: AppColors.textPrimary,
   );
 
@@ -189,14 +189,14 @@ class AppTextStyles {
   static const TextStyle inputHint = TextStyle(
     fontFamily: fontFamily,
     fontSize: 14,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.w500,
     color: AppColors.hintText,
   );
 
   static const TextStyle inputError = TextStyle(
     fontFamily: fontFamily,
     fontSize: 12,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.w500,
     color: AppColors.error,
   );
 
@@ -207,14 +207,14 @@ class AppTextStyles {
   static const TextStyle caption = TextStyle(
     fontFamily: fontFamily,
     fontSize: 11,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.w500,
     color: AppColors.textMuted,
   );
 
   static const TextStyle overline = TextStyle(
     fontFamily: fontFamily,
     fontSize: 12,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w500,
     color: AppColors.textSecondary,
     letterSpacing: 2,
   );
@@ -222,7 +222,7 @@ class AppTextStyles {
   static const TextStyle link = TextStyle(
     fontFamily: fontFamily,
     fontSize: 14,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w500,
     color: AppColors.white,
     decoration: TextDecoration.underline,
     decorationColor: AppColors.white,
@@ -234,7 +234,7 @@ class AppTextStyles {
 
   static TextStyle custom({
     double fontSize = 14,
-    FontWeight fontWeight = FontWeight.w400,
+    FontWeight fontWeight = FontWeight.w500,
     Color color = AppColors.textPrimary,
     double? letterSpacing,
     double? height,

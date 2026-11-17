@@ -50,7 +50,7 @@ class LocationEmptyState extends StatelessWidget {
           title,
           textAlign: TextAlign.center,
           style: AppTextStyles.titleLarge.copyWith(
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w500,
           ),
         ),
 
