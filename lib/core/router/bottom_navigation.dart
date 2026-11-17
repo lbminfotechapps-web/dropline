@@ -77,14 +77,15 @@ class _HomeShellState extends State<HomeShell> {
                             ? const Color(0xFF173D47)
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border(
-                          top: BorderSide(
-                            color: selected
-                                ? const Color(0xFFB5FF65)
-                                : Colors.transparent,
-                            width: 2,
-                          ),
-                        ),
+                        boxShadow: selected
+                            ? const [
+                                BoxShadow(
+                                  color: Color(0x33000000),
+                                  blurRadius: 8,
+                                  offset: Offset(0, 2),
+                                ),
+                              ]
+                            : const [],
                       ),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,

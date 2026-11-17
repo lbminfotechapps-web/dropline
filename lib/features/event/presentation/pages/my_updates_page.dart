@@ -30,6 +30,19 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
   String? _selectedProject;
   int _selectedType = 0;
   int _dateFilter = 0;
+  String? _selectedArea;
+  String? _selectedCategory;
+  String? _selectedEvent;
+  bool _oldestFirst = false;
+
+  int get _filterCount => [
+    _selectedProject != null,
+    _selectedArea != null,
+    _selectedCategory != null,
+    _selectedEvent != null,
+    _dateFilter != 0,
+    _oldestFirst,
+  ].where((active) => active).length;
 
   @override
   void initState() {
@@ -68,7 +81,23 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
 
   DateTime _day(DateTime date) => DateTime(date.year, date.month, date.day);
 
-  List<EventDraftRecord> get _filtered {
+  List<EventDraftRecord> get _filtered => _matching(
+    project: _selectedProject,
+    area: _selectedArea,
+    category: _selectedCategory,
+    event: _selectedEvent,
+    dateFilter: _dateFilter,
+    oldestFirst: _oldestFirst,
+  );
+
+  List<EventDraftRecord> _matching({
+    String? project,
+    String? area,
+    String? category,
+    String? event,
+    int dateFilter = 0,
+    bool oldestFirst = false,
+  }) {
     final today = _day(DateTime.now());
     final types = [
       null,
@@ -77,15 +106,18 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
       EventItemType.audio,
     ];
     return _records.where((record) {
-      if (_selectedProject != null && record.projectName != _selectedProject) {
+      if (project != null && record.projectName != project) {
         return false;
       }
       if (types[_selectedType] != null &&
           record.item.type != types[_selectedType]) {
         return false;
       }
+      if (area != null && record.item.area != area) return false;
+      if (category != null && record.item.category != category) return false;
+      if (event != null && record.item.event != event) return false;
       final date = _day(record.date);
-      return switch (_dateFilter) {
+      return switch (dateFilter) {
         1 => date == today,
         2 => date == DateTime(today.year, today.month, today.day - 1),
         3 =>
@@ -95,9 +127,10 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
       };
     }).toList()..sort((a, b) {
       final byDay = b.date.compareTo(a.date);
-      return byDay != 0
+      final order = byDay != 0
           ? byDay
           : (b.createdAt ?? b.date).compareTo(a.createdAt ?? a.date);
+      return oldestFirst ? -order : order;
     });
   }
 
@@ -111,76 +144,327 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
   }
 
   Future<void> _showFilters() async {
-    var selected = _dateFilter;
-    final result = await showModalBottomSheet<int>(
+    var project = _selectedProject;
+    var area = _selectedArea;
+    var category = _selectedCategory;
+    var event = _selectedEvent;
+    var date = _dateFilter;
+    var oldest = _oldestFirst;
+    final applied = await showModalBottomSheet<bool>(
       context: context,
-      backgroundColor: _surface,
-      showDragHandle: true,
+      backgroundColor: const Color(0xFF122C3B),
       isScrollControlled: true,
       useSafeArea: true,
+      showDragHandle: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        side: BorderSide(color: _border),
+      ),
       builder: (context) => StatefulBuilder(
-        builder: (context, update) => SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text(
-                  'Filter records',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
+        builder: (context, update) {
+          List<String> options(Iterable<String> values) =>
+              values.where((s) => s.isNotEmpty).toSet().toList()..sort();
+          final projects = options(_records.map((r) => r.projectName));
+          final scoped = _records.where(
+            (r) => project == null || r.projectName == project,
+          );
+          final areas = options(scoped.map((r) => r.item.area));
+          final categories = options(scoped.map((r) => r.item.category));
+          final events = options(
+            scoped
+                .where((r) => r.item.category == category)
+                .map((r) => r.item.event),
+          );
+          if (!projects.contains(project)) project = null;
+          if (!areas.contains(area)) area = null;
+          if (!categories.contains(category)) category = null;
+          if (!events.contains(event)) event = null;
+          final count = _matching(
+            project: project,
+            area: area,
+            category: category,
+            event: event,
+            dateFilter: date,
+            oldestFirst: oldest,
+          ).length;
+
+          Widget field(
+            String label,
+            String value,
+            Map<String, String> entries,
+            ValueChanged<String>? changed,
+          ) => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Color(0xFFBDD5E2),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 6),
+              DropdownButtonFormField<String>(
+                key: ValueKey('$label:$value:${entries.keys.join(',')}'),
+                initialValue: value,
+                isExpanded: true,
+                dropdownColor: const Color(0xFF122C3B),
+                style: const TextStyle(color: Colors.white, fontSize: 13),
+                iconEnabledColor: Colors.white,
+                iconDisabledColor: Colors.white,
+                icon: const Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: const Color(0xFF102633),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  isDense: true,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(11),
+                    borderSide: const BorderSide(color: _border),
+                  ),
+                  disabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(11),
+                    borderSide: const BorderSide(color: _border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(11),
+                    borderSide: const BorderSide(color: _accent),
                   ),
                 ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Date',
-                  style: TextStyle(color: _muted, fontSize: 13),
-                ),
-                const SizedBox(height: 10),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    for (final entry in [
-                      'All dates',
-                      'Today',
-                      'Yesterday',
-                      'Last 7 days',
-                    ].indexed)
-                      ChoiceChip(
-                        label: Text(entry.$2),
-                        selected: selected == entry.$1,
-                        selectedColor: _accent,
-                        backgroundColor: _background,
-                        labelStyle: TextStyle(
-                          color: selected == entry.$1
-                              ? _background
-                              : Colors.white,
+                items: entries.entries
+                    .map(
+                      (e) => DropdownMenuItem(
+                        value: e.key,
+                        child: Text(
+                          e.value,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: Colors.white),
                         ),
-                        onSelected: (_) => update(() => selected = entry.$1),
                       ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                FilledButton(
-                  onPressed: () => Navigator.pop(context, selected),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: _accent,
-                    foregroundColor: _background,
-                    minimumSize: const Size.fromHeight(48),
+                    )
+                    .toList(),
+                onChanged: changed == null
+                    ? null
+                    : (v) {
+                        if (v != null) changed(v);
+                      },
+              ),
+            ],
+          );
+          return SafeArea(
+            top: false,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.sizeOf(context).height * 0.85,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            children: [
+                              const Expanded(
+                                child: Text(
+                                  'Filters',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: -0.8,
+                                  ),
+                                ),
+                              ),
+                              IconButton.outlined(
+                                tooltip: 'Close filters',
+                                onPressed: () => Navigator.pop(context),
+                                style: IconButton.styleFrom(
+                                  foregroundColor: _muted,
+                                  side: const BorderSide(color: _border),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(11),
+                                  ),
+                                ),
+                                icon: const Icon(Icons.close, size: 20),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          field(
+                            'Project',
+                            project ?? '',
+                            {
+                              '': 'All projects',
+                              for (final p in projects) p: p,
+                            },
+                            (v) => update(() {
+                              project = v.isEmpty ? null : v;
+                              area = null;
+                              category = null;
+                              event = null;
+                            }),
+                          ),
+                          const SizedBox(height: 10),
+                          field(
+                            'Area',
+                            area ?? '',
+                            {
+                              '': project == null
+                                  ? 'Choose project first'
+                                  : areas.isEmpty
+                                  ? 'No areas available'
+                                  : 'Any area',
+                              for (final a in areas) a: a,
+                            },
+                            project == null || areas.isEmpty
+                                ? null
+                                : (v) =>
+                                      update(() => area = v.isEmpty ? null : v),
+                          ),
+                          const SizedBox(height: 10),
+                          field(
+                            'Category',
+                            category ?? '',
+                            {
+                              '': 'Any category',
+                              for (final c in categories) c: c,
+                            },
+                            (v) => update(() {
+                              category = v.isEmpty ? null : v;
+                              event = null;
+                            }),
+                          ),
+                          const SizedBox(height: 10),
+                          field(
+                            'Event',
+                            event ?? '',
+                            {
+                              '': category == null
+                                  ? 'Choose category first'
+                                  : events.isEmpty
+                                  ? 'No events available'
+                                  : 'Any event',
+                              for (final e in events) e: e,
+                            },
+                            category == null || events.isEmpty
+                                ? null
+                                : (v) => update(
+                                    () => event = v.isEmpty ? null : v,
+                                  ),
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: field(
+                                  'Date',
+                                  '$date',
+                                  const {
+                                    '0': 'Any date',
+                                    '1': 'Today',
+                                    '2': 'Yesterday',
+                                    '3': 'Last 7 days',
+                                  },
+                                  (v) => update(() => date = int.parse(v)),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: field(
+                                  'Sort',
+                                  oldest ? 'oldest' : 'newest',
+                                  const {
+                                    'newest': 'Newest first',
+                                    'oldest': 'Oldest first',
+                                  },
+                                  (v) => update(() => oldest = v == 'oldest'),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                  child: const Text('Apply filters'),
-                ),
-              ],
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+                    decoration: const BoxDecoration(
+                      border: Border(top: BorderSide(color: _border)),
+                    ),
+                    child: Row(
+                      children: [
+                        OutlinedButton(
+                          onPressed: () => update(() {
+                            project = null;
+                            area = null;
+                            category = null;
+                            event = null;
+                            date = 0;
+                            oldest = false;
+                          }),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: _muted,
+                            backgroundColor: _surface,
+                            minimumSize: const Size(64, 46),
+                            side: const BorderSide(color: _border),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(11),
+                            ),
+                          ),
+                          child: const Text('Clear'),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: FilledButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: const Color(0xFFADFF59),
+                              foregroundColor: _background,
+                              minimumSize: const Size.fromHeight(46),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(11),
+                              ),
+                            ),
+                            child: Text(
+                              'Show $count ${count == 1 ? 'record' : 'records'}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
-    if (mounted && result != null) setState(() => _dateFilter = result);
+    if (!mounted || applied != true) return;
+    setState(() {
+      _selectedProject = project;
+      _selectedArea = area;
+      _selectedCategory = category;
+      _selectedEvent = event;
+      _dateFilter = date;
+      _oldestFirst = oldest;
+    });
   }
 
   void _open(EventDraftRecord record) {
@@ -281,10 +565,12 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
                               onPressed: _showFilters,
                               icon: const Icon(Icons.tune_rounded, size: 18),
                               label: Text(
-                                _dateFilter == 0 ? 'Filters' : 'Filters · 1',
+                                _filterCount == 0
+                                    ? 'Filters'
+                                    : 'Filters · $_filterCount',
                               ),
                               style: OutlinedButton.styleFrom(
-                                foregroundColor: _dateFilter == 0
+                                foregroundColor: _filterCount == 0
                                     ? Colors.white
                                     : _accent,
                                 backgroundColor: _surface,
@@ -313,7 +599,7 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
                                 size: 20,
                               ),
                               style: const TextStyle(
-                                color: _muted,
+                                color: Colors.white,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -342,6 +628,9 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
                                                     ? 'All projects'
                                                     : name,
                                                 overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                ),
                                               ),
                                             ),
                                             const SizedBox(width: 8),
@@ -352,19 +641,28 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
                               items: [
                                 const DropdownMenuItem(
                                   value: '',
-                                  child: Text('All projects'),
+                                  child: Text(
+                                    'All projects',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
                                 ),
                                 for (final project in projects)
                                   DropdownMenuItem(
                                     value: project,
-                                    child: Text(project),
+                                    child: Text(
+                                      project,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                      ),
+                                    ),
                                   ),
                               ],
-                              onChanged: (value) => setState(
-                                () => _selectedProject = value == ''
-                                    ? null
-                                    : value,
-                              ),
+                              onChanged: (value) => setState(() {
+                                _selectedProject = value == '' ? null : value;
+                                _selectedArea = null;
+                                _selectedCategory = null;
+                                _selectedEvent = null;
+                              }),
                             ),
                           ),
                         ),
@@ -539,6 +837,10 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
             onPressed: () => setState(() {
               _selectedType = 0;
               _dateFilter = 0;
+              _selectedArea = null;
+              _selectedCategory = null;
+              _selectedEvent = null;
+              _oldestFirst = false;
               _selectedProject = null;
             }),
             child: const Text('Clear filters'),

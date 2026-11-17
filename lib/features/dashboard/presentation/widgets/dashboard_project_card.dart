@@ -17,12 +17,14 @@ class DashboardProjectCard extends StatefulWidget {
   final ProjectEntity? selectedProject;
   final ValueChanged<ProjectEntity>? onProjectSelected;
   final VoidCallback? onRemoveProject;
+  final bool showError;
 
   const DashboardProjectCard({
     super.key,
     this.selectedProject,
     this.onProjectSelected,
     this.onRemoveProject,
+    this.showError = false,
   });
 
   @override
@@ -105,7 +107,9 @@ class _DashboardProjectCardState extends State<DashboardProjectCard> {
                   colors: [Color(0xFF304F64), Color(0xFF203B4F)],
                 ),
                 borderRadius: BorderRadius.circular(26),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(
+                  color: widget.showError ? Colors.redAccent : AppColors.border,
+                ),
               ),
               child: Row(
                 children: [
@@ -173,6 +177,10 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
   bool _showAddProject = false;
   String _searchQuery = '';
   String _projectType = 'Personal';
+  bool _projectValidationAttempted = false;
+
+  bool get _projectInvalid =>
+      _projectValidationAttempted && _projectController.text.trim().isEmpty;
 
   @override
   void dispose() {
@@ -199,6 +207,7 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
 
     setState(() {
       _showAddProject = false;
+      _projectValidationAttempted = false;
     });
   }
 
@@ -215,9 +224,8 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
     final projectName = _projectController.text.trim();
 
     if (projectName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter project name')),
-      );
+      setState(() => _projectValidationAttempted = true);
+      _projectFocusNode.requestFocus();
       return;
     }
 
@@ -455,7 +463,9 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
 
     _projectFocusNode.unfocus();
     final result = await Navigator.of(context).push<Map<String, dynamic>>(
-      MaterialPageRoute(builder: (_) => const NewProjectPage()),
+      MaterialPageRoute(
+        builder: (_) => const NewProjectPage(showProjectTypeSelector: false),
+      ),
     );
     if (!mounted || result == null) return;
 
@@ -526,13 +536,14 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
               focusNode: _projectFocusNode,
               textInputAction: TextInputAction.done,
               onSubmitted: (_) => _addManualProject(),
+              onChanged: (_) => setState(() {}),
               style: const TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 14,
               ),
               cursorColor: AppColors.primary,
               decoration: InputDecoration(
-                hintText: 'Enter project name',
+                hintText: 'Enter Personal Project name',
                 hintStyle: const TextStyle(color: AppColors.hintText),
                 filled: true,
                 fillColor: AppColors.inputBackground,
@@ -542,11 +553,19 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.border),
+                  borderSide: BorderSide(
+                    color: _projectInvalid
+                        ? Colors.redAccent
+                        : AppColors.border,
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.primary),
+                  borderSide: BorderSide(
+                    color: _projectInvalid
+                        ? Colors.redAccent
+                        : AppColors.primary,
+                  ),
                 ),
               ),
             ),

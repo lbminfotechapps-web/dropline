@@ -34,6 +34,9 @@ class EventDraftItem {
     required this.name,
     this.text = '',
     this.tag = '',
+    this.area = '',
+    this.category = '',
+    this.event = '',
     this.fileName,
   });
 
@@ -42,6 +45,9 @@ class EventDraftItem {
   final String name;
   final String text;
   final String tag;
+  final String area;
+  final String category;
+  final String event;
   final String? fileName;
 
   EventDraftItem withText(String value) => EventDraftItem(
@@ -50,6 +56,9 @@ class EventDraftItem {
     name: name,
     text: value,
     tag: tag,
+    area: area,
+    category: category,
+    event: event,
     fileName: fileName,
   );
 
@@ -59,6 +68,9 @@ class EventDraftItem {
     name: name,
     text: text,
     tag: value,
+    area: area,
+    category: category,
+    event: event,
     fileName: fileName,
   );
 
@@ -68,6 +80,9 @@ class EventDraftItem {
     'name': name,
     'text': text,
     'tag': tag,
+    'area': area,
+    'category': category,
+    'event': event,
     'fileName': fileName,
   };
 
@@ -77,6 +92,9 @@ class EventDraftItem {
     name: json['name'] as String,
     text: json['text'] as String? ?? '',
     tag: json['tag'] as String? ?? '',
+    area: json['area'] as String? ?? '',
+    category: json['category'] as String? ?? '',
+    event: json['event'] as String? ?? '',
     fileName: json['fileName'] as String?,
   );
 }

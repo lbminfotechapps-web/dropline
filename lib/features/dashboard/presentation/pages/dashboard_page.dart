@@ -37,6 +37,8 @@ class _DashboardPageState extends State<DashboardPage> {
   late DateTime _currentTime;
   Timer? _clockTimer;
   DateTime? _lastBackPressed;
+  bool _projectValidationAttempted = false;
+
   bool get _isPersonalProject => _selectedProject?.typeLabel != 'Business';
 
   DateTime? _editedClockInTime;
@@ -137,7 +139,7 @@ class _DashboardPageState extends State<DashboardPage> {
           return AlertDialog(
             backgroundColor: AppColors.surface,
             title: const Text(
-              'Enter time',
+              'Select Time',
               style: TextStyle(fontSize: 16, color: AppColors.textPrimary),
             ),
             content: SizedBox(
@@ -302,7 +304,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
     final project = _selectedProject;
     if (project == null) {
-      _showMessage('Please select a project first.');
+      setState(() => _projectValidationAttempted = true);
       return;
     }
 
@@ -599,6 +601,9 @@ class _DashboardPageState extends State<DashboardPage> {
                               'Select the project you are working on before clocking in.',
                           child: DashboardProjectCard(
                             selectedProject: _selectedProject,
+                            showError:
+                                _projectValidationAttempted &&
+                                _selectedProject == null,
                             onProjectSelected: _onProjectSelected,
                             onRemoveProject: () =>
                                 setState(() => _selectedProject = null),

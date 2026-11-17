@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:dropline/core/utility/widgets/appbar.dart';
 
 class NewProjectPage extends StatefulWidget {
-  const NewProjectPage({super.key});
+  const NewProjectPage({super.key, this.showProjectTypeSelector = true});
+
+  final bool showProjectTypeSelector;
 
   @override
   State<NewProjectPage> createState() => _NewProjectPageState();
@@ -94,53 +96,55 @@ class _NewProjectPageState extends State<NewProjectPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        label('Business or personal'),
-                        SizedBox(height: 10 * s),
-                        Row(
-                          children: [true, false]
-                              .map(
-                                (business) => Expanded(
-                                  child: Padding(
-                                    padding: EdgeInsets.only(
-                                      right: business ? 4 * s : 0,
-                                    ),
-                                    child: SizedBox(
-                                      height: 20 * s,
-                                      child: OutlinedButton(
-                                        style: OutlinedButton.styleFrom(
-                                          padding: EdgeInsets.zero,
-                                          backgroundColor: _business == business
-                                              ? _lime
-                                              : _surface,
-                                          side: BorderSide(
-                                            color: _business == business
+                        if (widget.showProjectTypeSelector) ...[
+                          label('Business or personal'),
+                          SizedBox(height: 10 * s),
+                          Row(
+                            children: [true, false]
+                                .map(
+                                  (business) => Expanded(
+                                    child: Padding(
+                                      padding: EdgeInsets.only(
+                                        right: business ? 4 * s : 0,
+                                      ),
+                                      child: SizedBox(
+                                        height: 20 * s,
+                                        child: OutlinedButton(
+                                          style: OutlinedButton.styleFrom(
+                                            padding: EdgeInsets.zero,
+                                            backgroundColor:
+                                                _business == business
                                                 ? _lime
-                                                : _border,
-                                          ),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              6 * s,
+                                                : _surface,
+                                            side: BorderSide(
+                                              color: _business == business
+                                                  ? _lime
+                                                  : _border,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(6 * s),
                                             ),
                                           ),
-                                        ),
-                                        onPressed: () => setState(
-                                          () => _business = business,
-                                        ),
-                                        child: label(
-                                          business ? 'Business' : 'Personal',
-                                          color: _business == business
-                                              ? _background
-                                              : _muted,
-                                          bold: true,
+                                          onPressed: () => setState(
+                                            () => _business = business,
+                                          ),
+                                          child: label(
+                                            business ? 'Business' : 'Personal',
+                                            color: _business == business
+                                                ? _background
+                                                : _muted,
+                                            bold: true,
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              )
-                              .toList(),
-                        ),
-                        SizedBox(height: 10 * s),
+                                )
+                                .toList(),
+                          ),
+                          SizedBox(height: 10 * s),
+                        ],
                         label('Project name', bold: true),
                         SizedBox(height: 3 * s),
                         field(_project),
