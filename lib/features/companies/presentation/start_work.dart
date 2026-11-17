@@ -1,5 +1,7 @@
+import 'package:dropline/core/router/app_router.dart';
 import 'package:flutter/material.dart';
 import 'package:dropline/features/project_setup/presentation/pages/project_setup_pages.dart';
+import 'package:go_router/go_router.dart';
 
 class StartWorkPage extends StatelessWidget {
   const StartWorkPage({
@@ -145,8 +147,21 @@ class StartWorkPage extends StatelessWidget {
                         'Handovers',
                         'Areas, companies and progress',
                         icon: Icons.account_tree_outlined,
-                        onTap: onHandovers,
+                          onTap: () => context.push(
+                  Uri(
+                    path: AppRouter.projectHome,
+                    // queryParameters: {
+                    //   'projectName': project.projectName,
+                    //   'projectType': project.projectType,
+                    //   'projectId': project.projectId,
+                    //   'companyId': project.companyId,
+                    //   'companyName': project.companyName,
+                    // },
+                  ).toString(),
+                ),
                       ),
+
+                
                       menuItem(
                         'Drawings',
                         'Open project drawings',

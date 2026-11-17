@@ -291,18 +291,24 @@ class _MePageState extends State<MePage> {
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: _panel(
-                onTap: () => context.push(
-                  Uri(
-                    path: AppRouter.projectHome,
-                    queryParameters: {
-                      'projectName': project.projectName,
-                      'projectType': project.projectType,
-                      'projectId': project.projectId,
-                      'companyId': project.companyId,
-                      'companyName': project.companyName,
-                    },
-                  ).toString(),
+                onTap: () => Navigator.of(context).push<void>(
+                  MaterialPageRoute<void>(
+                    builder: (_) =>
+                        StartWorkPage(onStartWork: widget.onStartWork),
+                  ),
                 ),
+                // onTap: () => context.push(
+                //   Uri(
+                //     path: AppRouter.projectHome,
+                //     queryParameters: {
+                //       'projectName': project.projectName,
+                //       'projectType': project.projectType,
+                //       'projectId': project.projectId,
+                //       'companyId': project.companyId,
+                //       'companyName': project.companyName,
+                //     },
+                //   ).toString(),
+                // ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 14,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:dropline/core/router/app_router.dart';
+import 'package:dropline/core/utility/widgets/appbar.dart';
 import 'my_check_sheets_page.dart';
 
 /// Project entry screen shown within the Workspace navigation branch.
@@ -10,7 +11,7 @@ class ProjectHomePage extends StatelessWidget {
     super.key,
     required this.projectId,
     required this.companyId,
-    required this.projectName,
+    this.projectName = "ABC",
     required this.companyName,
     this.projectType = 'Business',
     this.onHandovers,
@@ -49,70 +50,25 @@ class ProjectHomePage extends StatelessWidget {
         : 'Business';
     return Scaffold(
       backgroundColor: _background,
+      appBar: CustomAppBar(
+        title: 'Abc',
+        subtitle: '$type · Shared project',
+        backgroundColor: _background,
+        onBackPressed:
+            onBack ??
+            () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go(AppRouter.me);
+              }
+            },
+      ),
       body: SafeArea(
         bottom: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 18, 20, 16),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 44,
-                    height: 44,
-                    child: IconButton.outlined(
-                      tooltip: 'Back to workspace',
-                      onPressed:
-                          onBack ??
-                          () {
-                            if (context.canPop()) {
-                              context.pop();
-                            } else {
-                              context.go(AppRouter.me);
-                            }
-                          },
-                      style: IconButton.styleFrom(
-                        foregroundColor: _muted,
-                        backgroundColor: const Color(0xFF153142),
-                        side: const BorderSide(color: _border),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(11),
-                        ),
-                      ),
-                      icon: const Icon(Icons.chevron_left_rounded, size: 22),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          projectName,
-                          style: const TextStyle(
-                            color: _text,
-                            fontSize: 24,
-                            fontWeight: FontWeight.w700,
-                            height: 1.2,
-                            letterSpacing: -0.8,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '$type · Shared project',
-                          style: const TextStyle(
-                            color: _muted,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
             const Divider(height: 1, color: _border),
             Expanded(
               child: SingleChildScrollView(
@@ -129,20 +85,8 @@ class ProjectHomePage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    _menuItem(
-                      icon: Icons.account_tree_outlined,
-                      title: 'Handovers',
-                      subtitle: 'See what needs doing',
-                      onTap:
-                          onHandovers ??
-                          () => context.push(
-                            Uri(
-                              path: AppRouter.handovers,
-                              queryParameters: _projectParameters,
-                            ).toString(),
-                          ),
-                    ),
-                    const SizedBox(height: 9),
+
+                  
                     _menuItem(
                       icon: Icons.work_outline_rounded,
                       title: 'Master flow',
@@ -156,6 +100,21 @@ class ProjectHomePage extends StatelessWidget {
                             ).toString(),
                           ),
                     ),
+                             const SizedBox(height: 9),
+                    _menuItem(
+                      icon: Icons.account_tree_outlined,
+                      title: 'Handovers',
+                      subtitle: 'See what needs doing',
+                      onTap:
+                          onHandovers ??
+                          () => context.push(
+                            Uri(
+                              path: AppRouter.handovers,
+                              queryParameters: _projectParameters,
+                            ).toString(),
+                          ),
+                    ),
+             
                     const SizedBox(height: 9),
                     _menuItem(
                       icon: Icons.assignment_turned_in_outlined,

@@ -1,5 +1,8 @@
 import 'dart:convert';
 
+import 'package:dropline/core/theme/appcolors.dart';
+import 'package:dropline/core/utility/widgets/appbar.dart';
+import 'package:dropline/features/masterFlow/presentation/pages/handover_details_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -34,7 +37,15 @@ class _HandoversPageState extends State<HandoversPage> {
   static const _border = Color(0xFF2E4D5E);
   static const _muted = Color(0xFF9FBFD1);
   static const _lime = Color(0xFFB5FF65);
-  List<Map<String, String>> _handovers = [];
+  List<Map<String, String>> _handovers = [
+    {
+      'area': 'Building A › Level 03 › Apartment 305',
+      'activity': 'Apartment finishes',
+      'trade': 'Plastering',
+      'company': 'Apex Build',
+      'status': 'waiting',
+    },
+  ];
   bool _allAreas = true;
   bool _loading = true;
   bool _saving = false;
@@ -59,7 +70,15 @@ class _HandoversPageState extends State<HandoversPage> {
       final preferences = await SharedPreferences.getInstance();
       final saved = preferences.getString(_key);
       final items = saved == null
-          ? <Map<String, String>>[]
+          ? <Map<String, String>>[
+              {
+                'area': 'Building A › Level 03 › Apartment 305',
+                'activity': 'Apartment finishes',
+                'trade': 'Plastering',
+                'company': 'Apex Build',
+                'status': 'waiting',
+              },
+            ]
           : (jsonDecode(saved) as List)
                 .map((value) => Map<String, String>.from(value as Map))
                 .toList();
@@ -184,190 +203,130 @@ class _HandoversPageState extends State<HandoversPage> {
     }
   }
 
-  void _viewArea(Map<String, String> handover) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      backgroundColor: _surface,
-      builder: (context) => SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                handover['area']!,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                handover['activity']!,
-                style: const TextStyle(color: Colors.white, fontSize: 16),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'First handover · With ${handover['company']}',
-                style: const TextStyle(color: _muted),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Awaiting acceptance',
-                style: TextStyle(color: _muted),
-              ),
-              const SizedBox(height: 20),
-              OutlinedButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Close'),
-              ),
-            ],
-          ),
+  Future<void> _viewArea(Map<String, String> handover) async {
+    final result = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => HandoverDetailsPage(
+          handover: handover,
+          companyName: widget.companyName,
         ),
       ),
     );
+
+    if (!mounted || result == null) return;
+
+    if (result == 'accepted' || result == 'rejected') {
+      final updated = _handovers.map((item) {
+        if (identical(item, handover)) {
+          return <String, String>{...item, 'status': result};
+        }
+        return item;
+      }).toList();
+
+      try {
+        final prefs = await SharedPreferences.getInstance();
+
+        final saved = await prefs.setString(_key, jsonEncode(updated));
+
+        if (!saved) {
+          throw StateError('Unable to save status');
+        }
+
+        if (!mounted) return;
+
+        setState(() {
+          _handovers = updated;
+        });
+      } catch (_) {
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Unable to update handover status')),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final visible = _handovers
-        .where((item) => _allAreas || item['status'] == 'waiting')
+    final pendingHandovers = _handovers
+        .where((item) => item['status'] == 'waiting')
         .toList();
+
+    final visible = _allAreas ? _handovers : pendingHandovers;
+
     return Scaffold(
-      backgroundColor: _background,
+      backgroundColor: AppColors.background,
+
+      appBar: CustomAppBar(
+        title: 'Handovers',
+        subtitle: '${widget.projectName} · ${widget.companyName}',
+        backgroundColor: AppColors.background,
+        onBackPressed: () {
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.go(AppRouter.me);
+          }
+        },
+      ),
+
       body: SafeArea(
         bottom: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 44,
-                    height: 44,
-                    child: IconButton.outlined(
-                      tooltip: 'Back to project',
-                      onPressed: () => context.canPop()
-                          ? context.pop()
-                          : context.go(AppRouter.me),
-                      style: IconButton.styleFrom(
-                        backgroundColor: _surface,
-                        foregroundColor: _muted,
-                        side: const BorderSide(color: _border),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(11),
-                        ),
-                      ),
-                      icon: const Icon(Icons.chevron_left_rounded, size: 22),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Handovers',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 25,
-                            fontWeight: FontWeight.w700,
-                            height: 1.2,
-                            letterSpacing: -0.8,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${widget.projectName} · ${widget.companyName}',
-                          style: const TextStyle(
-                            color: _muted,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
             const Divider(height: 1, color: _border),
+
+            const SizedBox(height: 13),
+
+            // To do / All areas tabs
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: OutlinedButton.icon(
-                  onPressed: () => context.push(
-                    Uri(
-                      path: AppRouter.masterFlow,
-                      queryParameters: {
-                        'projectId': widget.projectId,
-                        'companyId': widget.companyId,
-                        'projectName': widget.projectName,
-                        'companyName': widget.companyName,
-                      },
-                    ).toString(),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: _muted,
-                    side: const BorderSide(color: _border),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  icon: const Icon(Icons.account_tree_outlined, size: 18),
-                  label: const Text('Master flows'),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Container(
-                padding: const EdgeInsets.all(3),
+                height: 53,
+                padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0C2230),
+                  color: const Color(0xFF0C2535),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: _border),
                 ),
                 child: Row(
                   children: [
-                    for (final all in [false, true])
-                      Expanded(
-                        child: TextButton(
-                          onPressed: () => setState(() => _allAreas = all),
-                          style: TextButton.styleFrom(
-                            backgroundColor: _allAreas == all
-                                ? _lime
-                                : Colors.transparent,
-                            foregroundColor: _allAreas == all
-                                ? _background
-                                : _muted,
-                            minimumSize: const Size(0, 44),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(9),
-                            ),
-                            textStyle: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          child: Text(all ? 'All areas' : 'To do'),
-                        ),
+                    Expanded(
+                      child: _buildTabButton(
+                        title: 'To do',
+                        isSelected: !_allAreas,
+                        count: pendingHandovers.length,
+                        onTap: () {
+                          setState(() {
+                            _allAreas = false;
+                          });
+                        },
                       ),
+                    ),
+
+                    const SizedBox(width: 5),
+
+                    Expanded(
+                      child: _buildTabButton(
+                        title: 'All areas',
+                        isSelected: _allAreas,
+                        onTap: () {
+                          setState(() {
+                            _allAreas = true;
+                          });
+                        },
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
+
+            const SizedBox(height: 17),
+
             Expanded(
               child: _loading
                   ? const Center(child: CircularProgressIndicator(color: _lime))
@@ -376,75 +335,69 @@ class _HandoversPageState extends State<HandoversPage> {
                       child: TextButton(onPressed: _load, child: Text(_error!)),
                     )
                   : ListView(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
                       children: [
+                        // Section heading
                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            const Text(
-                              'Waiting',
-                              style: TextStyle(
+                            Text(
+                              _allAreas ? 'All areas' : 'To check',
+                              style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 17,
-                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
                               ),
                             ),
+
                             const SizedBox(width: 6),
+
                             Text(
                               '${visible.length}',
                               style: const TextStyle(
                                 color: _muted,
                                 fontSize: 11,
-                                fontWeight: FontWeight.w500,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ],
                         ),
+
                         const SizedBox(height: 10),
+
                         if (visible.isEmpty)
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 28),
-                            child: Text(
-                              'No handovers yet. Start a handover to add an area.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(color: _muted, fontSize: 13),
-                            ),
-                          ),
-                        for (final item in visible)
                           Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: _handoverCard(item),
+                            padding: const EdgeInsets.symmetric(vertical: 35),
+                            child: Column(
+                              children: [
+                                const Icon(
+                                  Icons.assignment_turned_in_outlined,
+                                  color: _muted,
+                                  size: 38,
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  _allAreas
+                                      ? 'No handovers available'
+                                      : 'No handovers to check',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    color: _muted,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        else
+                          ...visible.map(
+                            (item) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: _handoverCard(item),
+                            ),
                           ),
                       ],
                     ),
-            ),
-            Container(
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
-              decoration: const BoxDecoration(
-                color: _surface,
-                border: Border(top: BorderSide(color: _border)),
-              ),
-              child: SafeArea(
-                top: false,
-                child: FilledButton.icon(
-                  onPressed: _loading || _saving || _error != null
-                      ? null
-                      : _startHandover,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: _lime,
-                    foregroundColor: _background,
-                    minimumSize: const Size.fromHeight(46),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    textStyle: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  icon: const Icon(Icons.add, size: 20),
-                  label: Text(_saving ? 'Saving…' : 'Start handover'),
-                ),
-              ),
             ),
           ],
         ),
@@ -452,92 +405,193 @@ class _HandoversPageState extends State<HandoversPage> {
     );
   }
 
-  Widget _handoverCard(Map<String, String> item) => Material(
-    color: _surface,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(14),
-      side: const BorderSide(color: _border),
-    ),
-    clipBehavior: Clip.antiAlias,
-    child: InkWell(
-      onTap: () => _viewArea(item),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+  Widget _buildTabButton({
+    required String title,
+    required bool isSelected,
+    required VoidCallback onTap,
+    int? count,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: isSelected ? _lime : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    item['area']!,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      height: 1.35,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 3,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF173545),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: _border),
-                  ),
-                  child: const Text(
-                    'Awaiting acceptance',
-                    style: TextStyle(
-                      color: _muted,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
             Text(
-              item['activity']!,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+              title,
+              style: TextStyle(
+                color: isSelected ? const Color(0xFF092537) : Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
               ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              'First handover · With ${item['company']}',
-              style: const TextStyle(color: _muted, fontSize: 12),
-            ),
-            const SizedBox(height: 12),
-            const Divider(height: 1, color: _border),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'View area',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+
+            if (count != null) ...[
+              const SizedBox(width: 6),
+
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? const Color(0xFF94DB56)
+                      : const Color(0xFF244354),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '$count',
+                  style: TextStyle(
+                    color: isSelected ? const Color(0xFF092537) : Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
                   ),
-                  Icon(Icons.chevron_right_rounded, size: 20, color: _muted),
-                ],
+                ),
               ),
-            ),
+            ],
           ],
         ),
       ),
-    ),
-  );
+    );
+  }
+
+  Widget _handoverCard(Map<String, String> item) {
+    final bool isPending = item['status'] == 'waiting';
+
+    final String area = item['area'] ?? '';
+    final String activity = item['activity'] ?? '';
+    final String company = item['company'] ?? '';
+
+    // Use the saved trade when available.
+    final String trade = item['trade'] ?? 'First handover';
+
+    return Material(
+      color: _surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(
+          color: isPending ? const Color(0xFF70AE3E) : _border,
+          width: 1,
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => _viewArea(item),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 13, 12, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Area name + status
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      area,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        height: 1.35,
+                      ),
+                    ),
+                  ),
+
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isPending
+                            ? const Color(0xFF254A33)
+                            : const Color(0xFF244354),
+                        borderRadius: BorderRadius.circular(7),
+                        border: Border.all(
+                          color: isPending ? const Color(0xFF4C8447) : _border,
+                        ),
+                      ),
+                      child: Text(
+                        isPending ? 'To check' : 'Completed',
+                        style: TextStyle(
+                          color: isPending ? const Color(0xFFD2FF9D) : _muted,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 5),
+
+              // Activity
+              Text(
+                activity,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+
+              const SizedBox(height: 4),
+
+              // Trade and company
+              Text(
+                '$trade · With $company',
+                style: const TextStyle(
+                  color: Color(0xFFA7D3FF),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              const Divider(height: 1, thickness: 0.7, color: _border),
+
+              // Bottom action
+              InkWell(
+                onTap: () => _viewArea(item),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          isPending ? 'Check handover' : 'View handover',
+                          style: TextStyle(
+                            color: isPending
+                                ? const Color(0xFFB5FF65)
+                                : Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        color: isPending ? const Color(0xFFB5FF65) : _muted,
+                        size: 21,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
