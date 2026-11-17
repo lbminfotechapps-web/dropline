@@ -135,7 +135,7 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
               style: const TextStyle(
                 color: AppColors.certificatePrimary,
                 fontSize: 13,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),
@@ -282,7 +282,7 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: 12,
-              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              fontWeight: selected ? FontWeight.w500 : FontWeight.w500,
               color: selected
                   ? AppColors.certificateButtonText
                   : AppColors.certificateTextPrimary,
@@ -334,7 +334,7 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
               style: const TextStyle(
                 color: AppColors.certificateTextPrimary,
                 fontSize: 19,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w500,
               ),
             ),
 
@@ -410,7 +410,7 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: AppColors.certificateTextPrimary,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w500,
                           fontSize: 14,
                         ),
                       ),
@@ -489,7 +489,7 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
           //     : _selectionMode
           //     ? 'Select certificates'
           //     : 'Add certificate',
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         ),
       ),
     );

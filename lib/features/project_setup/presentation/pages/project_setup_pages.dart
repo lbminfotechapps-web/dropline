@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dropline/core/utility/widgets/appbar.dart';
 import 'package:dropline/core/router/app_router.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dropline/features/projectevent/presentation/project_event.dart';
@@ -48,7 +49,13 @@ class ProjectSetupPage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: _background,
+      appBar: CustomAppBar(
+        title: 'Project setup',
+        subtitle: '$projectName · $companyName',
+        onBackPressed: goBack,
+      ),
       body: SafeArea(
+        top: false,
         child: LayoutBuilder(
           builder: (context, constraints) {
             // The supplied reference is 262 logical pixels wide.
@@ -87,7 +94,7 @@ class ProjectSetupPage extends StatelessWidget {
                                     style: TextStyle(
                                       color: _foreground,
                                       fontSize: 10 * scale,
-                                      fontWeight: FontWeight.w700,
+                                      fontWeight: FontWeight.w500,
                                       letterSpacing: 0.15 * scale,
                                     ),
                                   ),
@@ -128,48 +135,6 @@ class ProjectSetupPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(
-                    children: [
-                      SizedBox(
-                        width: 27 * scale,
-                        height: 28 * scale,
-                        child: OutlinedButton(
-                          onPressed: goBack,
-                          style: OutlinedButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            backgroundColor: _surface,
-                            foregroundColor: _muted,
-                            side: const BorderSide(color: _border, width: 0.7),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8 * scale),
-                            ),
-                          ),
-                          child: Semantics(
-                            label: 'Back to project',
-                            child: Icon(Icons.chevron_left, size: 16 * scale),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 9 * scale),
-                      Expanded(
-                        child: Text(
-                          'Project setup',
-                          style: TextStyle(
-                            color: _foreground,
-                            fontSize: 15 * scale,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.2 * scale,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 12 * scale),
-                  Text(
-                    '$projectName · $companyName',
-                    style: TextStyle(color: _muted, fontSize: 8 * scale),
-                  ),
-                  SizedBox(height: 14 * scale),
                   Expanded(
                     child: SingleChildScrollView(
                       child: Column(
@@ -210,6 +175,8 @@ class ProjectSetupPage extends StatelessWidget {
                                 () => Navigator.of(context).push<void>(
                                   MaterialPageRoute<void>(
                                     builder: (_) => ProjectEventPage(
+                                      projectId: projectId,
+                                      companyId: companyId,
                                       projectName: projectName,
                                       companyName: companyName,
                                     ),
@@ -217,11 +184,21 @@ class ProjectSetupPage extends StatelessWidget {
                                 ),
                           ),
                           menuItem(
-                            'Master flows',
+                            'HandOvers',
                             'Activities, references, companies and areas',
                             onMasterFlows ??
                                 () {
-                                  context.push('/masterFlow');
+                                  context.push(
+                                    Uri(
+                                      path: AppRouter.masterFlow,
+                                      queryParameters: {
+                                        'projectId': projectId,
+                                        'companyId': companyId,
+                                        'projectName': projectName,
+                                        'companyName': companyName,
+                                      },
+                                    ).toString(),
+                                  );
                                 },
                           ),
                         ],
@@ -241,7 +218,7 @@ class ProjectSetupPage extends StatelessWidget {
                       ),
                       textStyle: TextStyle(
                         fontSize: 10 * scale,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w500,
                         letterSpacing: 0.1 * scale,
                       ),
                     ),

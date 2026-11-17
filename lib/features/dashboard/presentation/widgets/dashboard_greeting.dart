@@ -88,7 +88,7 @@ class DashboardGreeting extends StatelessWidget {
                   color: AppColors.textSecondary,
                   fontSize: 10,
                   letterSpacing: 1.2,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
@@ -147,7 +147,7 @@ class DashboardGreeting extends StatelessWidget {
             //   style: TextStyle(
             //     color: AppColors.primaryText,
             //     fontSize: 21,
-            //     fontWeight: FontWeight.w800,
+            //     fontWeight: FontWeight.w500,
             //   ),
             // ),
           ),

@@ -1,5 +1,3 @@
-import 'package:dropline/core/theme/appcolors.dart';
-import 'package:dropline/core/theme/app_text_styles.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -20,9 +18,14 @@ class _HomeShellState extends State<HomeShell> {
       label: 'Dashboard',
     ),
     _NavigationItem(
-      icon: Icons.workspaces_outlined,
-      selectedIcon: Icons.workspaces_rounded,
+      icon: Icons.scatter_plot_outlined,
+      selectedIcon: Icons.scatter_plot_rounded,
       label: 'Workspace',
+    ),
+    _NavigationItem(
+      icon: Icons.folder_outlined,
+      selectedIcon: Icons.folder_rounded,
+      label: 'Records',
     ),
   ];
 
@@ -45,76 +48,60 @@ class _HomeShellState extends State<HomeShell> {
         }
       },
       child: Scaffold(
-        extendBody: true,
-        backgroundColor: AppColors.background,
-
+        backgroundColor: const Color(0xFF0C2938),
         body: widget.navigationShell,
-
         bottomNavigationBar: SafeArea(
           top: false,
-          minimum: const EdgeInsets.only(bottom: 10),
-          child: Container(
-            constraints: const BoxConstraints(minHeight: 72),
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: AppColors.border),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.shadow,
-                  blurRadius: 20,
-                  offset: const Offset(0, 5),
-                ),
-              ],
-            ),
+          child: SizedBox(
+            height: 64,
             child: Row(
               children: List.generate(_items.length, (index) {
                 final item = _items[index];
-                final isSelected = currentIndex == index;
-
+                final selected = index == currentIndex;
+                final color = selected
+                    ? const Color(0xFFB5FF65)
+                    : const Color(0xFFADC6D9);
                 return Expanded(
                   child: InkWell(
                     onTap: () => _onTabTapped(index),
                     borderRadius: BorderRadius.circular(16),
                     child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 250),
-                      curve: Curves.easeInOut,
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? AppColors.primary.withValues(alpha: 0.10)
-                            : AppColors.transparent,
-                        borderRadius: BorderRadius.circular(16),
+                      duration: const Duration(milliseconds: 180),
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 3,
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 6),
+                      decoration: BoxDecoration(
+                        color: selected
+                            ? const Color(0xFF173D47)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border(
+                          top: BorderSide(
+                            color: selected
+                                ? const Color(0xFFB5FF65)
+                                : Colors.transparent,
+                            width: 2,
+                          ),
+                        ),
+                      ),
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 200),
-                            child: Icon(
-                              isSelected ? item.selectedIcon : item.icon,
-                              key: ValueKey(isSelected),
-                              size: 24,
-                              color: isSelected
-                                  ? AppColors.primary
-                                  : AppColors.textSecondary,
-                            ),
+                          Icon(
+                            selected ? item.selectedIcon : item.icon,
+                            color: color,
+                            size: 24,
                           ),
                           const SizedBox(height: 4),
                           Text(
                             item.label,
                             maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTextStyles.labelSmall.copyWith(
-                              color: isSelected
-                                  ? AppColors.primary
-                                  : AppColors.textSecondary,
-                              fontWeight: isSelected
-                                  ? FontWeight.w700
-                                  : FontWeight.w500,
+                            style: TextStyle(
+                              color: color,
+                              fontSize: 12,
+                              height: 1,
                             ),
                           ),
                         ],

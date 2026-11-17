@@ -239,7 +239,7 @@ class _InvitePeoplePageState extends State<InvitePeoplePage> {
               style: TextStyle(
                 color: color,
                 fontSize: size * s,
-                fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
+                fontWeight: bold ? FontWeight.w500 : FontWeight.w500,
                 letterSpacing: .15 * s,
               ),
             );

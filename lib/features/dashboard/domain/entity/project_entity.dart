@@ -1,25 +1,22 @@
 import 'package:equatable/equatable.dart';
 
-
-
 class ProjectEntity extends Equatable {
   final String projectId;
   final String projectName;
+  final String projectType;
+
+  String get typeLabel =>
+      projectType.trim().toLowerCase() == 'business' ? 'Business' : 'Personal';
 
   const ProjectEntity({
     required this.projectId,
     required this.projectName,
+    this.projectType = 'Personal',
   });
 
   @override
-  List<Object?> get props => [
-        projectId,
-        projectName,
-      ];
+  List<Object?> get props => [projectId, projectName, projectType];
 }
-
-
-
 
 class ProjectResponseEntity extends Equatable {
   final bool status;
@@ -33,9 +30,5 @@ class ProjectResponseEntity extends Equatable {
   });
 
   @override
-  List<Object?> get props => [
-        status,
-        message,
-        result,
-      ];
+  List<Object?> get props => [status, message, result];
 }

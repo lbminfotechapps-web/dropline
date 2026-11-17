@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dropline/core/utility/widgets/appbar.dart';
 
 class NewProjectPage extends StatefulWidget {
   const NewProjectPage({super.key});
@@ -31,7 +32,9 @@ class _NewProjectPageState extends State<NewProjectPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _background,
+      appBar: const CustomAppBar(title: 'New project'),
       body: SafeArea(
+        top: false,
         child: LayoutBuilder(
           builder: (context, constraints) {
             final s = constraints.maxWidth / 210;
@@ -45,7 +48,7 @@ class _NewProjectPageState extends State<NewProjectPage> {
               style: TextStyle(
                 fontSize: size * s,
                 color: color,
-                fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
+                fontWeight: bold ? FontWeight.w500 : FontWeight.w500,
                 letterSpacing: .15 * s,
               ),
             );
@@ -91,38 +94,6 @@ class _NewProjectPageState extends State<NewProjectPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Row(
-                          children: [
-                            SizedBox(
-                              width: 20 * s,
-                              height: 22 * s,
-                              child: OutlinedButton(
-                                style: OutlinedButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  side: const BorderSide(color: _border),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(6 * s),
-                                  ),
-                                ),
-                                onPressed: () =>
-                                    Navigator.of(context).maybePop(),
-                                child: Icon(
-                                  Icons.chevron_left,
-                                  color: _muted,
-                                  size: 13 * s,
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 7 * s),
-                            label(
-                              'New project',
-                              size: 12,
-                              color: const Color(0xFFF0F4FC),
-                              bold: true,
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 10 * s),
                         label('Business or personal'),
                         SizedBox(height: 10 * s),
                         Row(

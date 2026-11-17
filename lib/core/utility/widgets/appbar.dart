@@ -3,20 +3,26 @@ import 'package:flutter/material.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
+  final Widget? titleIcon;
   final String? subtitle;
+  final Widget? subtitleWidget;
   final bool showBackButton;
   final VoidCallback? onBackPressed;
   final List<Widget>? actions;
   final double height;
+  final Color? backgroundColor;
 
   const CustomAppBar({
     super.key,
     required this.title,
+    this.titleIcon,
     this.subtitle,
+    this.subtitleWidget,
     this.showBackButton = true,
     this.onBackPressed,
     this.actions,
     this.height = 64,
+    this.backgroundColor,
   });
 
   @override
@@ -24,72 +30,79 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: AppColors.background,
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-          child: Row(
-            children: [
-              if (showBackButton) ...[
-                InkWell(
-                  onTap: onBackPressed ?? () => Navigator.maybePop(context),
+    // AppBar reserves the platform's top inset above the toolbar, keeping
+    // controls below status bars, camera cutouts, and the Dynamic Island.
+    return AppBar(
+      backgroundColor: backgroundColor ?? AppColors.background,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      automaticallyImplyLeading: false,
+      centerTitle: false,
+      toolbarHeight: height,
+      titleSpacing: 16,
+      title: Row(
+        children: [
+          if (showBackButton) ...[
+            InkWell(
+              onTap: onBackPressed ?? () => Navigator.maybePop(context),
+              borderRadius: BorderRadius.circular(10),
+              child: Container(
+                height: 40,
+                width: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
                   borderRadius: BorderRadius.circular(10),
-                  child: Container(
-                    height: 40,
-                    width: 40,
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: const Icon(
-                      Icons.arrow_back_ios_new_rounded,
-                      color: AppColors.iconColor,
-                      size: 16,
-                    ),
-                  ),
+                  border: Border.all(color: AppColors.border),
                 ),
-                const SizedBox(width: 15),
-              ],
-
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-
-                    if (subtitle != null && subtitle!.isNotEmpty) ...[
-                      const SizedBox(height: 3),
-                      Text(
-                        subtitle!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ],
+                child: const Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  color: AppColors.iconColor,
+                  size: 16,
                 ),
               ),
+            ),
+            const SizedBox(width: 15),
+          ],
 
-              if (actions != null) ...actions!,
-            ],
+          if (titleIcon != null) ...[titleIcon!, const SizedBox(width: 8)],
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+
+                if (subtitleWidget != null) ...[
+                  const SizedBox(height: 3),
+                  subtitleWidget!,
+                ] else if (subtitle != null && subtitle!.isNotEmpty) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    subtitle!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
-        ),
+
+          ...?actions,
+        ],
       ),
     );
   }

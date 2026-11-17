@@ -1,4 +1,6 @@
 import '../../domain/entities/project_entity.dart';
+import 'package:dropline/features/certificate/presentation/pages/dropline_card.dart';
+import 'package:dropline/core/utility/widgets/appbar.dart';
 import 'package:dropline/features/companies/presentation/invitation_ready.dart';
 import 'package:flutter/material.dart';
 import 'package:dropline/core/router/app_router.dart';
@@ -38,6 +40,7 @@ class _MePageState extends State<MePage> {
   String _category = 'All';
   String _query = '';
   String _language = 'English';
+  bool _showSearch = false;
 
   late final ProjectBloc _projectBloc;
 
@@ -109,547 +112,451 @@ class _MePageState extends State<MePage> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+  Text _text(String value, double size, {Color? color, bool bold = false}) =>
+      Text(
+        value,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          fontSize: size * 0.9,
+          color: color ?? const Color(0xFFF0F4FC),
+          fontWeight: bold ? FontWeight.w500 : FontWeight.w500,
+        ),
+      );
+
+  Widget _panel({required Widget child, VoidCallback? onTap}) => Material(
+    color: _surface,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
+      side: const BorderSide(color: _border, width: .7),
+    ),
+    clipBehavior: Clip.antiAlias,
+    child: InkWell(onTap: onTap, child: child),
+  );
+
+  Widget _shortcut(
+    IconData icon,
+    String label, {
+    VoidCallback? onTap,
+    bool chevron = false,
+  }) => InkWell(
+    onTap: onTap,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+      child: Row(
+        children: [
+          Icon(icon, color: _muted, size: 22),
+          const SizedBox(width: 10),
+          Expanded(child: _text(label, 14, bold: true)),
+          if (chevron) const Icon(Icons.chevron_right, color: _muted, size: 18),
+        ],
+      ),
+    ),
+  );
+
+  Widget _buildHeaderActions() => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      PopupMenuButton<String>(
+        tooltip: 'Choose language',
+        initialValue: _language,
+        color: _surface,
+        onSelected: (value) => setState(() => _language = value),
+        itemBuilder: (_) => [
+          for (final language in ['English', 'Hindi'])
+            CheckedPopupMenuItem<String>(
+              value: language,
+              checked: _language == language,
+              child: _text(language, 14),
+            ),
+        ],
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _text(
+                _language == 'English' ? 'EN' : 'HI',
+                15,
+                color: _muted,
+                bold: true,
+              ),
+              const SizedBox(width: 3),
+              const Icon(Icons.expand_more, color: _muted, size: 20),
+            ],
+          ),
+        ),
+      ),
+      const SizedBox(width: 8),
+      IconButton(
+        tooltip: 'Profile',
+        onPressed: () => context.push(AppRouter.profile),
+        style: IconButton.styleFrom(
+          side: const BorderSide(color: _muted),
+          foregroundColor: _muted,
+        ),
+        icon: const Icon(Icons.person_outline, size: 26),
+      ),
+    ],
+  );
+
+  void _showInvitations() {
+    showModalBottomSheet<void>(
+      context: context,
       backgroundColor: _background,
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final s = constraints.maxWidth / 210;
-          Text text(
-            String value,
-            double size, {
-            Color? color,
-            bool bold = false,
-          }) => Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: size * s,
-              color: color ?? const Color(0xFFF0F4FC),
-              fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
-              letterSpacing: .15 * s,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.send_outlined, color: _muted),
+              title: _text('Sent invitations', 16),
+              trailing: _text(
+                '${widget.sentInvitationCount}',
+                16,
+                color: _lime,
+              ),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                _openSentInvitations();
+              },
             ),
-          );
-          Widget panel({required Widget child, double? height}) => Container(
-            height: height == null ? null : height * s,
-            padding: EdgeInsets.symmetric(horizontal: 7 * s),
-            decoration: BoxDecoration(
-              color: _surface,
-              border: Border.all(color: _border),
-              borderRadius: BorderRadius.circular(6 * s),
-            ),
-            child: child,
-          );
-          Widget shortcut(
-            IconData icon,
-            String title,
-            String subtitle, {
-            required VoidCallback onTap,
-          }) => Expanded(
-            child: GestureDetector(
-              onTap: onTap,
-              child: panel(
-                height: 32,
-                child: Row(
-                  children: [
-                    Icon(icon, size: 14 * s, color: _muted),
-                    SizedBox(width: 6 * s),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          text(title, 7.5, bold: true),
-                          SizedBox(height: 4 * s),
-                          text(subtitle, 5.6, color: _muted),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+            ListTile(
+              leading: const Icon(
+                Icons.mark_email_unread_outlined,
+                color: _muted,
+              ),
+              title: _text('Received invitations', 16),
+              trailing: _text(
+                '${widget.receivedInvitationCount}',
+                16,
+                color: _lime,
               ),
             ),
-          );
-          Widget invitationCard(
-            String title,
-            IconData icon,
-            int count, {
-            VoidCallback? onTap,
-          }) => Expanded(
-            child: GestureDetector(
-              onTap: onTap,
-              behavior: HitTestBehavior.opaque,
-              child: panel(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 7 * s),
-                  child: Row(
-                    children: [
-                      Icon(icon, color: _lime, size: 10 * s),
-                      SizedBox(width: 5 * s),
-                      Expanded(child: text(title, 6.5, bold: true)),
-                      SizedBox(width: 3 * s),
-                      Container(
-                        constraints: BoxConstraints(minWidth: 17 * s),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 4 * s,
-                          vertical: 2 * s,
-                        ),
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: _lime.withValues(alpha: .12),
-                          borderRadius: BorderRadius.circular(8 * s),
-                        ),
-                        child: text('$count', 6.5, color: _lime, bold: true),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          );
-          return SingleChildScrollView(
-            padding: EdgeInsets.fromLTRB(10 * s, 10 * s, 10 * s, 100),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(child: text('Dropline Site', 13, bold: true)),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        PopupMenuButton<String>(
-                          tooltip: 'Choose language',
-                          initialValue: _language,
-                          color: _surface,
-                          onSelected: (value) =>
-                              setState(() => _language = value),
-                          itemBuilder: (_) => [
-                            for (final language in ['English', 'Hindi'])
-                              CheckedPopupMenuItem<String>(
-                                value: language,
-                                checked: _language == language,
-                                child: text(language, 7),
-                              ),
-                          ],
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 6 * s,
-                              vertical: 7 * s,
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.language,
-                                  color: _muted,
-                                  size: 10 * s,
-                                ),
-                                SizedBox(width: 3 * s),
-                                text(
-                                  _language == 'English' ? 'EN' : 'HI',
-                                  6.5,
-                                  color: _muted,
-                                  bold: true,
-                                ),
-                                Icon(
-                                  Icons.expand_more,
-                                  color: _muted,
-                                  size: 9 * s,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 4 * s),
-                        Column(
-                          children: [
-                            Container(
-                              width: 22 * s,
-                              height: 22 * s,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(color: _muted),
-                              ),
-                              child: Icon(
-                                Icons.person_outline,
-                                color: _muted,
-                                size: 15 * s,
-                              ),
-                            ),
-                            SizedBox(height: 2 * s),
-                            text('ME', 5, color: _muted),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                SizedBox(height: 4 * s),
-                text('Hello, Rahul', 15, bold: true),
-                SizedBox(height: 10 * s),
-                panel(
-                  height: 32,
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 25 * s,
-                        height: 25 * s,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: _muted),
-                        ),
-                        child: Icon(
-                          Icons.work_outline,
-                          size: 15 * s,
-                          color: _muted,
-                        ),
-                      ),
-                      SizedBox(width: 8 * s),
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            text('My work, My Money', 8.8, bold: true),
-                            SizedBox(height: 3 * s),
-                            text(
-                              'Shifts, rates & payments',
-                              6.5,
-                              color: _muted,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 7 * s),
-                Row(
-                  children: [
-                    shortcut(
-                      Icons.person_outline,
-                      'My card',
-                      'View & share',
-                      onTap: () {},
-                    ),
-                    SizedBox(width: 6 * s),
-                    shortcut(
-                      Icons.article_outlined,
-                      'My certificates',
-                      'View & manage',
-                      onTap: () {
-                        context.push('/certificateList');
-                      },
-                    ),
-                  ],
-                ),
-                SizedBox(height: 6 * s),
-                Row(
-                  children: [
-                    shortcut(
-                      Icons.article_outlined,
-                      'My reports',
-                      'Photos, notes & audio',
-                      onTap: () {},
-                    ),
-                    SizedBox(width: 6 * s),
-                    shortcut(
-                      Icons.account_tree_outlined,
-                      'Handovers',
-                      'View handovers',
-                      onTap: () {},
-                    ),
-                  ],
-                ),
-                SizedBox(height: 10 * s),
-                text('Invitations', 9, bold: true),
-                SizedBox(height: 7 * s),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    invitationCard(
-                      'Sent',
-                      Icons.send_outlined,
-                      widget.sentInvitationCount,
-                      onTap: _openSentInvitations,
-                    ),
-                    SizedBox(width: 6 * s),
-                    invitationCard(
-                      'Received',
-                      Icons.mark_email_unread_outlined,
-                      widget.receivedInvitationCount,
-                    ),
-                  ],
-                ),
-                SizedBox(height: 10 * s),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    text('My projects', 13, bold: true),
-                    InkWell(
-                      onTap: () =>
-                          Navigator.of(context, rootNavigator: true).push(
-                            MaterialPageRoute<Map<String, Object?>>(
-                              builder: (_) => const NewProjectPage(),
-                            ),
-                          ),
-                      borderRadius: BorderRadius.circular(6 * s),
-                      child: Container(
-                        width: 43 * s,
-                        height: 19 * s,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: _lime,
-                          borderRadius: BorderRadius.circular(6 * s),
-                        ),
-                        child: text(
-                          '+ New',
-                          6.5,
-                          color: _background,
-                          bold: true,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 7 * s),
-                SizedBox(
-                  height: 23 * s,
-                  child: TextField(
-                    onChanged: (value) => setState(() => _query = value),
-                    style: TextStyle(fontSize: 7 * s, color: Colors.white),
-                    decoration: InputDecoration(
-                      hintText: 'Search projects',
-                      hintStyle: TextStyle(fontSize: 6.5 * s, color: _muted),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 8 * s),
-                      filled: true,
-                      fillColor: _background,
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6 * s),
-                        borderSide: const BorderSide(color: _border),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6 * s),
-                        borderSide: const BorderSide(color: _muted),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 6 * s),
-                Row(
-                  children: ['All', 'Business', 'Personal']
-                      .map(
-                        (category) => Expanded(
-                          child: Padding(
-                            padding: EdgeInsets.only(
-                              right: category == 'Personal' ? 0 : 4 * s,
-                            ),
-                            child: SizedBox(
-                              height: 20 * s,
-                              child: OutlinedButton(
-                                style: OutlinedButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  backgroundColor: _category == category
-                                      ? _lime
-                                      : _surface,
-                                  side: BorderSide(
-                                    color: _category == category
-                                        ? _lime
-                                        : _border,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(6 * s),
-                                  ),
-                                ),
-                                onPressed: () =>
-                                    setState(() => _category = category),
-                                child: text(
-                                  category,
-                                  6.5,
-                                  color: _category == category
-                                      ? _background
-                                      : _muted,
-                                  bold: true,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      )
-                      .toList(),
-                ),
-                SizedBox(height: 10 * s),
-                BlocBuilder<ProjectBloc, ProjectState>(
-                  bloc: _projectBloc,
-                  builder: (context, state) {
-                    if (state is ProjectInitial || state is ProjectLoading) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    if (state is ProjectError) {
-                      return Column(
-                        children: [
-                          text(state.message, 7, color: _muted),
-                          TextButton(
-                            onPressed: () =>
-                                _projectBloc.add(const FetchProjectsEvent()),
-                            child: const Text('Retry'),
-                          ),
-                        ],
-                      );
-                    }
-                    if (state is! ProjectLoaded) {
-                      return const SizedBox.shrink();
-                    }
-                    final query = _query.trim().toLowerCase();
-                    final projects = state.projects.where((project) {
-                      final matchesCategory =
-                          _category == 'All' ||
-                          project.projectType.toLowerCase() ==
-                              _category.toLowerCase();
-                      final matchesQuery =
-                          project.projectName.toLowerCase().contains(query) ||
-                          project.companyName.toLowerCase().contains(query);
-                      return matchesCategory && matchesQuery;
-                    }).toList();
-                    if (projects.isEmpty) {
-                      return SizedBox(
-                        height: 42 * s,
-                        child: Center(
-                          child: text('No projects found', 7, color: _muted),
-                        ),
-                      );
-                    }
-                    return Column(
-                      children: [
-                        for (final project in projects)
-                          Padding(
-                            padding: EdgeInsets.only(bottom: 6 * s),
-                            child: GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onTap: () => context.push(
-                                Uri(
-                                  path: AppRouter.projectSetup,
-                                  queryParameters: {
-                                    'projectName': project.projectName,
-                                    'projectId': project.projectId,
-                                    'companyId': project.companyId,
-                                    'companyName': project.companyName,
-                                  },
-                                ).toString(),
-                              ),
-                              child: panel(
-                                child: ConstrainedBox(
-                                  constraints: BoxConstraints(
-                                    minHeight: 42 * s,
-                                  ),
-                                  child: Padding(
-                                    padding: EdgeInsets.symmetric(
-                                      vertical: 7 * s,
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              text(
-                                                project.projectName,
-                                                10,
-                                                bold: true,
-                                              ),
-                                              SizedBox(height: 5 * s),
-                                              text(
-                                                project.companyName,
-                                                5.8,
-                                                color: _muted,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        Container(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 8 * s,
-                                            vertical: 2 * s,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            border: Border.all(color: _border),
-                                            borderRadius: BorderRadius.circular(
-                                              9 * s,
-                                            ),
-                                          ),
-                                          child: text(
-                                            project.projectType,
-                                            5,
-                                            color: _muted,
-                                          ),
-                                        ),
-                                        Icon(
-                                          Icons.chevron_right,
-                                          size: 13 * s,
-                                          color: _muted,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
-                    );
-                  },
-                ),
-                SizedBox(height: 15 * s),
-                SizedBox(
-                  height: 27 * s,
-                  child: FilledButton(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: _lime,
-                      foregroundColor: _background,
-                      disabledBackgroundColor: _lime,
-                      disabledForegroundColor: _background,
-                      padding: EdgeInsets.zero,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(7 * s),
-                      ),
-                    ),
-                    onPressed: () => Navigator.of(context).push<void>(
-                      MaterialPageRoute<void>(
-                        builder: (_) =>
-                            StartWorkPage(onStartWork: widget.onStartWork),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.access_time, size: 11 * s),
-                        SizedBox(width: 4 * s),
-                        Text(
-                          'Start work',
-                          style: TextStyle(
-                            fontSize: 7 * s,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                // SizedBox(height: 3 * s),
-                // Center(child: text('Laxmi Gauri', 5, color: _muted)),
-              ],
-            ),
-          );
-        },
+          ],
+        ),
       ),
     );
   }
+
+  void _newProject() {
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<Map<String, Object?>>(
+        builder: (_) => const NewProjectPage(),
+      ),
+    );
+  }
+
+  Widget _buildProjects() => BlocBuilder<ProjectBloc, ProjectState>(
+    bloc: _projectBloc,
+    builder: (context, state) {
+      if (state is ProjectInitial || state is ProjectLoading) {
+        return const Padding(
+          padding: EdgeInsets.all(24),
+          child: Center(child: CircularProgressIndicator()),
+        );
+      }
+      if (state is ProjectError) {
+        return Column(
+          children: [
+            _text(state.message, 14, color: _muted),
+            TextButton(
+              onPressed: () => _projectBloc.add(const FetchProjectsEvent()),
+              child: const Text('Retry'),
+            ),
+          ],
+        );
+      }
+      if (state is! ProjectLoaded) return const SizedBox.shrink();
+      final query = _query.trim().toLowerCase();
+      final projects = state.projects
+          .where(
+            (project) =>
+                (_category == 'All' ||
+                    project.projectType.toLowerCase() ==
+                        _category.toLowerCase()) &&
+                (project.projectName.toLowerCase().contains(query) ||
+                    project.companyName.toLowerCase().contains(query)),
+          )
+          .toList();
+      if (projects.isEmpty) {
+        return Padding(
+          padding: const EdgeInsets.all(24),
+          child: Center(child: _text('No projects found', 14, color: _muted)),
+        );
+      }
+      return Column(
+        children: [
+          for (final project in projects)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _panel(
+                onTap: () => context.push(
+                  Uri(
+                    path: AppRouter.projectHome,
+                    queryParameters: {
+                      'projectName': project.projectName,
+                      'projectType': project.projectType,
+                      'projectId': project.projectId,
+                      'companyId': project.companyId,
+                      'companyName': project.companyName,
+                    },
+                  ).toString(),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 9,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _text(project.projectName, 17, bold: true),
+                            const SizedBox(height: 3),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _text(
+                                    project.companyName,
+                                    14,
+                                    color: _muted,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: _border),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: _text(
+                                    project.projectType,
+                                    11,
+                                    color: _muted,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      const Icon(Icons.chevron_right, color: _muted, size: 24),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
+      );
+    },
+  );
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: _background,
+    appBar: CustomAppBar(
+      title: 'Dropline · Site',
+      height: 56,
+      showBackButton: false,
+      actions: [_buildHeaderActions()],
+    ),
+    body: SafeArea(
+      top: false,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(child: _text('My workspace', 22, bold: true)),
+                TextButton.icon(
+                  onPressed: _showInvitations,
+                  icon: const Icon(Icons.mail_outline, size: 23),
+                  label: const Text('Invites'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: _muted,
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _panel(
+              onTap: () => Navigator.of(context).push<void>(
+                MaterialPageRoute<void>(
+                  builder: (_) =>
+                      StartWorkPage(onStartWork: widget.onStartWork),
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.work_outline, size: 26, color: _muted),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _text('My work, My Money', 18, bold: true),
+                          const SizedBox(height: 3),
+                          _text('Shifts, rates & payments', 14, color: _muted),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right, color: _muted),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            _panel(
+              child: IntrinsicHeight(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _shortcut(
+                        Icons.badge_outlined,
+                        'Dropline card',
+                        chevron: true,
+                        onTap: () => Navigator.of(context).push<void>(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const DroplineCard(),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      child: VerticalDivider(width: 1, color: _border),
+                    ),
+                    Expanded(
+                      child: _shortcut(
+                        Icons.workspace_premium_outlined,
+                        'My certificates',
+                        chevron: true,
+                        onTap: () => context.push(AppRouter.certificateList),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _panel(
+                    child: _shortcut(Icons.article_outlined, 'My reports'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _panel(
+                    child: _shortcut(Icons.account_tree_outlined, 'Handovers'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(child: _text('My projects', 20, bold: true)),
+                PopupMenuButton<String>(
+                  tooltip: 'Filter projects',
+                  initialValue: _category,
+                  color: _surface,
+                  onSelected: (value) => setState(() => _category = value),
+                  itemBuilder: (_) => [
+                    for (final category in ['All', 'Business', 'Personal'])
+                      CheckedPopupMenuItem(
+                        value: category,
+                        checked: _category == category,
+                        child: _text(category, 14),
+                      ),
+                  ],
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 12,
+                    ),
+                    child: Row(
+                      children: [
+                        _text(_category, 14, color: _muted),
+                        const Icon(Icons.expand_more, size: 18, color: _muted),
+                      ],
+                    ),
+                  ),
+                ),
+                IconButton.outlined(
+                  tooltip: 'Search projects',
+                  onPressed: () => setState(() {
+                    _showSearch = !_showSearch;
+                    if (!_showSearch) _query = '';
+                  }),
+                  icon: Icon(_showSearch ? Icons.close : Icons.search),
+                  style: IconButton.styleFrom(
+                    foregroundColor: _muted,
+                    side: const BorderSide(color: _muted),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                FilledButton(
+                  onPressed: _newProject,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: _lime,
+                    foregroundColor: _background,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    minimumSize: const Size(0, 40),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    '+ New',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
+            ),
+            if (_showSearch) ...[
+              const SizedBox(height: 10),
+              TextField(
+                autofocus: true,
+                onChanged: (value) => setState(() => _query = value),
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: 'Search projects',
+                  hintStyle: const TextStyle(color: _muted),
+                  prefixIcon: const Icon(Icons.search, color: _muted),
+                  filled: true,
+                  fillColor: _surface,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: _border),
+                  ),
+                ),
+              ),
+            ],
+            const SizedBox(height: 10),
+            _buildProjects(),
+          ],
+        ),
+      ),
+    ),
+  );
 }

@@ -99,7 +99,7 @@ Future<void> _finishSetup(BuildContext context) async {
                             child: Text(
                               'Main Areas',
                               style: AppTextStyles.titleMedium.copyWith(
-                                fontWeight: FontWeight.w400,
+                                fontWeight: FontWeight.w500,
                                 color: AppColors.textSecondary,
                               ),
                             ),
@@ -206,7 +206,7 @@ Future<void> _finishSetup(BuildContext context) async {
                 'Set up areas',
                 style: AppTextStyles.headingLarge.copyWith(
                   fontSize: 28,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),
@@ -250,7 +250,7 @@ Future<void> _finishSetup(BuildContext context) async {
                     '+ Add Main Area',
                     style: AppTextStyles.buttonMedium.copyWith(
                       color: const Color(0xFF151C29),
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
@@ -279,7 +279,7 @@ Future<void> _finishSetup(BuildContext context) async {
                   child: Text(
                     'Finish setup',
                     style: AppTextStyles.buttonMedium.copyWith(
-                      fontWeight: FontWeight.w400,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),

@@ -74,7 +74,7 @@ class LocationAreaTile extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style:
                           AppTextStyles.titleMedium.copyWith(
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w500,
                         color: AppColors.white,
                       ),
                     ),

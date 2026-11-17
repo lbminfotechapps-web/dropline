@@ -133,7 +133,7 @@ class _AddAreaBottomSheetState
                           widget.title,
                           style: AppTextStyles.headingSmall
                               .copyWith(
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
@@ -295,7 +295,7 @@ class _AddAreaBottomSheetState
                                   AppTextStyles.buttonMedium
                                       .copyWith(
                                 color: const Color(0xFF152033),
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                     ),

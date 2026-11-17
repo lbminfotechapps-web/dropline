@@ -240,7 +240,7 @@ class LocationListPage extends StatelessWidget {
             'Locations',
             style: AppTextStyles.headingLarge.copyWith(
               fontSize: 28,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ),
@@ -277,7 +277,7 @@ class LocationListPage extends StatelessWidget {
                     '+ Add Location',
                     style: AppTextStyles.buttonMedium.copyWith(
                       color: const Color(0xFF151C29),
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
@@ -306,7 +306,7 @@ class LocationListPage extends StatelessWidget {
                   child: Text(
                     'Finish setup',
                     style: AppTextStyles.buttonMedium.copyWith(
-                      fontWeight: FontWeight.w400,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),

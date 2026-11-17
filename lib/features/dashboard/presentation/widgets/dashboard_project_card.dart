@@ -4,8 +4,9 @@ import 'package:dropline/features/dashboard/domain/entity/project_entity.dart';
 import 'package:dropline/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:dropline/features/dashboard/presentation/bloc/dashboard_event.dart';
 import 'package:dropline/features/dashboard/presentation/bloc/dashboard_state.dart';
-import 'package:dropline/features/dashboard/presentation/widgets/dashboard_clock_card.dart';
+import 'package:dropline/features/newproject/presentation/pages/new_project.dart';
 import 'package:flutter/material.dart';
+import 'package:dropline/core/theme/app_text_styles.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 // ======================================================
@@ -16,14 +17,12 @@ class DashboardProjectCard extends StatefulWidget {
   final ProjectEntity? selectedProject;
   final ValueChanged<ProjectEntity>? onProjectSelected;
   final VoidCallback? onRemoveProject;
-  final String workspaceLabel;
 
   const DashboardProjectCard({
     super.key,
     this.selectedProject,
     this.onProjectSelected,
     this.onRemoveProject,
-    this.workspaceLabel = 'Personal · Private',
   });
 
   @override
@@ -32,6 +31,7 @@ class DashboardProjectCard extends StatefulWidget {
 
 class _DashboardProjectCardState extends State<DashboardProjectCard> {
   bool _isOpening = false;
+  final List<ProjectEntity> _manualProjects = [];
 
   Future<void> _openProjectPicker() async {
     if (_isOpening) return;
@@ -57,7 +57,7 @@ class _DashboardProjectCardState extends State<DashboardProjectCard> {
         builder: (sheetContext) {
           return BlocProvider.value(
             value: bloc,
-            child: _ProjectBottomSheet(workspaceLabel: widget.workspaceLabel),
+            child: _ProjectBottomSheet(manualProjects: _manualProjects),
           );
         },
       );
@@ -81,58 +81,61 @@ class _DashboardProjectCardState extends State<DashboardProjectCard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'PROJECT',
-          style: TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1,
+        Text(
+          'Project',
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: const Color(0xFFADC6D9),
           ),
         ),
 
-        const SizedBox(height: 7),
+        const SizedBox(height: 10),
 
         Material(
           color: AppColors.transparent,
           child: InkWell(
             onTap: _openProjectPicker,
-            borderRadius: BorderRadius.circular(13),
+            borderRadius: BorderRadius.circular(26),
             child: Container(
-              height: 52,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
+              constraints: const BoxConstraints(minHeight: 76),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
-                color: AppColors.inputBackground,
-                borderRadius: BorderRadius.circular(13),
+                gradient: const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFF304F64), Color(0xFF203B4F)],
+                ),
+                borderRadius: BorderRadius.circular(26),
                 border: Border.all(color: AppColors.border),
               ),
               child: Row(
                 children: [
                   Expanded(
-                    child: Text(
-                      project?.projectName ?? 'Select project',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: project == null
-                            ? AppColors.textSecondary
-                            : AppColors.textPrimary,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          project?.projectName ?? 'Select project',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.bodyLarge.copyWith(
+                            color: project == null
+                                ? AppColors.textSecondary
+                                : AppColors.textPrimary,
+                          ),
+                        ),
+                        if (project != null) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            'Workspace: ${project.typeLabel}',
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: const Color(0xFFADC6D9),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
-
-                  if (project != null)
-                    IconButton(
-                      tooltip: 'Remove project',
-                      onPressed: widget.onRemoveProject,
-                      icon: const Icon(
-                        Icons.close_rounded,
-                        color: AppColors.textSecondary,
-                        size: 19,
-                      ),
-                    ),
 
                   const Icon(
                     Icons.keyboard_arrow_down_rounded,
@@ -154,9 +157,9 @@ class _DashboardProjectCardState extends State<DashboardProjectCard> {
 // ======================================================
 
 class _ProjectBottomSheet extends StatefulWidget {
-  final String workspaceLabel;
+  final List<ProjectEntity> manualProjects;
 
-  const _ProjectBottomSheet({required this.workspaceLabel});
+  const _ProjectBottomSheet({required this.manualProjects});
 
   @override
   State<_ProjectBottomSheet> createState() => _ProjectBottomSheetState();
@@ -169,6 +172,7 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
 
   bool _showAddProject = false;
   String _searchQuery = '';
+  String _projectType = 'Personal';
 
   @override
   void dispose() {
@@ -217,13 +221,17 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
       return;
     }
 
-    final projects = context.read<DashboardBloc>().state.projectList;
+    final projects = [
+      ...context.read<DashboardBloc>().state.projectList,
+      ...widget.manualProjects,
+    ];
 
     ProjectEntity? existingProject;
 
     for (final project in projects) {
       if (project.projectName.trim().toLowerCase() ==
-          projectName.toLowerCase()) {
+              projectName.toLowerCase() &&
+          project.typeLabel == _projectType) {
         existingProject = project;
         break;
       }
@@ -233,7 +241,13 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
     // New manual projects use the same empty ID as your old code.
     final selected =
         existingProject ??
-        ProjectEntity(projectId: '', projectName: projectName);
+        ProjectEntity(
+          projectId: '',
+          projectName: projectName,
+          projectType: _projectType,
+        );
+
+    if (existingProject == null) widget.manualProjects.add(selected);
 
     _selectProject(selected);
   }
@@ -291,12 +305,12 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
                           style: TextStyle(
                             color: AppColors.textPrimary,
                             fontSize: 25,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                         const SizedBox(height: 5),
                         Text(
-                          widget.workspaceLabel,
+                          'Personal and Business projects',
                           style: const TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: 14,
@@ -334,6 +348,22 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
 
               // ADD PROJECT FIELD
               if (_showAddProject) ...[
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: AppColors.inputBackground,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Row(
+                    children: [
+                      _buildProjectTypeTab('Personal'),
+                      const SizedBox(width: 4),
+                      _buildProjectTypeTab('Business'),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
                 _buildAddProjectField(),
                 const SizedBox(height: 15),
               ],
@@ -363,7 +393,7 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
                   ),
                   child: const Text(
                     'Cancel',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                   ),
                 ),
               ),
@@ -416,6 +446,74 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
   // ======================================================
   // MANUAL PROJECT INPUT
   // ======================================================
+
+  Future<void> _selectProjectType(String type) async {
+    if (type != 'Business') {
+      setState(() => _projectType = type);
+      return;
+    }
+
+    _projectFocusNode.unfocus();
+    final result = await Navigator.of(context).push<Map<String, dynamic>>(
+      MaterialPageRoute(builder: (_) => const NewProjectPage()),
+    );
+    if (!mounted || result == null) return;
+
+    final name = result['name']?.toString().trim() ?? '';
+    if (name.isEmpty) return;
+    final project = ProjectEntity(
+      projectId: '',
+      projectName: name,
+      projectType: result['category']?.toString() ?? 'Business',
+    );
+    widget.manualProjects.add(project);
+    _selectProject(project);
+  }
+
+  Widget _buildProjectTypeTab(String type) {
+    final isSelected = _projectType == type;
+
+    return Expanded(
+      child: Semantics(
+        selected: isSelected,
+        button: true,
+        child: Material(
+          color: AppColors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(10),
+            onTap: () => _selectProjectType(type),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              alignment: Alignment.center,
+              constraints: const BoxConstraints(minHeight: 44),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? AppColors.primary.withValues(alpha: 0.12)
+                    : AppColors.transparent,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isSelected
+                      ? AppColors.primary.withValues(alpha: 0.45)
+                      : AppColors.transparent,
+                ),
+              ),
+              child: Text(
+                type,
+                style: TextStyle(
+                  color: isSelected
+                      ? AppColors.primary
+                      : AppColors.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _buildAddProjectField() {
     return Row(
@@ -471,7 +569,7 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
             ),
             child: const Text(
               'Add',
-              style: TextStyle(fontWeight: FontWeight.w700),
+              style: TextStyle(fontWeight: FontWeight.w500),
             ),
           ),
         ),
@@ -505,7 +603,10 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
           );
         }
 
-        final projects = _filterProjects(state.projectList);
+        final projects = _filterProjects([
+          ...state.projectList,
+          ...widget.manualProjects,
+        ]);
 
         if (projects.isEmpty) {
           return Center(
@@ -528,7 +629,7 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
           shrinkWrap: true,
           padding: EdgeInsets.zero,
           itemCount: projects.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 11),
+          separatorBuilder: (_, _) => const SizedBox(height: 11),
           itemBuilder: (context, index) {
             final project = projects[index];
 
@@ -567,11 +668,14 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
                   style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 15,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
 
+              const SizedBox(width: 12),
+
+              _ProjectTypeBadge(label: project.typeLabel),
               const SizedBox(width: 12),
 
               const Text(
@@ -579,7 +683,7 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
                 style: TextStyle(
                   color: AppColors.primary,
                   fontSize: 13,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
@@ -622,6 +726,36 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
             style: TextButton.styleFrom(foregroundColor: AppColors.primary),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ProjectTypeBadge extends StatelessWidget {
+  const _ProjectTypeBadge({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = label == 'Business'
+        ? const Color(0xFF86DCAA)
+        : const Color(0xFF91C8FF);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }

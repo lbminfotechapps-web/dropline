@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:dropline/core/di/global_di.dart';
 import 'package:dropline/core/router/app_router.dart';
 import 'package:dropline/core/secure_storage/secure_storage.dart';
+import 'package:dropline/core/theme/appcolors.dart';
+import 'package:dropline/features/dashboard/presentation/widgets/dashboard_background.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 
@@ -95,7 +97,7 @@ class _SplashScreenState extends State<SplashScreen>
           if (punch.userId.trim() == userId) {
             if (punchStatus == '1') {
               // User already punched in
-              destination = AppRouter.punchOut;
+              destination = AppRouter.addEvent;
             } else if (punchStatus == '0') {
               // User not punched in
               destination = AppRouter.dashboard;
@@ -127,32 +129,31 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: DecoratedBox(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/splash.png'),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Center(
-          child: AnimatedBuilder(
-            animation: _controller,
-            builder: (context, child) {
-              return Opacity(
-                opacity: _opacityAnimation.value,
-                child: Transform.scale(
-                  scale: _scaleAnimation.value,
-                  child: child,
-                ),
-              );
-            },
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Image.asset('assets/images/glow.png', fit: BoxFit.contain),
-                Image.asset('assets/images/app_logo.png', fit: BoxFit.contain),
-              ],
+      // backgroundColor: AppColors.background,
+      body: SizedBox.expand(
+        child: DashboardBackground(
+          child: Center(
+            child: AnimatedBuilder(
+              animation: _controller,
+              builder: (context, child) {
+                return Opacity(
+                  opacity: _opacityAnimation.value,
+                  child: Transform.scale(
+                    scale: _scaleAnimation.value,
+                    child: child,
+                  ),
+                );
+              },
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Image.asset('assets/images/glow.png', fit: BoxFit.contain),
+                  Image.asset(
+                    'assets/images/app_logo.png',
+                    fit: BoxFit.contain,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -160,3 +161,87 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 }
+
+// class SplashScreen extends StatefulWidget {
+//   const SplashScreen({super.key});
+
+//   @override
+//   State<SplashScreen> createState() => _SplashScreenState();
+// }
+
+// class _SplashScreenState extends State<SplashScreen>
+//     with SingleTickerProviderStateMixin {
+//   late AnimationController _controller;
+//   late Animation<double> _scaleAnimation;
+//   late Animation<double> _opacityAnimation;
+
+//   @override
+//   void initState() {
+//     super.initState();
+
+//     // Initialize animation controller
+//     _controller = AnimationController(
+//       vsync: this,
+//       duration: const Duration(milliseconds: 1200),
+//     );
+
+//     // Scale animation
+//     _scaleAnimation = Tween<double>(
+//       begin: 0.7,
+//       end: 1.0,
+//     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
+
+//     // Opacity animation
+//     _opacityAnimation = Tween<double>(
+//       begin: 0.0,
+//       end: 1.0,
+//     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
+
+//     // Start animation
+//     _controller.forward();
+
+//     // Navigation disabled
+//     // No timer or navigation call
+//   }
+
+//   @override
+//   void dispose() {
+//     _controller.dispose();
+//     super.dispose();
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       // backgroundColor: AppColors.background,
+//       body: SizedBox.expand(
+//         child: DashboardBackground(
+//           child: Center(
+//             child: AnimatedBuilder(
+//               animation: _controller,
+//               builder: (context, child) {
+//                 return Opacity(
+//                   opacity: _opacityAnimation.value,
+//                   child: Transform.scale(
+//                     scale: _scaleAnimation.value,
+//                     child: child,
+//                   ),
+//                 );
+//               },
+//               child: Stack(
+//                 alignment: Alignment.center,
+//                 children: [
+//                   Image.asset('assets/images/glow.png', fit: BoxFit.contain),
+//                   Image.asset(
+//                     'assets/images/app_logo.png',
+//                     fit: BoxFit.contain,
+//                   ),
+//                 ],
+//               ),
+//             ),
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }

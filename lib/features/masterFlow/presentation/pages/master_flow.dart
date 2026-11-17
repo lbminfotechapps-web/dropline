@@ -1,112 +1,299 @@
-import 'package:dropline/core/router/app_router.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import '../../data/master_flow_store.dart';
+import 'master_flow_detail_page.dart';
+import 'package:dropline/core/di/global_di.dart';
+import 'package:dropline/features/companies/domain/usecase/get_sub_companies_usecase.dart';
 
-const bgColor = Color(0xFF09283A);
-const cardColor = Color(0xFF0D3046);
-const borderColor = Color(0xFF28516B);
-const mutedColor = Color(0xFF93B5CC);
-const accentColor = Color(0xFFB5FF76);
+const bgColor = Color(0xFF102633);
+const cardColor = Color(0xFF142F3E);
+const borderColor = Color(0xFF345464);
+const mutedColor = Color(0xFFA5C3D3);
+const accentColor = Color(0xFFB5FF65);
 
 class MasterFlowsScreen extends StatefulWidget {
-  const MasterFlowsScreen({super.key});
+  const MasterFlowsScreen({
+    super.key,
+    this.projectId = '',
+    this.companyId = '',
+    this.projectName = 'Laxmi Gauri',
+    this.companyName = 'Apex Build',
+  });
+  final String projectId;
+  final String companyId;
+  final String projectName;
+  final String companyName;
 
   @override
   State<MasterFlowsScreen> createState() => _MasterFlowsScreenState();
 }
 
 class _MasterFlowsScreenState extends State<MasterFlowsScreen> {
-  final List<String> flows = [];
+  final List<SavedMasterFlow> flows = [];
+  bool _loadingFlows = true;
 
-  Future<void> _createFlow() async {
-    final name = await Navigator.push<String>(
+  String? _loadError;
+
+  MasterFlowStore get _store => MasterFlowStore(
+    project: widget.projectId.isEmpty ? widget.projectName : widget.projectId,
+    company: widget.companyId.isEmpty ? widget.companyName : widget.companyId,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFlows();
+  }
+
+  Future<void> _loadFlows() async {
+    try {
+      final saved = await _store.load();
+      if (mounted) {
+        setState(() {
+          flows
+            ..clear()
+            ..addAll(saved);
+          _loadingFlows = false;
+          _loadError = null;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _loadError = 'Unable to load saved flows. Retry.';
+          _loadingFlows = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _createFlow([SavedMasterFlow? flow]) async {
+    await Navigator.push<String>(
       context,
-      MaterialPageRoute(builder: (_) => const CreateMasterFlowScreen()),
+      MaterialPageRoute(
+        builder: (_) => CreateMasterFlowScreen(
+          projectId: widget.projectId,
+          companyId: widget.companyId,
+          projectName: widget.projectName,
+          companyName: widget.companyName,
+          initialFlow: flow,
+        ),
+      ),
     );
+    if (mounted) await _loadFlows();
+  }
 
-    if (!mounted || name == null) return;
-
-    setState(() => flows.add(name));
+  Future<void> _openFlow(SavedMasterFlow flow) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => MasterFlowDetailPage(
+          flow: flow,
+          projectId: widget.projectId,
+          companyId: widget.companyId,
+          projectName: widget.projectName,
+          companyName: widget.companyName,
+        ),
+      ),
+    );
+    if (mounted) await _loadFlows();
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: bgColor,
-      appBar: AppBar(
-        backgroundColor: bgColor,
-        foregroundColor: Colors.white,
-        title: const Text(
-          'Master flows',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Laxmi Gauri · Apex Build',
-                style: TextStyle(color: mutedColor, fontSize: 12),
-              ),
-              const SizedBox(height: 18),
-              if (flows.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.all(10),
-                  child: Text(
-                    'No master flows yet.',
-                    style: TextStyle(color: mutedColor, fontSize: 12),
-                  ),
-                ),
-              ...flows.map(
-                (flow) => Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: _outlinedCard(
-                    child: Text(
-                      flow,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: bgColor,
+    body: SafeArea(
+      bottom: false,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 44,
+                  height: 44,
+                  child: IconButton.outlined(
+                    tooltip: 'Back to project',
+                    onPressed: () => Navigator.maybePop(context),
+                    style: IconButton.styleFrom(
+                      foregroundColor: mutedColor,
+                      backgroundColor: cardColor,
+                      side: const BorderSide(color: borderColor),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(11),
                       ),
                     ),
+                    icon: const Icon(Icons.chevron_left_rounded, size: 22),
                   ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              _outlinedCard(
-                child: const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Master flow',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Master flows',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 25,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.8,
+                          height: 1.2,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Activities in order, with references and companies.',
-                      style: TextStyle(color: mutedColor, fontSize: 11),
-                    ),
-                  ],
+                      const SizedBox(height: 4),
+                      Text(
+                        widget.projectName,
+                        style: const TextStyle(
+                          color: mutedColor,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const Spacer(),
-              _primaryButton('+ New master flow', _createFlow),
-            ],
+              ],
+            ),
           ),
-        ),
+          const Divider(height: 1, color: borderColor),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: _loadFlows,
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
+                children: [
+                  const Text(
+                    'Set the trade order once. Use it whenever an area is ready.',
+                    style: TextStyle(
+                      color: mutedColor,
+                      fontSize: 12,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  if (_loadingFlows)
+                    const Padding(
+                      padding: EdgeInsets.all(24),
+                      child: Center(
+                        child: CircularProgressIndicator(color: accentColor),
+                      ),
+                    )
+                  else if (_loadError != null)
+                    TextButton(onPressed: _loadFlows, child: Text(_loadError!))
+                  else if (flows.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 24),
+                      child: Text(
+                        'No saved flows yet. Create your first master flow below.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: mutedColor, fontSize: 13),
+                      ),
+                    )
+                  else
+                    for (final flow in flows)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: Material(
+                          color: const Color(0xFF102734),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(11),
+                            side: const BorderSide(color: borderColor),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: InkWell(
+                            onTap: () => _openFlow(flow),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 12,
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.account_tree_outlined,
+                                    size: 18,
+                                    color: mutedColor,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          flow.name,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 3),
+                                        Text(
+                                          '${flow.startingCompany.isEmpty ? 'Unassigned company' : '${flow.startingCompany} starts'} · ${flow.activities.length} ${flow.activities.length == 1 ? 'activity' : 'activities'}',
+                                          style: const TextStyle(
+                                            color: mutedColor,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Icon(
+                                    Icons.chevron_right_rounded,
+                                    size: 20,
+                                    color: mutedColor,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                ],
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+            decoration: const BoxDecoration(
+              border: Border(top: BorderSide(color: borderColor)),
+            ),
+            child: SafeArea(
+              top: false,
+              child: FilledButton.icon(
+                onPressed: () => _createFlow(),
+                style: FilledButton.styleFrom(
+                  backgroundColor: accentColor,
+                  foregroundColor: bgColor,
+                  minimumSize: const Size.fromHeight(46),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(11),
+                  ),
+                ),
+                icon: const Icon(Icons.add, size: 20),
+                label: const Text(
+                  'New master flow',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
 }
 
 class ActivityControllers {
+  ActivityControllers(String initialReference)
+    : reference = TextEditingController(text: initialReference);
   final name = TextEditingController();
-  final reference = TextEditingController();
+  final TextEditingController reference;
   String? company;
 
   void dispose() {
@@ -116,7 +303,21 @@ class ActivityControllers {
 }
 
 class CreateMasterFlowScreen extends StatefulWidget {
-  const CreateMasterFlowScreen({super.key});
+  const CreateMasterFlowScreen({
+    super.key,
+    this.projectId = '',
+    this.companyId = '',
+    this.projectName = 'Laxmi Gauri',
+    this.companyName = 'Apex Build',
+    this.tradeCompanies,
+    this.initialFlow,
+  });
+  final String projectId;
+  final String companyId;
+  final String projectName;
+  final String companyName;
+  final List<String>? tradeCompanies;
+  final SavedMasterFlow? initialFlow;
 
   @override
   State<CreateMasterFlowScreen> createState() => _CreateMasterFlowScreenState();
@@ -125,272 +326,619 @@ class CreateMasterFlowScreen extends StatefulWidget {
 class _CreateMasterFlowScreenState extends State<CreateMasterFlowScreen> {
   final _formKey = GlobalKey<FormState>();
   final _flowName = TextEditingController();
+  final _flowReference = TextEditingController();
+  final _scroll = ScrollController();
+  final List<ActivityControllers> activities = [ActivityControllers('ACT-01')];
+  List<String> _companies = [];
+  bool _loadingCompanies = true;
+  String? _companyError;
+  bool _saving = false;
+  int _nextReference = 2;
 
-  final List<ActivityControllers> activities = [ActivityControllers()];
+  bool get _complete =>
+      _flowName.text.trim().isNotEmpty &&
+      activities.every(
+        (activity) =>
+            activity.name.text.trim().isNotEmpty &&
+            activity.company != null &&
+            activity.reference.text.trim().isNotEmpty,
+      );
 
-  final companies = ['Apex Build', 'ABC Contractors', 'XYZ Enterprises'];
+  @override
+  void initState() {
+    super.initState();
+    final flow = widget.initialFlow;
+    if (flow != null) {
+      _flowName.text = flow.name;
+      _flowReference.text = flow.reference;
+      for (final activity in activities) {
+        activity.dispose();
+      }
+      activities.clear();
+      for (final item in flow.activities) {
+        final activity = ActivityControllers(item['reference'] ?? '');
+        activity.name.text = item['name'] ?? '';
+        activity.company = item['company'];
+        activities.add(activity);
+      }
+      if (activities.isEmpty) activities.add(ActivityControllers('ACT-01'));
+      _nextReference = activities.length + 1;
+      _companies = activities
+          .map((item) => item.company)
+          .whereType<String>()
+          .toSet()
+          .toList();
+    }
+    _loadCompanies();
+  }
+
+  Future<void> _loadCompanies() async {
+    if (widget.tradeCompanies != null) {
+      _companies = {..._companies, ...widget.tradeCompanies!}.toList();
+      _loadingCompanies = false;
+      return;
+    }
+    if (!sl.isRegistered<GetSubCompaniesUsecase>()) {
+      _loadingCompanies = false;
+      return;
+    }
+    setState(() {
+      _loadingCompanies = true;
+      _companyError = null;
+    });
+    try {
+      final companies = await sl<GetSubCompaniesUsecase>()(
+        projectId: widget.projectId,
+        companyId: widget.companyId,
+      );
+      if (mounted) {
+        setState(() {
+          _companies = companies
+              .map((company) => company.subCompanyName.trim())
+              .where((name) => name.isNotEmpty)
+              .toSet()
+              .toList();
+          _loadingCompanies = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _loadingCompanies = false;
+          _companyError = 'Unable to load trade companies. Retry';
+        });
+      }
+    }
+  }
 
   void _addActivity() {
-    setState(() => activities.add(ActivityControllers()));
+    setState(
+      () => activities.add(
+        ActivityControllers(
+          'ACT-${(_nextReference++).toString().padLeft(2, '0')}',
+        ),
+      ),
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _scroll.hasClients) {
+        _scroll.animateTo(
+          _scroll.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
   void _removeActivity(int index) {
-    if (activities.length == 1) return;
-    final item = activities.removeAt(index);
-    setState(() {});
-    item.dispose();
+    if (_saving || activities.length == 1) return;
+    final removed = activities[index];
+    setState(() => activities.removeAt(index));
+    WidgetsBinding.instance.addPostFrameCallback((_) => removed.dispose());
   }
 
-  void _next() {
-    if (!_formKey.currentState!.validate()) return;
+  void _moveActivity(int index, int direction) {
+    if (_saving) return;
+    final target = index + direction;
+    if (target < 0 || target >= activities.length) return;
+    setState(() {
+      final activity = activities.removeAt(index);
+      activities.insert(target, activity);
+    });
+  }
 
-    final name = _flowName.text.trim();
-
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(builder: (_) => ChooseAreasScreen(flowName: name)),
-    // );
-    context.push(
-      AppRouter.areas,
-      // Uri(
-      //   path: AppRouter.areas,
-      //   queryParameters: {'projectName': widget.projectName},
-      // ).toString(),
-      // extra: result,
-    );
+  Future<void> _save() async {
+    if (_saving || !_complete || !_formKey.currentState!.validate()) return;
+    FocusScope.of(context).unfocus();
+    setState(() => _saving = true);
+    try {
+      await MasterFlowStore(
+        project: widget.projectId.isEmpty
+            ? widget.projectName
+            : widget.projectId,
+        company: widget.companyId.isEmpty
+            ? widget.companyName
+            : widget.companyId,
+      ).save(
+        SavedMasterFlow(
+          name: _flowName.text.trim(),
+          reference: _flowReference.text.trim(),
+          senderCompany: widget.companyName,
+          activities: activities
+              .map(
+                (activity) => {
+                  'name': activity.name.text.trim(),
+                  'reference': activity.reference.text.trim(),
+                  'company': activity.company!,
+                },
+              )
+              .toList(),
+        ),
+        previousName: widget.initialFlow?.name,
+      );
+      if (mounted) Navigator.pop(context, _flowName.text.trim());
+    } catch (_) {
+      if (mounted) {
+        setState(() => _saving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Unable to save flow. Please try again.'),
+          ),
+        );
+      }
+    }
   }
 
   @override
   void dispose() {
     _flowName.dispose();
-    for (final item in activities) {
-      item.dispose();
+    _flowReference.dispose();
+    _scroll.dispose();
+    for (final activity in activities) {
+      activity.dispose();
     }
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+  Widget build(BuildContext context) => PopScope(
+    canPop: !_saving,
+    child: Scaffold(
       backgroundColor: bgColor,
-      appBar: AppBar(
-        backgroundColor: bgColor,
-        foregroundColor: Colors.white,
-        title: const Text(
-          'Master flow',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-      ),
       body: SafeArea(
+        bottom: false,
         child: Form(
           key: _formKey,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(28, 10, 16, 20),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                child: Row(
                   children: [
-                    const Text(
-                      'Laxmi Gauri · Draft',
-                      style: TextStyle(color: mutedColor, fontSize: 12),
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Flow name',
-                      style: TextStyle(
-                        color: mutedColor,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12,
+                    SizedBox(
+                      width: 44,
+                      height: 44,
+                      child: IconButton.outlined(
+                        tooltip: 'Back to master flows',
+                        onPressed: _saving
+                            ? null
+                            : () => Navigator.maybePop(context),
+                        style: IconButton.styleFrom(
+                          foregroundColor: mutedColor,
+                          backgroundColor: cardColor,
+                          side: const BorderSide(color: borderColor),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(11),
+                          ),
+                        ),
+                        icon: const Icon(Icons.chevron_left_rounded, size: 22),
                       ),
                     ),
-                    const SizedBox(height: 7),
-                    _input(
-                      controller: _flowName,
-                      hint: 'Apartment finishes',
-                      requiredField: true,
-                    ),
-                    const SizedBox(height: 16),
-                    ...List.generate(
-                      activities.length,
-                      (index) => _activityCard(index),
-                    ),
-                    const SizedBox(height: 10),
-                    OutlinedButton(
-                      onPressed: _addActivity,
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 46),
-                        side: const BorderSide(color: borderColor),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: const Text(
-                        '+ Add activity',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.initialFlow == null
+                                ? 'New master flow'
+                                : 'Edit master flow',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.8,
+                              height: 1.2,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            widget.projectName,
+                            style: const TextStyle(
+                              color: mutedColor,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(28, 8, 16, 8),
-                child: _primaryButton('Next: choose areas', _next),
+              const Divider(height: 1, color: borderColor),
+              Expanded(
+                child: Scrollbar(
+                  controller: _scroll,
+                  thumbVisibility: true,
+                  child: ListView(
+                    controller: _scroll,
+                    padding: const EdgeInsets.fromLTRB(16, 14, 24, 20),
+                    children: [
+                      const Text(
+                        'Add the activities and companies. The flow creates the numbered check sheets when you save.',
+                        style: TextStyle(
+                          color: mutedColor,
+                          fontSize: 12,
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            flex: 7,
+                            child: _labeled(
+                              'Flow name',
+                              _field(
+                                _flowName,
+                                'Apartment finishes',
+                                requiredField: true,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            flex: 4,
+                            child: _labeled(
+                              'Reference',
+                              _field(_flowReference, 'AF'),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: cardColor,
+                          borderRadius: BorderRadius.circular(11),
+                          border: Border.all(color: borderColor),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: accentColor.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                Icons.sync_alt_rounded,
+                                size: 18,
+                                color: accentColor,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'FIRST HANDOVER',
+                                    style: TextStyle(
+                                      color: mutedColor,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 1.2,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text.rich(
+                                    TextSpan(
+                                      children: [
+                                        TextSpan(
+                                          text: '${widget.companyName} → ',
+                                        ),
+                                        const TextSpan(
+                                          text: 'First trade',
+                                          style: TextStyle(
+                                            color: Color(0xFFD5F69A),
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      const Text(
+                        'Trade activities',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'After ${widget.companyName} sends the first handover, each trade passes the area directly to the next.',
+                        style: const TextStyle(
+                          color: mutedColor,
+                          fontSize: 12,
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      if (_loadingCompanies)
+                        const LinearProgressIndicator(color: accentColor),
+                      if (_companyError != null)
+                        TextButton(
+                          onPressed: _loadCompanies,
+                          child: Text(_companyError!),
+                        ),
+                      if (!_loadingCompanies &&
+                          _companyError == null &&
+                          _companies.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.only(bottom: 10),
+                          child: Text(
+                            'Add trade companies in Companies & people before saving a flow.',
+                            style: TextStyle(color: mutedColor, fontSize: 12),
+                          ),
+                        ),
+                      for (var index = 0; index < activities.length; index++)
+                        _activityCard(index),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton.icon(
+                          onPressed: _saving ? null : _addActivity,
+                          style: TextButton.styleFrom(
+                            foregroundColor: accentColor,
+                            padding: EdgeInsets.zero,
+                          ),
+                          icon: const Icon(Icons.add, size: 18),
+                          label: const Text(
+                            'Add activity',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+                decoration: const BoxDecoration(
+                  border: Border(top: BorderSide(color: borderColor)),
+                ),
+                child: SafeArea(
+                  top: false,
+                  child: FilledButton.icon(
+                    onPressed: _complete && !_saving ? _save : null,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: accentColor,
+                      foregroundColor: bgColor,
+                      disabledBackgroundColor: const Color(0xFF213E48),
+                      disabledForegroundColor: const Color(0xFFA6BEC4),
+                      minimumSize: const Size.fromHeight(46),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(11),
+                      ),
+                    ),
+                    icon: const Icon(Icons.check, size: 17),
+                    label: Text(
+                      _saving ? 'Saving…' : 'Save master flow',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+
+  Widget _labeled(String label, Widget field) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      Text(
+        label,
+        style: const TextStyle(
+          color: mutedColor,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      const SizedBox(height: 6),
+      field,
+    ],
+  );
+
+  Widget _field(
+    TextEditingController controller,
+    String hint, {
+    bool requiredField = false,
+  }) => TextFormField(
+    controller: controller,
+    enabled: !_saving,
+    style: const TextStyle(color: Colors.white, fontSize: 14),
+    decoration: _decoration(hint),
+    onChanged: (_) => setState(() {}),
+    validator: requiredField
+        ? (value) => value == null || value.trim().isEmpty ? 'Required' : null
+        : null,
+  );
 
   Widget _activityCard(int index) {
     final activity = activities[index];
-
     return Container(
+      key: ObjectKey(activity),
       margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: cardColor,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(11),
         border: Border.all(color: borderColor),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Container(
-            width: 20,
-            height: 20,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: mutedColor),
-            ),
-            child: Text(
-              '${index + 1}',
-              style: const TextStyle(color: mutedColor, fontSize: 11),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    const Expanded(
-                      flex: 2,
-                      child: Text(
-                        'Activity',
-                        style: TextStyle(
-                          color: mutedColor,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Expanded(
-                      child: Text(
-                        'Reference',
-                        style: TextStyle(
-                          color: mutedColor,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    if (activities.length > 1) const SizedBox(width: 28),
-                  ],
+          Row(
+            children: [
+              Container(
+                width: 26,
+                height: 26,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: borderColor),
                 ),
-                const SizedBox(height: 5),
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: _input(
-                        controller: activity.name,
-                        hint: 'Activity name',
-                        requiredField: true,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _input(
-                        controller: activity.reference,
-                        hint: 'Ref.',
-                      ),
-                    ),
-                    if (activities.length > 1)
-                      IconButton(
-                        constraints: const BoxConstraints(),
-                        padding: const EdgeInsets.only(left: 6),
-                        icon: const Icon(
-                          Icons.close,
-                          color: mutedColor,
-                          size: 18,
-                        ),
-                        onPressed: () => _removeActivity(index),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 7),
-                DropdownButtonFormField<String>(
-                  initialValue: activity.company,
-                  dropdownColor: cardColor,
-                  hint: const Text(
-                    'Select company',
-                    style: TextStyle(color: mutedColor, fontSize: 12),
+                child: Text(
+                  '${index + 1}',
+                  style: const TextStyle(
+                    color: mutedColor,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
                   ),
-                  iconEnabledColor: mutedColor,
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
-                  decoration: _decoration('Select company'),
-                  items: companies
-                      .map(
-                        (company) => DropdownMenuItem(
-                          value: company,
-                          child: Text(company),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() => activity.company = value);
-                  },
-                  validator: (value) => value == null ? 'Select company' : null,
                 ),
-              ],
+              ),
+              const SizedBox(width: 7),
+              Expanded(
+                child: Text(
+                  'Activity ${index + 1}',
+                  style: const TextStyle(
+                    color: mutedColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              _activityAction(
+                'Move activity ${index + 1} up',
+                Icons.keyboard_arrow_up_rounded,
+                index > 0 && !_saving ? () => _moveActivity(index, -1) : null,
+              ),
+              _activityAction(
+                'Move activity ${index + 1} down',
+                Icons.keyboard_arrow_down_rounded,
+                index < activities.length - 1 && !_saving
+                    ? () => _moveActivity(index, 1)
+                    : null,
+              ),
+              _activityAction(
+                'Remove activity ${index + 1}',
+                Icons.close_rounded,
+                activities.length > 1 && !_saving
+                    ? () => _removeActivity(index)
+                    : null,
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 7,
+                child: _labeled(
+                  'Activity',
+                  _field(activity.name, 'e.g. Plastering', requiredField: true),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                flex: 4,
+                child: _labeled(
+                  'Activity ref',
+                  _field(activity.reference, 'ACT-01', requiredField: true),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _labeled(
+            'Trade company',
+            DropdownButtonFormField<String>(
+              key: ValueKey(
+                '${identityHashCode(activity)}:${activity.company}',
+              ),
+              initialValue: activity.company,
+              isExpanded: true,
+              dropdownColor: cardColor,
+              style: const TextStyle(color: Colors.white, fontSize: 13),
+              icon: const Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: mutedColor,
+                size: 20,
+              ),
+              decoration: _decoration('Select trade company'),
+              items: _companies
+                  .map(
+                    (company) => DropdownMenuItem(
+                      value: company,
+                      child: Text(
+                        company,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  )
+                  .toList(),
+              onChanged: _saving || _loadingCompanies
+                  ? null
+                  : (value) => setState(() => activity.company = value),
+              validator: (value) =>
+                  value == null ? 'Select trade company' : null,
             ),
           ),
         ],
       ),
     );
   }
+
+  Widget _activityAction(String label, IconData icon, VoidCallback? onTap) =>
+      IconButton(
+        tooltip: label,
+        onPressed: onTap,
+        constraints: const BoxConstraints(minWidth: 32, minHeight: 36),
+        padding: const EdgeInsets.all(4),
+        icon: Icon(icon, size: 18),
+        color: mutedColor,
+        disabledColor: mutedColor.withValues(alpha: 0.3),
+        visualDensity: VisualDensity.compact,
+      );
 }
-
-// class ChooseAreasScreen extends StatelessWidget {
-//   final String flowName;
-
-//   const ChooseAreasScreen({super.key, required this.flowName});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       backgroundColor: bgColor,
-//       appBar: AppBar(
-//         title: const Text('Choose areas'),
-//         backgroundColor: bgColor,
-//         foregroundColor: Colors.white,
-//       ),
-//       body: Center(
-//         child: Text(
-//           'Choose areas for $flowName',
-//           style: const TextStyle(color: Colors.white),
-//         ),
-//       ),
-//     );
-//   }
-// }
 
 InputDecoration _decoration(String hint) {
   return InputDecoration(
@@ -414,53 +962,6 @@ InputDecoration _decoration(String hint) {
     focusedErrorBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(7),
       borderSide: const BorderSide(color: Colors.redAccent),
-    ),
-  );
-}
-
-Widget _input({
-  required TextEditingController controller,
-  required String hint,
-  bool requiredField = false,
-}) {
-  return TextFormField(
-    controller: controller,
-    style: const TextStyle(color: Colors.white, fontSize: 12),
-    decoration: _decoration(hint),
-    validator: requiredField
-        ? (value) => value == null || value.trim().isEmpty ? 'Required' : null
-        : null,
-  );
-}
-
-Widget _outlinedCard({required Widget child}) {
-  return Container(
-    width: double.infinity,
-    padding: const EdgeInsets.all(12),
-    decoration: BoxDecoration(
-      color: cardColor,
-      border: Border.all(color: borderColor),
-      borderRadius: BorderRadius.circular(10),
-    ),
-    child: child,
-  );
-}
-
-Widget _primaryButton(String text, VoidCallback onPressed) {
-  return SizedBox(
-    width: double.infinity,
-    height: 46,
-    child: ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: accentColor,
-        foregroundColor: bgColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-      ),
     ),
   );
 }

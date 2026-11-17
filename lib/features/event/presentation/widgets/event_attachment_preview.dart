@@ -13,11 +13,13 @@ class EventAttachmentPreview extends StatelessWidget {
     required this.file,
     required this.item,
     required this.onEditPdf,
+    this.fillPreview = false,
   });
 
   final File file;
   final EventDraftItem item;
   final VoidCallback onEditPdf;
+  final bool fillPreview;
 
   @override
   Widget build(BuildContext context) {
@@ -27,15 +29,25 @@ class EventAttachmentPreview extends StatelessWidget {
     switch (item.type) {
       case EventItemType.photo:
         return InteractiveViewer(
-          child: Center(
+          child: SizedBox.expand(
             child: Image.file(
               file,
-              fit: BoxFit.contain,
-              errorBuilder: (_, _, _) => const Text('Unable to open photo.'),
+              width: double.infinity,
+              height: double.infinity,
+              fit: fillPreview ? BoxFit.cover : BoxFit.contain,
+              errorBuilder: (_, _, _) =>
+                  const Center(child: Text('Unable to open photo.')),
             ),
           ),
         );
       case EventItemType.pdf:
+        if (fillPreview) {
+          return SfPdfViewer.file(
+            file,
+            pageLayoutMode: PdfPageLayoutMode.continuous,
+            scrollDirection: PdfScrollDirection.vertical,
+          );
+        }
         return Column(
           children: [
             Align(
@@ -47,11 +59,17 @@ class EventAttachmentPreview extends StatelessWidget {
                 label: const Text('Edit PDF'),
               ),
             ),
-            Expanded(child: SfPdfViewer.file(file)),
+            Expanded(
+              child: SfPdfViewer.file(
+                file,
+                pageLayoutMode: PdfPageLayoutMode.continuous,
+                scrollDirection: PdfScrollDirection.vertical,
+              ),
+            ),
           ],
         );
       case EventItemType.audio:
-        return _AudioPreview(path: file.path, name: item.name);
+        return _AudioPreview(path: file.path, name: 'Voice note');
       case EventItemType.note:
         return const SizedBox.shrink();
     }
@@ -115,7 +133,6 @@ class _AudioPreviewState extends State<_AudioPreview> {
       children: [
         const Icon(Icons.audiotrack, size: 48),
         const SizedBox(height: 12),
-        Text(widget.name, maxLines: 2, textAlign: TextAlign.center),
         if (_error != null) Text(_error!),
         if (_error == null && !_ready) const CircularProgressIndicator(),
         if (_ready) ...[

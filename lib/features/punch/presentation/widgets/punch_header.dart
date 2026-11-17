@@ -52,7 +52,7 @@ class PunchHeader extends StatelessWidget {
                 style: const TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 19,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
 
@@ -109,7 +109,7 @@ class PunchHeader extends StatelessWidget {
               style: TextStyle(
                 color: AppColors.primaryText,
                 fontSize: 21,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),
@@ -118,4 +118,3 @@ class PunchHeader extends StatelessWidget {
     );
   }
 }
-

@@ -27,7 +27,7 @@ class DashboardClockCard extends StatelessWidget {
             style: TextStyle(
               color: AppColors.textSecondary,
               fontSize: 10,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w500,
               letterSpacing: 1.2,
             ),
           ),
@@ -43,7 +43,7 @@ class DashboardClockCard extends StatelessWidget {
                   style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 39,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w500,
                     height: 1,
                     letterSpacing: -1.4,
                   ),
@@ -115,7 +115,7 @@ class DashboardWorkspaceCard extends StatelessWidget {
           style: TextStyle(
             color: AppColors.textPrimary,
             fontSize: 16,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w500,
           ),
         ),
 
@@ -184,7 +184,7 @@ class DashboardWorkspaceCard extends StatelessWidget {
                       style: const TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 13,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -371,7 +371,7 @@ class _DashboardTimeBottomSheetState
             style: TextStyle(
               color: AppColors.textPrimary,
               fontSize: 22,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w500,
             ),
           ),
 
@@ -392,7 +392,7 @@ class _DashboardTimeBottomSheetState
             style: TextStyle(
               color: AppColors.textSecondary,
               fontSize: 10,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w500,
               letterSpacing: 1.2,
             ),
           ),
@@ -431,7 +431,7 @@ class _DashboardTimeBottomSheetState
                       style: const TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 17,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
 
@@ -490,7 +490,7 @@ class _DashboardTimeBottomSheetState
                     child: const Text(
                       'Save time',
                       style: TextStyle(
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),

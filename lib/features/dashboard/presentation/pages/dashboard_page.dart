@@ -1,5 +1,9 @@
 import 'package:dropline/core/utility/showcase_once.dart';
+import 'package:dropline/core/utility/widgets/appbar.dart';
 import 'dart:async';
+import 'package:dropline/core/theme/app_text_styles.dart';
+import 'package:dio/dio.dart';
+import 'package:dropline/features/dashboard/data/datasource/qr_login_datasource.dart';
 
 import 'package:dropline/core/di/global_di.dart';
 import 'package:dropline/core/theme/appcolors.dart';
@@ -9,19 +13,15 @@ import 'package:dropline/features/dashboard/presentation/bloc/dashboard_event.da
 import 'package:dropline/features/dashboard/presentation/bloc/dashboard_state.dart';
 import 'package:dropline/core/router/app_router.dart';
 import 'package:dropline/features/dashboard/domain/entity/project_entity.dart';
-import 'package:dropline/features/dashboard/presentation/widgets/dashboard_background.dart';
-import 'package:dropline/features/punch/presentation/pages/punch_out.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:showcaseview/showcaseview.dart';
 
-import '../widgets/dashboard_greeting.dart';
 import '../widgets/dashboard_project_card.dart';
-import '../widgets/dashboard_clock_card.dart';
 import '../widgets/dashboard_slide_button.dart';
-import '../widgets/clock_in_confirmation_dialog.dart';
+import 'qr_scanner_page.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -37,7 +37,7 @@ class _DashboardPageState extends State<DashboardPage> {
   late DateTime _currentTime;
   Timer? _clockTimer;
   DateTime? _lastBackPressed;
-  WorkspaceType _selectedWorkspace = WorkspaceType.personal;
+  bool get _isPersonalProject => _selectedProject?.typeLabel != 'Business';
 
   DateTime? _editedClockInTime;
 
@@ -45,6 +45,7 @@ class _DashboardPageState extends State<DashboardPage> {
   ProjectEntity? _selectedProject;
   bool _isPreparingPunchIn = false;
   bool _isLoggingOut = false;
+  bool _isApprovingQrLogin = false;
 
   String _userName = '';
 
@@ -73,35 +74,194 @@ class _DashboardPageState extends State<DashboardPage> {
 
       final now = DateTime.now();
 
-      // Update when minute or date changes.
-      if (now.minute != _currentTime.minute ||
-          now.hour != _currentTime.hour ||
-          now.day != _currentTime.day ||
-          now.month != _currentTime.month ||
-          now.year != _currentTime.year) {
-        setState(() {
-          _currentTime = now;
-        });
-      }
+      setState(() => _currentTime = now);
     });
 
     loadLoginInData();
   }
 
   Future<void> _editClockInTime() async {
-    final selectedTime = await DashboardTimeBottomSheet.show(
-      context: context,
-      initialTime: _displayClockInTime,
-      workspaceLabel: _selectedWorkspace == WorkspaceType.personal
-          ? 'Personal · Private'
-          : 'Business · Shared projects',
+    final initialTime = _displayClockInTime;
+    var selectedHour = initialTime.hour;
+    var selectedMinute = initialTime.minute;
+    final hourController = FixedExtentScrollController(
+      initialItem: selectedHour,
     );
+    final minuteController = FixedExtentScrollController(
+      initialItem: selectedMinute,
+    );
+    TimeOfDay? selectedTime;
+    try {
+      selectedTime = await showDialog<TimeOfDay>(
+        context: context,
+        builder: (dialogContext) {
+          Widget numberWheel({
+            required FixedExtentScrollController controller,
+            required int count,
+            required ValueChanged<int> onChanged,
+          }) => Expanded(
+            child: Container(
+              height: 112,
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                color: AppColors.inputBackground,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListWheelScrollView.useDelegate(
+                controller: controller,
+                itemExtent: 56,
+                diameterRatio: 2,
+                useMagnifier: true,
+                magnification: 1.15,
+                overAndUnderCenterOpacity: 0.35,
+                physics: const FixedExtentScrollPhysics(),
+                onSelectedItemChanged: onChanged,
+                childDelegate: ListWheelChildLoopingListDelegate(
+                  children: List.generate(
+                    count,
+                    (value) => Center(
+                      child: Text(
+                        value.toString().padLeft(2, '0'),
+                        style: const TextStyle(
+                          fontSize: 40,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
 
-    if (!mounted || selectedTime == null) return;
+          return AlertDialog(
+            backgroundColor: AppColors.surface,
+            title: const Text(
+              'Enter time',
+              style: TextStyle(fontSize: 16, color: AppColors.textPrimary),
+            ),
+            content: SizedBox(
+              width: 264,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      numberWheel(
+                        controller: hourController,
+                        count: 24,
+                        onChanged: (value) => selectedHour = value,
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 12),
+                        child: Text(
+                          ':',
+                          style: TextStyle(
+                            fontSize: 48,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                      numberWheel(
+                        controller: minuteController,
+                        count: 60,
+                        onChanged: (value) => selectedMinute = value,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  const Row(
+                    children: [
+                      Expanded(child: Center(child: Text('Hour'))),
+                      SizedBox(width: 36),
+                      Expanded(child: Center(child: Text('Minute'))),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(
+                  dialogContext,
+                  TimeOfDay(hour: selectedHour, minute: selectedMinute),
+                ),
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    } finally {
+      hourController.dispose();
+      minuteController.dispose();
+    }
+
+    final confirmedTime = selectedTime;
+    if (!mounted || confirmedTime == null) return;
 
     setState(() {
-      _editedClockInTime = selectedTime;
+      _editedClockInTime = DateTime(
+        initialTime.year,
+        initialTime.month,
+        initialTime.day,
+        confirmedTime.hour,
+        confirmedTime.minute,
+      );
     });
+  }
+
+  Future<void> _openQrScanner() async {
+    if (_isApprovingQrLogin) return;
+    setState(() => _isApprovingQrLogin = true);
+    try {
+      final login = await sl<SecureStorage>().readLoginResponse();
+      if (!mounted) return;
+      if (login == null ||
+          !login.status ||
+          login.result.isEmpty ||
+          login.result.first.userId.trim().isEmpty ||
+          login.result.first.mobileNo.trim().isEmpty) {
+        _showMessage('Please sign in again before approving QR login.');
+        return;
+      }
+      final result = await Navigator.of(
+        context,
+      ).push<String>(MaterialPageRoute(builder: (_) => const QrScannerPage()));
+      if (!mounted || result == null || result.trim().isEmpty) return;
+      final user = login.result.first;
+      final message = await QrLoginDatasource(
+        sl<Dio>(),
+      ).approve(loginId: user.userId, mobileNo: user.mobileNo, token: result);
+      if (mounted) _showMessage(message);
+    } on DioException catch (error) {
+      if (mounted) {
+        final statusCode = error.response?.statusCode;
+        final timedOut =
+            error.type == DioExceptionType.connectionTimeout ||
+            error.type == DioExceptionType.receiveTimeout ||
+            error.type == DioExceptionType.sendTimeout;
+        _showMessage(
+          statusCode != null
+              ? 'QR login request failed (HTTP $statusCode). Please try again.'
+              : timedOut
+              ? 'QR login request timed out. Please try again.'
+              : 'Cannot connect to ${error.requestOptions.uri.host}. Check that your phone is on the server’s network.',
+        );
+      }
+    } on FormatException catch (error) {
+      if (mounted) _showMessage(error.message);
+    } catch (_) {
+      if (mounted) {
+        _showMessage('Unable to approve QR login. Please try again.');
+      }
+    } finally {
+      if (mounted) setState(() => _isApprovingQrLogin = false);
+    }
   }
 
   @override
@@ -122,6 +282,7 @@ class _DashboardPageState extends State<DashboardPage> {
   void _onProjectSelected(ProjectEntity project) {
     setState(() {
       _selectedProject = project;
+      if (project.typeLabel == 'Business') _editedClockInTime = null;
     });
 
     debugPrint('Selected Project ID: ${project.projectId}');
@@ -147,17 +308,15 @@ class _DashboardPageState extends State<DashboardPage> {
 
     setState(() => _isPreparingPunchIn = true);
     try {
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (dialogContext) => ClockInConfirmationDialog(
-          workspace: _selectedWorkspace == WorkspaceType.personal
-              ? 'Personal'
-              : 'Business',
-          projectName: project.projectName,
-          clockInTime: _displayClockInTime,
-        ),
-      );
-      if (!mounted || confirmed != true) return;
+      // final confirmed = await showDialog<bool>(
+      //   context: context,
+      //   builder: (dialogContext) => ClockInConfirmationDialog(
+      //     workspace: project.typeLabel,
+      //     projectName: project.projectName,
+      //     clockInTime: _displayClockInTime,
+      //   ),
+      // );
+      // if (!mounted || confirmed != true) return;
 
       final login = await sl<SecureStorage>().readLoginResponse();
       if (!mounted) return;
@@ -213,7 +372,7 @@ class _DashboardPageState extends State<DashboardPage> {
           titleTextStyle: Theme.of(dialogContext).textTheme.titleLarge
               ?.copyWith(
                 color: AppColors.textPrimary,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w500,
               ),
           contentTextStyle: Theme.of(
             dialogContext,
@@ -297,17 +456,50 @@ class _DashboardPageState extends State<DashboardPage> {
           );
       },
       child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: CustomAppBar(
+          title: 'Clock in',
+          showBackButton: false,
+          actions: [
+            BlocBuilder<DashboardBloc, DashboardState>(
+              builder: (context, state) {
+                final isLoading =
+                    _isPreparingPunchIn ||
+                    state.punchInStatus == DashboardStatus.loading;
+                return IconButton(
+                  tooltip: 'Scan QR code',
+                  onPressed: isLoading || _isLoggingOut || _isApprovingQrLogin
+                      ? null
+                      : _openQrScanner,
+                  icon: _isApprovingQrLogin
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.qr_code_scanner),
+                  color: const Color(0xFFADC6D9),
+                );
+              },
+            ),
+          ],
+        ),
         body: BlocConsumer<DashboardBloc, DashboardState>(
           listenWhen: (previous, current) =>
               previous.punchInStatus != current.punchInStatus,
-          listener: (context, state) {
+          listener: (context, state) async {
             if (state.punchInStatus == DashboardStatus.failure) {
               _showMessage(state.errorMessage);
             } else if (state.punchInStatus == DashboardStatus.success) {
+              await context.push(
+                AppRouter.addEvent,
+                extra: {
+                  'projectId': _selectedProject?.projectId,
+                  'projectName': _selectedProject?.projectName,
+                },
+              );
+              if (!context.mounted) return;
               context.push(AppRouter.punchOut);
-              // Navigator.of(
-              //   context,
-              // ).push(MaterialPageRoute(builder: (_) => const PunchOutPage()));
             }
           },
           builder: (context, state) => _buildDashboard(context, state),
@@ -319,121 +511,113 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildDashboard(BuildContext context, DashboardState state) {
     final isLoading =
         _isPreparingPunchIn || state.punchInStatus == DashboardStatus.loading;
-
-    return DashboardBackground(
-      child: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final isCompact = constraints.maxHeight < 650;
-
-            return SingleChildScrollView(
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-              child: Center(
+    final time = _displayClockInTime;
+    String two(int value) => value.toString().padLeft(2, '0');
+    return SafeArea(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact =
+              constraints.maxWidth < 390 || constraints.maxHeight < 650;
+          final verticalPadding = compact ? 16.0 : 24.0;
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 520),
+              child: SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  verticalPadding,
+                  16,
+                  verticalPadding,
+                ),
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 480),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight - 24,
-                    ),
+                  constraints: BoxConstraints(
+                    minHeight: (constraints.maxHeight - verticalPadding * 2)
+                        .clamp(0.0, double.infinity),
+                  ),
+                  child: IntrinsicHeight(
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            DashboardGreeting(
-                              name: _userName,
-                              dateTime: _currentTime,
-                              onMe: () => context.push(AppRouter.me),
-                              onLogout: _isLoggingOut || isLoading
-                                  ? null
-                                  : _logout,
-                            ),
-
-                            SizedBox(height: isCompact ? 65 : 112),
-
-                            DashboardClockCard(
-                              dateTime: _displayClockInTime,
-                              onEdit:
-                                  _selectedWorkspace == WorkspaceType.personal
-                                  ? _editClockInTime
-                                  : null,
-                            ),
-                          ],
+                        const Spacer(flex: 2),
+                        Text(
+                          'Clock-in time',
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: const Color(0xFFADC6D9),
+                          ),
                         ),
-
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            SizedBox(height: isCompact ? 28 : 60),
-
-                            Showcase(
-                              key: _projectShowcaseKey,
-                              scope: _showcaseScope,
-                              title: 'Choose your project',
-                              description:
-                                  'Select the project you are '
-                                  'working on before clocking in.',
-                              targetPadding: const EdgeInsets.all(8),
-                              targetBorderRadius: BorderRadius.circular(13),
-                              tooltipPadding: const EdgeInsets.all(16),
-                              tooltipActions: [
-                                TooltipActionButton(
-                                  type: TooltipDefaultActionType.skip,
-                                  name: 'OK',
-                                  textStyle: const TextStyle(
-                                    color: AppColors.white,
+                        const SizedBox(height: 12),
+                        Center(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text.rich(
+                              TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text:
+                                        '${two(time.hour)}:${two(time.minute)}',
+                                    style: AppTextStyles.displayMedium.copyWith(
+                                      fontSize: compact ? 44 : 56,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
-                                  onTap: _showcaseView.dismiss,
-                                ),
-                              ],
-                              child: DashboardProjectCard(
-                                selectedProject: _selectedProject,
-                                workspaceLabel:
-                                    _selectedWorkspace == WorkspaceType.personal
-                                    ? 'Personal · Private'
-                                    : 'Business · Shared projects',
-                                onProjectSelected: _onProjectSelected,
-                                onRemoveProject: () {
-                                  setState(() {
-                                    _selectedProject = null;
-                                  });
-                                },
+                                  TextSpan(
+                                    text: ':${two(time.second)}',
+                                    style: AppTextStyles.displaySmall.copyWith(
+                                      fontSize: compact ? 26 : 30,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              style: AppTextStyles.displayMedium.copyWith(
+                                color: const Color(0xFFF8FAFC),
+                                height: 1.1,
                               ),
                             ),
-
-                            const SizedBox(height: 15),
-
-                            DashboardWorkspaceCard(
-                              selectedType: _selectedWorkspace,
-                              onChanged: (type) {
-                                setState(() {
-                                  _selectedWorkspace = type;
-                                });
-                              },
+                          ),
+                        ),
+                        Center(
+                          child: TextButton.icon(
+                            onPressed: _isPersonalProject
+                                ? _editClockInTime
+                                : null,
+                            icon: const Icon(Icons.edit_outlined, size: 18),
+                            label: const Text('Edit'),
+                            style: TextButton.styleFrom(
+                              foregroundColor: const Color(0xFFADC6D9),
+                              textStyle: AppTextStyles.labelMedium,
                             ),
-
-                            const SizedBox(height: 12),
-
-                            DashboardSlideButton(
-                              isLoading: isLoading,
-                              isClockedIn: false,
-                              onCompleted: _onSlideCompleted,
-                            ),
-
-                            const SizedBox(height: 8),
-                          ],
+                          ),
+                        ),
+                        const Spacer(flex: 5),
+                        Showcase(
+                          key: _projectShowcaseKey,
+                          scope: _showcaseScope,
+                          title: 'Choose your project',
+                          description:
+                              'Select the project you are working on before clocking in.',
+                          child: DashboardProjectCard(
+                            selectedProject: _selectedProject,
+                            onProjectSelected: _onProjectSelected,
+                            onRemoveProject: () =>
+                                setState(() => _selectedProject = null),
+                          ),
+                        ),
+                        SizedBox(height: compact ? 20 : 28),
+                        DashboardSlideButton(
+                          isLoading: isLoading,
+                          isClockedIn: false,
+                          onCompleted: _onSlideCompleted,
                         ),
                       ],
                     ),
                   ),
                 ),
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }

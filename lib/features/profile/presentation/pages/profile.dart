@@ -109,7 +109,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
                   style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 22,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -218,7 +218,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
                   style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 22,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -240,7 +240,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
                     ),
                     child: const Text(
                       'Done',
-                      style: TextStyle(fontWeight: FontWeight.w700),
+                      style: TextStyle(fontWeight: FontWeight.w500),
                     ),
                   ),
                 ),
@@ -341,7 +341,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
             headerTextStyle: const TextStyle(
               color: Colors.white,
               fontSize: 18,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w500,
             ),
             closeIcon: const Icon(Icons.close, color: Colors.white),
             searchDecoration: const InputDecoration(
@@ -388,7 +388,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
                 style: TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 21,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               const SizedBox(height: 10),
@@ -559,7 +559,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
                             'Save changes',
                             style: TextStyle(
                               fontSize: 15,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),
@@ -608,7 +608,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
             style: TextStyle(
               color: AppColors.textPrimary,
               fontSize: 24,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ),
@@ -649,7 +649,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
                       style: const TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 14,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     if (subtitle != null) ...[

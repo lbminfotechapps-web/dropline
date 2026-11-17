@@ -231,7 +231,7 @@ Future<void> _finishSetup(BuildContext context) async {
             'Sub-areas',
             style: AppTextStyles.headingLarge.copyWith(
               fontSize: 28,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ),
@@ -268,7 +268,7 @@ Future<void> _finishSetup(BuildContext context) async {
                     '+ Add Sub-area',
                     style: AppTextStyles.buttonMedium.copyWith(
                       color: const Color(0xFF151C29),
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
@@ -297,7 +297,7 @@ Future<void> _finishSetup(BuildContext context) async {
                   child: Text(
                     'Finish setup',
                     style: AppTextStyles.buttonMedium.copyWith(
-                      fontWeight: FontWeight.w400,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),

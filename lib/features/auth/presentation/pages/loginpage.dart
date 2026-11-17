@@ -79,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 'DROPLINE • UNITED KINGDOM',
                 style: AppTextStyles.caption.copyWith(
                   fontSize: 11,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w500,
                   letterSpacing: 0.8,
                   color: isApple
                       ? CupertinoColors.secondaryLabel.resolveFrom(
@@ -132,7 +132,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   section.$1,
                   style: AppTextStyles.bodyMedium.copyWith(
                     color: textColour,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -302,7 +302,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               style: TextStyle(
                                 color: AppColors.textPrimary,
                                 fontSize: 30,
-                                fontWeight: FontWeight.w800,
+                                fontWeight: FontWeight.w500,
                                 letterSpacing: -0.7,
                               ),
                             ),
@@ -344,13 +344,12 @@ class _LoginScreenState extends State<LoginScreen> {
                               isMobile: true,
                             ),
 
-                            const SizedBox(height: 22),
-
-                            _buildLabel('4-digit PIN'),
-
-                            const SizedBox(height: 9),
-
-                            _buildPinFields(),
+                            if (_mobileController.text.length == 10) ...[
+                              const SizedBox(height: 22),
+                              _buildLabel('4-digit PIN'),
+                              const SizedBox(height: 9),
+                              _buildPinFields(),
+                            ],
 
                             const SizedBox(height: 22),
 
@@ -385,7 +384,7 @@ class _LoginScreenState extends State<LoginScreen> {
           style: TextStyle(
             color: AppColors.textPrimary,
             fontSize: 21,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w500,
             letterSpacing: -0.6,
           ),
         ),
@@ -394,7 +393,7 @@ class _LoginScreenState extends State<LoginScreen> {
           style: TextStyle(
             color: AppColors.primary,
             fontSize: 21,
-            fontWeight: FontWeight.w900,
+            fontWeight: FontWeight.w500,
           ),
         ),
         const Text(
@@ -402,7 +401,7 @@ class _LoginScreenState extends State<LoginScreen> {
           style: TextStyle(
             color: AppColors.textPrimary,
             fontSize: 21,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w500,
             letterSpacing: -0.6,
           ),
         ),
@@ -417,7 +416,7 @@ class _LoginScreenState extends State<LoginScreen> {
       style: const TextStyle(
         color: AppColors.textPrimary,
         fontSize: 13,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w500,
       ),
     );
   }
@@ -465,8 +464,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       for (final pin in _codeControllers) {
                         pin.clear();
                       }
+                      setState(() {});
                       if (value.length == 10) {
-                        FocusScope.of(context).unfocus();
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (!mounted || _mobileController.text.length != 10) {
+                            return;
+                          }
+                          _codeFocusNodes.first.requestFocus();
+                        });
                       }
                     }
                   : null,
@@ -531,7 +536,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: const TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 22,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w500,
                 ),
                 cursorColor: AppColors.primary,
                 decoration: const InputDecoration(
@@ -624,7 +629,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 12,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),
@@ -665,7 +670,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   Text(
                     'Sign in',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                   ),
                   SizedBox(width: 10),
                   Icon(Icons.arrow_forward_rounded, size: 21),

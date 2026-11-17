@@ -187,7 +187,7 @@ class _FindCompanyScreenState extends State<FindCompanyScreen> {
   //               'Find company',
   //               style: TextStyle(
   //                 fontSize: 20,
-  //                 fontWeight: FontWeight.w700,
+  //                 fontWeight: FontWeight.w500,
   //                 color: AppColors.textPrimary,
   //               ),
   //             ),
@@ -304,7 +304,7 @@ class _FindCompanyScreenState extends State<FindCompanyScreen> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 15,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w500,
                 color: AppColors.textPrimary,
               ),
             ),
@@ -387,7 +387,7 @@ class _FindCompanyScreenState extends State<FindCompanyScreen> {
                     style: const TextStyle(
                       color: AppColors.textPrimary,
                       fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
 
@@ -442,7 +442,7 @@ class _FindCompanyScreenState extends State<FindCompanyScreen> {
         icon: const Icon(Icons.add_rounded, size: 22),
         label: const Text(
           'Create new company',
-          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
         ),
       ),
     );

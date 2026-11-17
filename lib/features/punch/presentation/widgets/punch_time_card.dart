@@ -39,7 +39,7 @@ class PunchTimeCard extends StatelessWidget {
             time,
             style: AppTextStyles.displayLarge.copyWith(
               fontSize: fontSize,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w500,
               letterSpacing: -3,
               height: 1,
             ),
