@@ -463,6 +463,11 @@ class _DashboardPageState extends State<DashboardPage> {
           title: 'Clock in',
           showBackButton: false,
           actions: [
+            IconButton(
+              tooltip: 'Log out',
+              onPressed: _isLoggingOut ? null : _logout,
+              icon: const Icon(Icons.logout_outlined, color: Color(0xFFADC6D9)),
+            ),
             BlocBuilder<DashboardBloc, DashboardState>(
               builder: (context, state) {
                 final isLoading =

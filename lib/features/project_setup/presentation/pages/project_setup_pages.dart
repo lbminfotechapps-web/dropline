@@ -1,3 +1,4 @@
+import 'package:dropline/features/companies/presentation/start_work.dart';
 import 'package:flutter/material.dart';
 import 'package:dropline/core/utility/widgets/appbar.dart';
 import 'package:dropline/core/router/app_router.dart';
@@ -184,21 +185,33 @@ class ProjectSetupPage extends StatelessWidget {
                                 ),
                           ),
                           menuItem(
-                            'HandOvers',
+                            'Set HandOvers',
                             'Activities, references, companies and areas',
                             onMasterFlows ??
                                 () {
                                   context.push(
                                     Uri(
-                                      path: AppRouter.masterFlow,
+                                      path: AppRouter.projectHome,
                                       queryParameters: {
+                                        'projectName': projectName,
+                                        'projectType': '',
                                         'projectId': projectId,
                                         'companyId': companyId,
-                                        'projectName': projectName,
                                         'companyName': companyName,
                                       },
                                     ).toString(),
                                   );
+                                  // context.push(
+                                  //   Uri(
+                                  //     path: AppRouter.masterFlow,
+                                  //     queryParameters: {
+                                  //       'projectId': projectId,
+                                  //       'companyId': companyId,
+                                  //       'projectName': projectName,
+                                  //       'companyName': companyName,
+                                  //     },
+                                  //   ).toString(),
+                                  // );
                                 },
                           ),
                         ],

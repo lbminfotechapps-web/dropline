@@ -1,3 +1,5 @@
+import 'package:dropline/features/project_setup/presentation/pages/project_setup_pages.dart';
+
 import '../../domain/entities/project_entity.dart';
 import 'package:dropline/features/certificate/presentation/pages/dropline_card.dart';
 import 'package:dropline/core/utility/widgets/appbar.dart';
@@ -291,12 +293,20 @@ class _MePageState extends State<MePage> {
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: _panel(
-                onTap: () => Navigator.of(context).push<void>(
-                  MaterialPageRoute<void>(
-                    builder: (_) =>
-                        StartWorkPage(onStartWork: widget.onStartWork),
-                  ),
-                ),
+                     onTap: () => Navigator.of(context).push<void>(
+                          MaterialPageRoute<void>(
+                            builder: (_) => ProjectSetupPage(
+                              projectName: project.projectName,
+                              companyName: project.companyName,
+                            ),
+                          ),
+                        ),
+                // onTap: () => Navigator.of(context).push<void>(
+                //   MaterialPageRoute<void>(
+                //     builder: (_) =>
+                //         StartWorkPage(onStartWork: widget.onStartWork),
+                //   ),
+                // ),
                 // onTap: () => context.push(
                 //   Uri(
                 //     path: AppRouter.projectHome,

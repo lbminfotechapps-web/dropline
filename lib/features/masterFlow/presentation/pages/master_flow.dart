@@ -380,6 +380,14 @@ class _CreateMasterFlowScreenState extends State<CreateMasterFlowScreen> {
     }
     if (!sl.isRegistered<GetSubCompaniesUsecase>()) {
       _loadingCompanies = false;
+      _companyError = 'Trade companies are unavailable. Please restart the app.';
+      return;
+    }
+    if (widget.projectId.trim().isEmpty) {
+      setState(() {
+        _loadingCompanies = false;
+        _companyError = 'Project details are missing. Reopen the project from Me.';
+      });
       return;
     }
     setState(() {
@@ -393,15 +401,14 @@ class _CreateMasterFlowScreenState extends State<CreateMasterFlowScreen> {
       );
       if (mounted) {
         setState(() {
-          _companies = companies
+          _companies = {..._companies, ...companies
               .map((company) => company.subCompanyName.trim())
-              .where((name) => name.isNotEmpty)
-              .toSet()
-              .toList();
+              .where((name) => name.isNotEmpty)}.toList();
           _loadingCompanies = false;
         });
       }
-    } catch (_) {
+    } catch (error) {
+      debugPrint('Unable to load trade companies: $error');
       if (mounted) {
         setState(() {
           _loadingCompanies = false;
