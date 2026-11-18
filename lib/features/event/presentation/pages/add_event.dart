@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:dropline/core/utility/widgets/appbar.dart';
-import 'dart:math' as math;
 import 'dart:io';
 import 'package:dropline/features/event/domain/entities/event_draft_scope.dart';
 import 'package:dropline/features/event/domain/entities/location_flow_args.dart';
@@ -630,6 +629,7 @@ class _AddEventPageState extends State<AddEventPage> {
 
   Widget _buildDateHeader() {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         const Icon(
           Icons.calendar_today_outlined,
@@ -645,7 +645,6 @@ class _AddEventPageState extends State<AddEventPage> {
             fontWeight: FontWeight.w500,
           ),
         ),
-        const Spacer(),
         if (_saveFailed)
           TextButton(
             onPressed: _saveDraft,
@@ -795,48 +794,52 @@ class _AddEventPageState extends State<AddEventPage> {
           //  _buildEventHeader(),
           body: SafeArea(
             child: LayoutBuilder(
-              builder: (context, constraints) {
-                final isPhoto = _selectedItem?.type == EventItemType.photo;
+              builder: (context, _) {
                 final editingNote =
                     _selectedItem?.type == EventItemType.note &&
                     keyboardVisible;
                 return Padding(
                   padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-                  child: Align(
-                    alignment: Alignment.topCenter,
-                    child: SingleChildScrollView(
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
+                  child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            SizedBox(
-                              height: editingNote
-                                  ? math.max(180, constraints.maxHeight - 24)
-                                  : isPhoto
-                                  ? math.max(340, constraints.maxHeight * 0.58)
-                                  : math.max(260, constraints.maxHeight * 0.5),
+                            Expanded(
                               child: _buildPreviewCard(),
                             ),
-                            if (!editingNote) ...[
-                              const SizedBox(height: 14),
+                            if (!editingNote)
+                                    Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                      children: [
+                              const SizedBox(height: 8),
 
-                              _buildItemsHeader(),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  _buildItemsHeader(),
+                                  _buildDateHeader(),
+                                ],
+                              ),
 
-                              const SizedBox(height: 10),
+                              const SizedBox(height: 6),
 
                               if (_items.isNotEmpty) _buildEventItems(),
 
-                              const SizedBox(height: 18),
+                              const SizedBox(height: 8),
 
-                              _buildDateHeader(),
-
-                              const SizedBox(height: 12),
-
+                              if (_attachmentInvalid) ...[
+                                const Text(
+                                  'Select at least one image, PDF or audio attachment.',
+                                  style: TextStyle(
+                                    color: Colors.redAccent,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                              ],
                               _buildTimeSlots(),
 
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 8),
 
                               Container(
                                 decoration: BoxDecoration(
@@ -850,18 +853,7 @@ class _AddEventPageState extends State<AddEventPage> {
                                 ),
                                 child: _buildBottomTools(),
                               ),
-                              if (_attachmentInvalid) ...[
-                                const SizedBox(height: 8),
-                                const Text(
-                                  'Select at least one image, PDF or audio attachment.',
-                                  style: TextStyle(
-                                    color: Colors.redAccent,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-
-                              const SizedBox(height: 18),
+                              const SizedBox(height: 8),
 
                               _buildBottomActions(),
 
@@ -887,12 +879,10 @@ class _AddEventPageState extends State<AddEventPage> {
                                   ),
                                 ),
                               ),
-                            ],
+                                      ],
+                                    ),
                           ],
                         ),
-                      ),
-                    ),
-                  ),
                 );
               },
             ),
@@ -999,7 +989,9 @@ class _AddEventPageState extends State<AddEventPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              AspectRatio(
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 56),
+                child: AspectRatio(
                 aspectRatio: 1,
                 child: Semantics(
                   label: 'Take a photo',
@@ -1021,6 +1013,7 @@ class _AddEventPageState extends State<AddEventPage> {
                       ),
                     ),
                   ),
+                ),
                 ),
               ),
               const SizedBox(height: 6),
@@ -1242,11 +1235,6 @@ class _AddEventPageState extends State<AddEventPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-              'VIEW   Your update will appear here',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
-            ),
-            const SizedBox(height: 14),
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
@@ -1303,11 +1291,11 @@ class _AddEventPageState extends State<AddEventPage> {
               ),
               if (item.type == EventItemType.photo) ...[
                 Positioned(
-                  top: 12,
+                  bottom: 54,
                   left: 12,
                   right: 12,
                   child: Align(
-                    alignment: Alignment.topRight,
+                    alignment: Alignment.bottomRight,
                     child: TextButton.icon(
                       onPressed: _canEdit ? _editSelectedTag : null,
                       icon: const Icon(Icons.sell_outlined, size: 14),

@@ -281,7 +281,7 @@ class _EventCameraPageState extends State<EventCameraPage>
   Widget _buildViewfinder() {
     final camera = _camera;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
+      padding: const EdgeInsets.only(bottom: 12),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(22),
         child: ColoredBox(
@@ -328,7 +328,23 @@ class _EventCameraPageState extends State<EventCameraPage>
                   ),
                 )
               else
-                Center(child: CameraPreview(camera)),
+                LayoutBuilder(
+                  builder: (context, _) {
+                    final aspectRatio = camera.value.aspectRatio;
+                    final portrait = MediaQuery.orientationOf(context) ==
+                        Orientation.portrait;
+                    return ClipRect(
+                      child: FittedBox(
+                        fit: BoxFit.cover,
+                        child: SizedBox(
+                          width: portrait ? 1 : aspectRatio,
+                          height: portrait ? aspectRatio : 1,
+                          child: CameraPreview(camera),
+                        ),
+                      ),
+                    );
+                  },
+                ),
               if (camera != null && _error == null)
                 Positioned(
                   left: 0,

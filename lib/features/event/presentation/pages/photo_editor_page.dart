@@ -4,6 +4,8 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/appcolors.dart';
+
 /// Annotations use image coordinates so exported marks match the preview.
 class PhotoEditorPage extends StatefulWidget {
   const PhotoEditorPage({super.key, required this.file, required this.onSave});
@@ -27,7 +29,7 @@ class _PhotoEditorPageState extends State<PhotoEditorPage> {
   ui.Image? _image;
   final _marks = <_Mark>[];
   String _tool = 'Draw';
-  Color _color = Colors.red;
+  Color _color = Colors.black;
   bool _saving = false;
   bool _failed = false;
   _Mark? _active;
@@ -65,7 +67,15 @@ class _PhotoEditorPageState extends State<PhotoEditorPage> {
     var enteredText = '';
     final text = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => Theme(
+        data: ThemeData.dark().copyWith(
+          colorScheme: const ColorScheme.dark(
+            primary: AppColors.primary,
+            onPrimary: AppColors.primaryText,
+            surface: AppColors.cardBackground,
+          ),
+        ),
+        child: AlertDialog(
         title: const Text('Add text'),
         content: TextField(
           onChanged: (value) => enteredText = value,
@@ -82,6 +92,7 @@ class _PhotoEditorPageState extends State<PhotoEditorPage> {
             child: const Text('Add'),
           ),
         ],
+        ),
       ),
     );
     if (mounted && text != null && text.isNotEmpty) {
@@ -127,22 +138,27 @@ class _PhotoEditorPageState extends State<PhotoEditorPage> {
     final image = _image;
     return PopScope(
       canPop: !_saving,
-      child: Scaffold(
+      child: Theme(
+        data: ThemeData.dark().copyWith(
+          scaffoldBackgroundColor: AppColors.background,
+          colorScheme: const ColorScheme.dark(
+            primary: AppColors.primary,
+            onPrimary: AppColors.primaryText,
+            surface: AppColors.surface,
+            onSurface: AppColors.textPrimary,
+          ),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: AppColors.background,
+            foregroundColor: AppColors.textPrimary,
+          ),
+          dialogTheme: const DialogThemeData(
+            backgroundColor: AppColors.cardBackground,
+          ),
+        ),
+        child: Scaffold(
         appBar: AppBar(
-          title: const Text('Edit photo'),
-          actions: [
-            IconButton(
-              tooltip: 'Undo',
-              onPressed: !_saving && _marks.isNotEmpty
-                  ? () => setState(() => _marks.removeLast())
-                  : null,
-              icon: const Icon(Icons.undo),
-            ),
-            TextButton(
-              onPressed: image != null && !_saving ? _save : null,
-              child: Text(_saving ? 'Saving…' : 'Save'),
-            ),
-          ],
+          centerTitle: true,
+          title: const Text('Edit photo', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
         ),
         body: image == null
             ? Center(
@@ -150,10 +166,13 @@ class _PhotoEditorPageState extends State<PhotoEditorPage> {
                     ? const Text('Unable to open photo.')
                     : const CircularProgressIndicator(),
               )
-            : Column(
+            : LayoutBuilder(
+              builder: (context, constraints) => Column(
                 children: [
                   Expanded(
-                    child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+                      child: Center(
                       child: AspectRatio(
                         aspectRatio: image.width / image.height,
                         child: LayoutBuilder(
@@ -194,32 +213,55 @@ class _PhotoEditorPageState extends State<PhotoEditorPage> {
                                   : null,
                               onPanEnd: (_) => _active = null,
                               onPanCancel: () => _active = null,
-                              child: CustomPaint(
-                                painter: _PhotoPainter(image, _marks),
-                                child: const SizedBox.expand(),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: CustomPaint(
+                                  painter: _PhotoPainter(image, _marks),
+                                  child: const SizedBox.expand(),
+                                ),
                               ),
                             );
                           },
                         ),
                       ),
                     ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.all(8),
-                    child: Text(
-                      'Draw on the photo, drag a circle, or tap to place text.',
                     ),
                   ),
-                  SafeArea(
+                  Container(
+                    decoration: const BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                    ),
+                    child: SafeArea(
                     top: false,
-                    child: Column(
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: (constraints.maxHeight * 0.46).clamp(0.0, 210.0),
+                      child: FittedBox(
+                        fit: BoxFit.contain,
+                        child: SizedBox(
+                          width: 340,
+                          child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
+                        const SizedBox(height: 16),
                         Wrap(
                           spacing: 8,
                           children: ['Draw', 'Circle', 'Text']
                               .map(
                                 (tool) => ChoiceChip(
+                                  avatar: Icon(
+                                    tool == 'Draw' ? Icons.draw_outlined : tool == 'Circle' ? Icons.circle_outlined : Icons.text_fields_rounded,
+                                    size: 18,
+                                    color: _tool == tool ? AppColors.primaryText : AppColors.textSecondary,
+                                  ),
                                   label: Text(tool),
+                                  showCheckmark: false,
+                                  selectedColor: AppColors.primary,
+                                  backgroundColor: AppColors.cardBackground,
+                                  labelStyle: TextStyle(color: _tool == tool ? AppColors.primaryText : AppColors.textPrimary, fontWeight: FontWeight.w600),
+                                  side: BorderSide(color: _tool == tool ? AppColors.primary : AppColors.border),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                   selected: _tool == tool,
                                   onSelected: _saving
                                       ? null
@@ -265,11 +307,39 @@ class _PhotoEditorPageState extends State<PhotoEditorPage> {
                                   )
                                   .toList(),
                         ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: !_saving && _marks.isNotEmpty
+                                      ? () => setState(() => _marks.removeLast())
+                                      : null,
+                                  child: const Text('Revert'),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: FilledButton(
+                                  onPressed: !_saving ? _save : null,
+                                  child: Text(_saving ? 'Saving…' : 'Save'),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
+                        ),
+                      ),
+                    ),
+                  ),
                   ),
                 ],
               ),
+            ),
+        ),
       ),
     );
   }
@@ -288,7 +358,7 @@ class _PhotoPainter extends CustomPainter {
       Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
     );
     canvas.drawImage(image, Offset.zero, Paint());
-    final width = image.width / 180;
+    final width = image.width / 65;
     for (final mark in marks) {
       final paint = Paint()
         ..color = mark.color
