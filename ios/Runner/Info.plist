@@ -26,10 +26,6 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>NSCameraUsageDescription</key>
-	<string>Dropline uses your camera to scan QR codes and attach photos to event notes.</string>
-	<key>NSLocalNetworkUsageDescription</key>
-	<string>Dropline connects to your local server to approve QR login sessions.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>
@@ -43,6 +39,10 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>Dropline uses your camera to scan QR codes and attach photos to event notes.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Dropline connects to your local server to approve QR login sessions.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Dropline uses your microphone to record voice notes for events.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
