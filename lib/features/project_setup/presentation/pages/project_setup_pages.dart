@@ -64,8 +64,9 @@ class ProjectSetupPage extends StatelessWidget {
             Widget menuItem(
               String title,
               String subtitle,
-              VoidCallback? onTap,
-            ) {
+              VoidCallback? onTap, {
+              double subtitleFontSize = 8,
+            }) {
               return Padding(
                 padding: EdgeInsets.only(bottom: 7 * scale),
                 child: Material(
@@ -104,7 +105,7 @@ class ProjectSetupPage extends StatelessWidget {
                                     subtitle,
                                     style: TextStyle(
                                       color: _muted,
-                                      fontSize: 8 * scale,
+                                      fontSize: subtitleFontSize * scale,
                                       height: 1.25,
                                     ),
                                   ),
@@ -155,6 +156,7 @@ class ProjectSetupPage extends StatelessWidget {
                                     ),
                                   ),
                                 ),
+                            subtitleFontSize: 7,
                           ),
                           menuItem(
                             'Areas',
@@ -162,7 +164,7 @@ class ProjectSetupPage extends StatelessWidget {
                             onAreas ??
                                 () => context.push<Map<String, dynamic>>(
                                   Uri(
-                                    path: AppRouter.areaLabels,
+                                    path: AppRouter.areas,
                                     queryParameters: {
                                       'projectName': projectName,
                                     },

@@ -20,7 +20,7 @@ class AreaEditablePage extends StatefulWidget {
 
 class _AreaNode {
   _AreaNode(this.name);
-  final String name;
+  String name;
   final List<_AreaNode> children = [];
 }
 
@@ -35,9 +35,11 @@ class _AreaEditablePageState extends State<AreaEditablePage> {
   final List<_AreaNode?> _selected = List.filled(4, null);
   late List<String> _labels;
   late String _about;
-  final _namesController = TextEditingController();
-  int? _addingLevel;
-  String? _addError;
+  final _addControllers = List.generate(4, (_) => TextEditingController());
+  final _addErrors = List<String?>.filled(4, null);
+  final _editController = TextEditingController();
+  _AreaNode? _editing;
+  String? _editError;
 
   @override
   void initState() {
@@ -54,162 +56,311 @@ class _AreaEditablePageState extends State<AreaEditablePage> {
       level == 0 ? _roots : _selected[level - 1]?.children ?? [];
 
   void _select(int level, _AreaNode node) {
+    if (_selected[level] == node) return;
     setState(() {
-      _addingLevel = null;
-      _addError = null;
-      _selected[level] = node;
-      for (var i = level + 1; i < 4; i++) {
-        _selected[i] = null;
-      }
+      _editing = null;
+      _setSelection(level, node);
     });
+  }
+
+  void _setSelection(int level, _AreaNode node) {
+    _selected[level] = node;
+    for (var i = level + 1; i < _selected.length; i++) {
+      _selected[i] = null;
+      _addControllers[i].clear();
+      _addErrors[i] = null;
+    }
   }
 
   @override
   void dispose() {
-    _namesController.dispose();
+    for (final controller in _addControllers) {
+      controller.dispose();
+    }
+    _editController.dispose();
     super.dispose();
   }
 
-  List<String> get _names => _namesController.text
-      .split(RegExp(r'\r?\n'))
-      .map((name) => name.trim())
-      .where((name) => name.isNotEmpty)
-      .toList();
-
   void _add(int level) {
-    setState(() {
-      _addingLevel = level;
-      _namesController.clear();
-      _addError = null;
-    });
-  }
-
-  void _cancelAdd() {
-    FocusScope.of(context).unfocus();
-    setState(() {
-      _addingLevel = null;
-      _namesController.clear();
-      _addError = null;
-    });
-  }
-
-  void _saveNames() {
-    final level = _addingLevel;
-    if (level == null) return;
-    final names = _names;
+    final controller = _addControllers[level];
+    final names = controller.text
+        .split('\n')
+        .map((name) => name.trim())
+        .where((name) => name.isNotEmpty)
+        .toList();
     if (names.isEmpty) {
-      setState(() => _addError = 'Enter at least one name');
+      setState(() => _addErrors[level] = 'Enter at least one name');
       return;
     }
+
     final options = _options(level);
     final seen = options.map((node) => node.name.toLowerCase()).toSet();
     for (final name in names) {
       if (!seen.add(name.toLowerCase())) {
-        setState(() => _addError = 'Duplicate name: $name');
+        setState(() => _addErrors[level] = 'Duplicate name: $name');
         return;
       }
     }
+
     final nodes = names.map(_AreaNode.new).toList();
-    options.addAll(nodes);
-    _select(level, nodes.first);
-    _cancelAdd();
+    FocusScope.of(context).unfocus();
+    setState(() {
+      options.addAll(nodes);
+      controller.clear();
+      _addErrors[level] = null;
+      _editing = null;
+      _setSelection(level, nodes.first);
+    });
   }
 
-  Widget _addForm(double s) {
-    final count = _names.length;
-    final small = AppTextStyles.bodySmall.copyWith(
-      fontSize: 8 * s,
-      color: _muted,
+  void _startEditing(_AreaNode node) {
+    _editController.value = TextEditingValue(
+      text: node.name,
+      selection: TextSelection(baseOffset: 0, extentOffset: node.name.length),
     );
-    final shape = RoundedRectangleBorder(
+    setState(() {
+      _editing = node;
+      _editError = null;
+    });
+  }
+
+  bool _saveEdit(int level, _AreaNode node) {
+    final name = _editController.text.trim();
+    if (name.isEmpty) {
+      setState(() => _editError = 'Enter a name');
+      return false;
+    }
+    if (_options(level).any(
+      (other) =>
+          other != node && other.name.toLowerCase() == name.toLowerCase(),
+    )) {
+      setState(() => _editError = 'Duplicate name: $name');
+      return false;
+    }
+    setState(() {
+      node.name = name;
+      _editing = null;
+    });
+    return true;
+  }
+
+  void _moveArea(List<_AreaNode> options, int fromIndex, int toIndex) {
+    setState(() => options.insert(toIndex, options.removeAt(fromIndex)));
+  }
+
+  InputDecoration _nameDecoration(
+    double s,
+    String hint,
+    String? error, {
+    bool compact = false,
+  }) {
+    final border = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(8 * s),
+      borderSide: const BorderSide(color: _border),
+    );
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: const TextStyle(color: _muted),
+      errorText: error,
+      errorMaxLines: 3,
+      filled: true,
+      fillColor: _bg,
+      isDense: true,
+      contentPadding: EdgeInsets.symmetric(
+        horizontal: 8 * s,
+        vertical: (compact ? 5 : 8) * s,
+      ),
+      border: border,
+      enabledBorder: border,
+      focusedBorder: border.copyWith(
+        borderSide: const BorderSide(color: _lime),
+      ),
+    );
+  }
+
+  Widget _areaSection(int level, double s) {
+    final label = _labels[level];
+    final options = _options(level);
+    final enabled = level == 0 || _selected[level - 1] != null;
+    final style = AppTextStyles.bodySmall.copyWith(
+      fontSize: 10 * s,
+      color: _white,
+    );
+    final buttonShape = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(8 * s),
     );
-    return Container(
-      margin: EdgeInsets.only(top: 7 * s, bottom: 4 * s),
-      padding: EdgeInsets.all(8 * s),
-      decoration: BoxDecoration(
-        color: _surface,
-        border: Border.all(color: _lime, width: .7),
-        borderRadius: BorderRadius.circular(9 * s),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            'Names · one per line',
-            style: small.copyWith(fontWeight: FontWeight.w500),
-          ),
-          SizedBox(height: 6 * s),
-          TextField(
-            controller: _namesController,
-            minLines: 5,
-            maxLines: 5,
-            keyboardType: TextInputType.multiline,
-            textInputAction: TextInputAction.newline,
-            textCapitalization: TextCapitalization.words,
-            cursorColor: _lime,
-            style: AppTextStyles.bodySmall.copyWith(
-              fontSize: 10 * s,
-              color: _white,
-              height: 1.5,
-            ),
-            onChanged: (_) => setState(() => _addError = null),
-            decoration: InputDecoration(
-              hintText: 'Enter names, one per line',
-              hintStyle: small,
-              errorText: _addError,
-              errorMaxLines: 3,
-              filled: true,
-              fillColor: _bg,
-              isDense: true,
-              contentPadding: EdgeInsets.all(8 * s),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8 * s),
-                borderSide: const BorderSide(color: _border, width: .7),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8 * s),
-                borderSide: const BorderSide(color: _border, width: .7),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8 * s),
-                borderSide: const BorderSide(color: _lime, width: .7),
-              ),
-            ),
-          ),
-          SizedBox(height: 6 * s),
-          Row(
+    final buttonStyle = OutlinedButton.styleFrom(
+      foregroundColor: _white,
+      side: const BorderSide(color: _border),
+      shape: buttonShape,
+    );
+
+    return SliverMainAxisGroup(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              OutlinedButton(
-                onPressed: _cancelAdd,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: _muted,
-                  shape: shape,
-                  side: const BorderSide(color: _border, width: .7),
-                  textStyle: small,
-                  minimumSize: Size(62 * s, 30 * s),
-                  padding: EdgeInsets.symmetric(horizontal: 10 * s),
-                ),
-                child: const Text('Cancel'),
-              ),
-              SizedBox(width: 7 * s),
-              Expanded(
-                child: FilledButton(
-                  onPressed: _saveNames,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: _lime,
-                    foregroundColor: _bg,
-                    shape: shape,
-                    minimumSize: Size(0, 30 * s),
-                    textStyle: small.copyWith(fontWeight: FontWeight.w500),
+              Text(label, style: style),
+              SizedBox(height: 4 * s),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _addControllers[level],
+                      enabled: enabled,
+                      minLines: 1,
+                      maxLines: 5,
+                      textCapitalization: TextCapitalization.words,
+                      style: style,
+                      decoration: _nameDecoration(
+                        s,
+                        enabled
+                            ? 'New ${label.toLowerCase()}'
+                            : 'Choose ${_labels[level - 1].toLowerCase()} first',
+                        _addErrors[level],
+                        compact: true,
+                      ),
+                      onChanged: (_) {
+                        if (_addErrors[level] != null) {
+                          setState(() => _addErrors[level] = null);
+                        }
+                      },
+                    ),
                   ),
-                  child: Text('Save $count ${count == 1 ? 'name' : 'names'}'),
-                ),
+                  SizedBox(width: 6 * s),
+                  FilledButton.icon(
+                    onPressed: enabled ? () => _add(level) : null,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: _lime,
+                      foregroundColor: _bg,
+                      minimumSize: const Size(0, 36),
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      shape: buttonShape,
+                    ),
+                    icon: const Icon(Icons.add, size: 16),
+                    label: const Text('Add'),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
-      ),
+        ),
+        if (options.isNotEmpty)
+          SliverReorderableList(
+            proxyDecorator: (child, index, animation) =>
+                Material(type: MaterialType.transparency, child: child),
+            itemCount: options.length,
+            onReorderItem: (oldIndex, newIndex) =>
+                _moveArea(options, oldIndex, newIndex),
+            itemBuilder: (context, index) {
+              final node = options[index];
+              return Padding(
+                key: ObjectKey(node),
+                padding: EdgeInsets.only(top: 5 * s),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Material(
+                      color: _surface,
+                      clipBehavior: Clip.antiAlias,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8 * s),
+                        side: BorderSide(
+                          color: _selected[level] == node ? _lime : _border,
+                        ),
+                      ),
+                      child: ListTile(
+                        contentPadding: EdgeInsetsDirectional.only(
+                          start: 10 * s,
+                          end: 5 * s,
+                        ),
+                        selected: _selected[level] == node,
+                        selectedColor: _lime,
+                        textColor: _white,
+                        dense: true,
+                        leading: options.length > 1
+                            ? ReorderableDelayedDragStartListener(
+                                index: index,
+                                child: PopupMenuButton<int>(
+                                  tooltip: '',
+                                  icon: const Icon(
+                                    Icons.drag_indicator,
+                                    color: _muted,
+                                  ),
+                                  onSelected: (target) =>
+                                      _moveArea(options, index, target),
+                                  itemBuilder: (context) => [
+                                    if (index > 0)
+                                      PopupMenuItem(
+                                        value: index - 1,
+                                        child: const Text('Move up'),
+                                      ),
+                                    if (index < options.length - 1)
+                                      PopupMenuItem(
+                                        value: index + 1,
+                                        child: const Text('Move down'),
+                                      ),
+                                  ],
+                                ),
+                              )
+                            : null,
+                        title: Text(node.name),
+                        onTap: () => _select(level, node),
+                        trailing: OutlinedButton(
+                          onPressed: () => _startEditing(node),
+                          style: buttonStyle,
+                          child: const Text('Edit'),
+                        ),
+                      ),
+                    ),
+                    if (_editing == node)
+                      Padding(
+                        padding: EdgeInsets.only(top: 5 * s),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text('Edit ${label.toLowerCase()}', style: style),
+                            SizedBox(height: 4 * s),
+                            TextField(
+                              controller: _editController,
+                              autofocus: true,
+                              textCapitalization: TextCapitalization.words,
+                              style: style,
+                              decoration: _nameDecoration(s, label, _editError),
+                              onChanged: (_) {
+                                if (_editError != null) {
+                                  setState(() => _editError = null);
+                                }
+                              },
+                              onSubmitted: (_) => _saveEdit(level, node),
+                            ),
+                            Wrap(
+                              alignment: WrapAlignment.end,
+                              spacing: 6 * s,
+                              children: [
+                                TextButton(
+                                  onPressed: () =>
+                                      setState(() => _editing = null),
+                                  child: const Text('Cancel'),
+                                ),
+                                OutlinedButton(
+                                  onPressed: () => _saveEdit(level, node),
+                                  style: buttonStyle,
+                                  child: const Text('Save'),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            },
+          ),
+      ],
     );
   }
 
@@ -252,14 +403,6 @@ class _AreaEditablePageState extends State<AreaEditablePage> {
           final path = selectedNames.isEmpty
               ? widget.projectName
               : selectedNames.join(' › ');
-          final parentNames = _selected
-              .take(_addingLevel ?? 0)
-              .whereType<_AreaNode>()
-              .map((node) => node.name)
-              .toList();
-          final parentPath = parentNames.isEmpty
-              ? widget.projectName
-              : parentNames.join(' › ');
           return Padding(
             padding: EdgeInsets.fromLTRB(13 * s, 13 * s, 13 * s, 7 * s),
             child: Column(
@@ -294,166 +437,65 @@ class _AreaEditablePageState extends State<AreaEditablePage> {
                     Text('Areas', style: text(15, bold: true, color: _white)),
                   ],
                 ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: _editLabels,
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      minimumSize: Size(44 * s, 14 * s),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: Text(
-                      'Edit labels',
-                      style: text(8, bold: true, color: _lime),
-                    ),
-                  ),
-                ),
+
                 Text(widget.projectName, style: text(8)),
                 SizedBox(height: 14 * s),
                 Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(9 * s),
-                          decoration: BoxDecoration(
-                            color: _surface.withValues(alpha: .5),
-                            borderRadius: BorderRadius.circular(8 * s),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _addingLevel == null
-                                    ? 'Selected area'
-                                    : 'Adding under',
-                                style: text(8, bold: true),
+                  child: CustomScrollView(
+                    slivers: [
+                      SliverToBoxAdapter(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Container(
+                              padding: EdgeInsets.all(9 * s),
+                              decoration: BoxDecoration(
+                                color: _surface.withValues(alpha: .5),
+                                borderRadius: BorderRadius.circular(8 * s),
                               ),
-                              SizedBox(height: 5 * s),
-                              Text(
-                                _addingLevel == null ? path : parentPath,
-                                style: text(10, bold: true, color: _white),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Selected area',
+                                    style: text(8, bold: true),
+                                  ),
+                                  SizedBox(height: 5 * s),
+                                  Text(
+                                    path,
+                                    style: text(10, bold: true, color: _white),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
+                            ),
+                            SizedBox(height: 10 * s),
+                            Text(
+                              'Tap an area to show its entries. Hold and drag a handle, or tap it for move options.',
+                              style: text(9),
+                            ),
+                            SizedBox(height: 8 * s),
+                          ],
                         ),
-                        SizedBox(height: 10 * s),
-                        for (var i = 0; i < 4; i++) ...[
-                          Text(_labels[i], style: text(9, bold: true)),
-                          SizedBox(height: 2 * s),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 8 * s,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: _surface,
-                                    border: Border.all(
-                                      color: _border,
-                                      width: .7,
-                                    ),
-                                    borderRadius: BorderRadius.circular(8 * s),
-                                  ),
-                                  child: DropdownButtonHideUnderline(
-                                    child: DropdownButton<_AreaNode>(
-                                      value: _selected[i],
-                                      isExpanded: true,
-                                      dropdownColor: _surface,
-                                      style: text(9, color: _white),
-                                      icon: Icon(
-                                        Icons.expand_more,
-                                        color: _muted,
-                                        size: 12 * s,
-                                      ),
-                                      hint: Text(
-                                        (i == 0 || _selected[i - 1] != null)
-                                            ? 'Select ${_labels[i].toLowerCase()}'
-                                            : 'Choose ${_labels[i - 1].toLowerCase()} first',
-                                        style: text(9),
-                                      ),
-                                      items: _options(i)
-                                          .map(
-                                            (node) => DropdownMenuItem(
-                                              value: node,
-                                              child: Text(node.name),
-                                            ),
-                                          )
-                                          .toList(),
-                                      onChanged: (value) {
-                                        if (value != null) _select(i, value);
-                                      },
-                                      itemHeight: null,
-                                      isDense: true,
-                                      padding: EdgeInsets.symmetric(
-                                        vertical: 9 * s,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 7 * s),
-                              SizedBox(
-                                width: 55 * s,
-                                height: 31 * s,
-                                child: OutlinedButton(
-                                  onPressed: i == 0 || _selected[i - 1] != null
-                                      ? () => _add(i)
-                                      : null,
-                                  style: OutlinedButton.styleFrom(
-                                    padding: EdgeInsets.zero,
-                                    foregroundColor: _lime,
-                                    disabledForegroundColor: _muted,
-                                    side: BorderSide(
-                                      color: i == 0 || _selected[i - 1] != null
-                                          ? _lime
-                                          : _border,
-                                      width: .7,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(
-                                        8 * s,
-                                      ),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    '+ Add',
-                                    style: text(
-                                      9,
-                                      bold: true,
-                                      color: i == 0 || _selected[i - 1] != null
-                                          ? _lime
-                                          : _muted,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (_addingLevel == i) _addForm(s),
-                          SizedBox(height: 6 * s),
-                        ],
-                        SizedBox(height: 28 * s),
-                        Text(
-                          'Choose a parent first. Each bar shows only the names saved under it.',
-                          style: text(9),
-                        ),
-                        SizedBox(height: 12 * s),
+                      ),
+                      for (var i = 0; i < _labels.length; i++) ...[
+                        _areaSection(i, s),
+                        SliverToBoxAdapter(child: SizedBox(height: 10 * s)),
                       ],
-                    ),
+                      SliverToBoxAdapter(child: SizedBox(height: 12 * s)),
+                    ],
                   ),
                 ),
                 SizedBox(height: 12 * s),
                 FilledButton(
                   onPressed: () {
-                    if (_addingLevel != null) {
-                      _saveNames();
-                    } else {
-                      FocusScope.of(context).unfocus();
+                    final node = _editing;
+                    if (node != null) {
+                      final level = _labels.asMap().keys.firstWhere(
+                        (level) => _options(level).contains(node),
+                      );
+                      if (!_saveEdit(level, node)) return;
                     }
+                    FocusScope.of(context).unfocus();
                   },
                   style: FilledButton.styleFrom(
                     backgroundColor: _lime,
