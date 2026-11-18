@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../data/master_flow_store.dart';
 import 'master_flow_detail_page.dart';
 import 'package:dropline/core/di/global_di.dart';
+import 'package:dropline/core/secure_storage/secure_storage.dart';
 import 'package:dropline/features/companies/domain/usecase/get_sub_companies_usecase.dart';
 
 const bgColor = Color(0xFF102633);
@@ -383,20 +384,18 @@ class _CreateMasterFlowScreenState extends State<CreateMasterFlowScreen> {
       _companyError = 'Trade companies are unavailable. Please restart the app.';
       return;
     }
-    if (widget.projectId.trim().isEmpty) {
-      setState(() {
-        _loadingCompanies = false;
-        _companyError = 'Project details are missing. Reopen the project from Me.';
-      });
-      return;
-    }
     setState(() {
       _loadingCompanies = true;
       _companyError = null;
     });
     try {
+      final punches = await sl<SecureStorage>().readPunchInResult();
+      final storedProjectId = punches.isEmpty ? '' : punches.first.projectId.trim();
+      final projectId = storedProjectId.isNotEmpty
+          ? storedProjectId
+          : widget.projectId.trim();
       final companies = await sl<GetSubCompaniesUsecase>()(
-        projectId: widget.projectId,
+        projectId: projectId,
         companyId: widget.companyId,
       );
       if (mounted) {

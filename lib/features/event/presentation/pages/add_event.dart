@@ -844,12 +844,12 @@ class _AddEventPageState extends State<AddEventPage> {
                               Container(
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(14),
-                                  border: _attachmentInvalid
-                                      ? Border.all(
-                                          color: Colors.redAccent,
-                                          width: 1.5,
-                                        )
-                                      : null,
+                                  // border: _attachmentInvalid
+                                  //     ? Border.all(
+                                  //         color: Colors.redAccent,
+                                  //         width: 1.5,
+                                  //       )
+                                  //     : null,
                                 ),
                                 child: _buildBottomTools(),
                               ),
