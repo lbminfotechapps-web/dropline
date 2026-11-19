@@ -381,7 +381,8 @@ class _CreateMasterFlowScreenState extends State<CreateMasterFlowScreen> {
     }
     if (!sl.isRegistered<GetSubCompaniesUsecase>()) {
       _loadingCompanies = false;
-      _companyError = 'Trade companies are unavailable. Please restart the app.';
+      _companyError =
+          'Trade companies are unavailable. Please restart the app.';
       return;
     }
     setState(() {
@@ -390,7 +391,9 @@ class _CreateMasterFlowScreenState extends State<CreateMasterFlowScreen> {
     });
     try {
       final punches = await sl<SecureStorage>().readPunchInResult();
-      final storedProjectId = punches.isEmpty ? '' : punches.first.projectId.trim();
+      final storedProjectId = punches.isEmpty
+          ? ''
+          : punches.first.projectId.trim();
       final projectId = storedProjectId.isNotEmpty
           ? storedProjectId
           : widget.projectId.trim();
@@ -400,9 +403,12 @@ class _CreateMasterFlowScreenState extends State<CreateMasterFlowScreen> {
       );
       if (mounted) {
         setState(() {
-          _companies = {..._companies, ...companies
-              .map((company) => company.subCompanyName.trim())
-              .where((name) => name.isNotEmpty)}.toList();
+          _companies = {
+            ..._companies,
+            ...companies
+                .map((company) => company.subCompanyName.trim())
+                .where((name) => name.isNotEmpty),
+          }.toList();
           _loadingCompanies = false;
         });
       }
