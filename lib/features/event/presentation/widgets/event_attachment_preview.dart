@@ -14,12 +14,14 @@ class EventAttachmentPreview extends StatelessWidget {
     required this.item,
     required this.onEditPdf,
     this.fillPreview = false,
+    this.fitPhotoWidth = false,
   });
 
   final File file;
   final EventDraftItem item;
   final VoidCallback onEditPdf;
   final bool fillPreview;
+  final bool fitPhotoWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -28,6 +30,28 @@ class EventAttachmentPreview extends StatelessWidget {
     }
     switch (item.type) {
       case EventItemType.photo:
+        if (fitPhotoWidth) {
+          return LayoutBuilder(
+            builder: (context, constraints) => InteractiveViewer(
+              constrained: false,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight,
+                  maxWidth: constraints.maxWidth,
+                ),
+                child: Center(
+                  child: Image.file(
+                    file,
+                    width: constraints.maxWidth,
+                    fit: BoxFit.fitWidth,
+                    errorBuilder: (_, _, _) =>
+                        const Text('Unable to open photo.'),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
         return InteractiveViewer(
           child: SizedBox.expand(
             child: Image.file(

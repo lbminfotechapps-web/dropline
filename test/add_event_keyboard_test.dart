@@ -10,6 +10,7 @@ class _Slots extends TimeSlotRemoteDataSource {
   @override
   Future<List<TimeSlot>> getTimeSlots() async => const [
     TimeSlot(id: '1', time: '00:00'),
+    TimeSlot(id: '2', time: '23:59'),
   ];
 }
 
@@ -27,6 +28,35 @@ class _Drafts extends EventDraftStore {
 }
 
 void main() {
+  testWidgets('timeline and time slot menu stay in sync', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AddEventPage(
+          projectId: '1',
+          projectName: 'Project',
+          draftStore: _Drafts(),
+          timeSlotDataSource: _Slots(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final picker = find.byTooltip('Choose time slot');
+    final alternate = find.textContaining('· 23:59').evaluate().isEmpty
+        ? '23:59'
+        : '00:00';
+    expect(find.text(alternate), findsOneWidget);
+
+    await tester.tap(picker);
+    await tester.pumpAndSettle();
+    expect(find.text(alternate), findsNWidgets(2));
+
+    await tester.tap(find.text(alternate).last);
+    await tester.pumpAndSettle();
+    expect(find.text(alternate), findsOneWidget);
+    expect(find.textContaining('· $alternate'), findsOneWidget);
+  });
+
   for (final size in [const Size(320, 568), const Size(390, 844)]) {
     testWidgets('note remains editable above keyboard at $size', (
       tester,

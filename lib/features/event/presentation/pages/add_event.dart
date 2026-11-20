@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:dropline/core/utility/widgets/appbar.dart';
 import 'dart:io';
 import 'package:dropline/features/event/domain/entities/event_draft_scope.dart';
 import 'package:dropline/features/event/domain/entities/location_flow_args.dart';
@@ -19,7 +18,6 @@ import 'package:go_router/go_router.dart';
 
 import '../widgets/audio_recorder_dialog.dart';
 
-import 'package:dropline/core/theme/app_text_styles.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 
 import 'package:file_picker/file_picker.dart';
@@ -50,18 +48,26 @@ class AddEventPage extends StatefulWidget {
 }
 
 class _AddEventPageState extends State<AddEventPage> {
+  static const _canvas = Color(0xFFF3F8F7);
+  static const _ink = Color(0xFF162C36);
+  static const _muted = Color(0xFF4F6167);
+  static const _line = Color(0xFFDCE6E4);
+  static const _green = Color(0xFF215B3A);
+  static const _backButtonSize = 44.0;
+  static const _actionSpacing = 8.0;
+  static const _actionBorderRadius = BorderRadius.all(Radius.circular(20));
+
   final _noteController = TextEditingController();
   final _noteFocus = FocusNode();
-  final _timeController = ScrollController();
   late final EventDraftStore _store;
   final _draftDate = DateTime.now();
   List<EventDraftItem> _items = [];
   bool _attachmentValidationAttempted = false;
-  final Set<String> _selectedAttachmentIds = {};
+  final Set<String> _selectedItemIds = {};
 
   bool get _hasAttachment => _items.any(
     (item) =>
-        _selectedAttachmentIds.contains(item.id) &&
+        _selectedItemIds.contains(item.id) &&
         (item.type == EventItemType.photo ||
             item.type == EventItemType.pdf ||
             item.type == EventItemType.audio),
@@ -126,7 +132,7 @@ class _AddEventPageState extends State<AddEventPage> {
       projectId: widget.projectId,
       date: _draftDate,
       timeSlotId: _timeSlots[_selectedTime].id,
-      selectedItemIds: Set<String>.unmodifiable(_selectedAttachmentIds),
+      selectedItemIds: Set<String>.unmodifiable(_selectedItemIds),
     );
   }
 
@@ -208,17 +214,6 @@ class _AddEventPageState extends State<AddEventPage> {
       } else {
         setState(() => _loadingDraft = false);
       }
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted || !_timeController.hasClients) return;
-        final offset =
-            2 +
-            selected * 88 +
-            40.5 -
-            _timeController.position.viewportDimension / 2;
-        _timeController.jumpTo(
-          offset.clamp(0.0, _timeController.position.maxScrollExtent),
-        );
-      });
     } catch (_) {
       if (!mounted) return;
       setState(() {
@@ -292,7 +287,7 @@ class _AddEventPageState extends State<AddEventPage> {
           _slotsWithData.remove(_timeSlots[_selectedTime].id);
         }
         _items = items;
-        _selectedAttachmentIds.removeWhere(
+        _selectedItemIds.removeWhere(
           (id) => !items.any((item) => item.id == id),
         );
         _attachmentValidationAttempted = false;
@@ -374,6 +369,18 @@ class _AddEventPageState extends State<AddEventPage> {
     }
   }
 
+  void _startNote() {
+    if (_selectedItem?.type != EventItemType.note ||
+        _noteController.text.isNotEmpty) {
+      _newNote();
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _selectedItem?.type == EventItemType.note) {
+        _noteFocus.requestFocus();
+      }
+    });
+  }
+
   void _newNote() {
     if (!_canEdit) return;
     FocusScope.of(context).unfocus();
@@ -394,13 +401,14 @@ class _AddEventPageState extends State<AddEventPage> {
 
   void _noteChanged(String value) {
     if (!_canEdit) return;
-    if (_selectedItem == null) {
+    if (_selectedItem?.type != EventItemType.note) {
       setState(() {
         _items.add(
           EventDraftItem(
             id: DateTime.now().microsecondsSinceEpoch.toString(),
             type: EventItemType.note,
-            name: 'Note 1',
+            name:
+                'Note ${_items.where((item) => item.type == EventItemType.note).length + 1}',
             text: value,
           ),
         );
@@ -433,18 +441,18 @@ class _AddEventPageState extends State<AddEventPage> {
     }
   }
 
-  Future<void> _pickAttachment(FileType type) async {
+  Future<void> _pickPdf() async {
     if (!_canEdit) return;
     setState(() => _picking = true);
     try {
       final result = await FilePicker.pickFiles(
-        type: type,
-        allowedExtensions: type == FileType.custom ? ['pdf'] : null,
+        type: FileType.custom,
+        allowedExtensions: ['pdf'],
       );
       if (!mounted) return;
       await _addFiles(
         result.map((file) => file.xFile).toList(),
-        type == FileType.audio ? EventItemType.audio : EventItemType.pdf,
+        EventItemType.pdf,
       );
     } catch (_) {
       _message('Unable to attach files. Please try again.');
@@ -605,8 +613,6 @@ class _AddEventPageState extends State<AddEventPage> {
   }
 
   String get _eventDateLabel {
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
     const months = [
       'Jan',
       'Feb',
@@ -622,130 +628,95 @@ class _AddEventPageState extends State<AddEventPage> {
       'Dec',
     ];
 
-    return '${days[_draftDate.weekday - 1]} '
-        '${_draftDate.day} '
+    const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return '${weekdays[_draftDate.weekday - 1]} ${_draftDate.day} '
         '${months[_draftDate.month - 1]}';
   }
 
-  Widget _buildDateHeader() {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const Icon(
-          Icons.calendar_today_outlined,
-          color: AppColors.iconColor,
-          size: 15,
-        ),
-        const SizedBox(width: 7),
-        Text(
-          _eventDateLabel,
-          style: const TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        if (_saveFailed)
-          TextButton(
-            onPressed: _saveDraft,
-            child: const Text(
-              'Retry save',
-              style: TextStyle(color: AppColors.error),
-            ),
-          ),
-      ],
-    );
-  }
+  // Widget _buildDateHeader() {
+  //   if (_loadingTimeSlots) {
+  //     return const Text('Loading time slots…');
+  //   }
+  //   if (_timeSlotsFailed || _timeSlots.isEmpty) {
+  //     return Align(
+  //       alignment: Alignment.centerLeft,
+  //       child: TextButton(
+  //         onPressed: _loadTimeSlots,
+  //         child: const Text('Retry loading time slots'),
+  //       ),
+  //     );
+  //   }
 
-  Widget _buildTimeSlots() {
-    if (_loadingTimeSlots) {
-      return const SizedBox(
-        height: 43,
-        child: Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
-        ),
-      );
-    }
-
-    if (_timeSlotsFailed || _timeSlots.isEmpty) {
-      return SizedBox(
-        height: 43,
-        child: TextButton(
-          onPressed: _loadTimeSlots,
-          child: const Text('Retry loading time slots'),
-        ),
-      );
-    }
-
-    return SizedBox(
-      height: 43,
-      child: ListView.builder(
-        controller: _timeController,
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 2),
-        itemCount: _timeSlots.length,
-        itemExtent: 88,
-        itemBuilder: (context, index) {
-          final selected = _selectedTime == index;
-          final hasData = _slotsWithData.contains(_timeSlots[index].id);
-
-          return Padding(
-            padding: const EdgeInsets.only(right: 7),
-            child: InkWell(
-              onTap: _canEdit ? () => _selectTime(index) : null,
-              borderRadius: BorderRadius.circular(11),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
-                constraints: const BoxConstraints(minWidth: 61),
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: selected || hasData
-                      ? AppColors.primary
-                      : AppColors.inputBackground,
-                  borderRadius: BorderRadius.circular(11),
-                  border: Border.all(
-                    color: hasData
-                        ? AppColors.success
-                        : selected
-                        ? AppColors.primary
-                        : AppColors.border,
-                    width: selected || hasData ? 2 : 1,
-                  ),
-                ),
-                child: Text(
-                  _timeLabel(index),
-                  style: TextStyle(
-                    color: selected || hasData
-                        ? AppColors.primaryText
-                        : AppColors.textPrimary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
+  //   return Align(
+  //     alignment: Alignment.centerLeft,
+  //     child: PopupMenuButton<int>(
+  //       tooltip: 'Choose time slot',
+  //       initialValue: _selectedTime,
+  //       enabled: _canEdit && !_saveFailed && _pendingSaves == 0,
+  //       color: Colors.white,
+  //       constraints: const BoxConstraints(minWidth: 112, maxHeight: 280),
+  //       onSelected: (index) {
+  //         if (index != _selectedTime) unawaited(_selectTime(index));
+  //       },
+  //       itemBuilder: (context) => [
+  //         for (var index = 0; index < _timeSlots.length; index++)
+  //           PopupMenuItem(
+  //             value: index,
+  //             height: 44,
+  //             child: Row(
+  //               mainAxisSize: MainAxisSize.min,
+  //               children: [
+  //                 Text(_timeLabel(index), style: const TextStyle(color: _ink)),
+  //                 if (_slotsWithData.contains(_timeSlots[index].id)) ...[
+  //                   const SizedBox(width: 8),
+  //                   const Icon(
+  //                     Icons.check_circle_outline,
+  //                     color: AppColors.success,
+  //                     size: 14,
+  //                     semanticLabel: 'Has saved items',
+  //                   ),
+  //                 ],
+  //               ],
+  //             ),
+  //           ),
+  //       ],
+  //       child: Padding(
+  //         padding: const EdgeInsets.symmetric(vertical: 2),
+  //         child: Row(
+  //           mainAxisSize: MainAxisSize.min,
+  //           children: [
+  //             Flexible(
+  //               child: Text(
+  //                 '$_eventDateLabel · ${_timeLabel(_selectedTime)}',
+  //                 maxLines: 1,
+  //                 overflow: TextOverflow.ellipsis,
+  //                 style: const TextStyle(color: _muted, fontSize: 12),
+  //               ),
+  //             ),
+  //             const SizedBox(width: 4),
+  //             const Icon(Icons.expand_more, color: _muted, size: 16),
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   @override
   void dispose() {
     _noteController.dispose();
     _noteFocus.dispose();
-    _timeController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final keyboardVisible = MediaQuery.viewInsetsOf(context).bottom > 0;
+    final noteSelected = _selectedItem?.type == EventItemType.note;
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light.copyWith(
+      value: SystemUiOverlayStyle.dark.copyWith(
         statusBarColor: AppColors.transparent,
-        systemNavigationBarColor: AppColors.background,
+        systemNavigationBarColor: _canvas,
       ),
       child: PopScope(
         canPop: _pendingSaves == 0 && !_picking && !_saveFailed,
@@ -759,371 +730,316 @@ class _AddEventPageState extends State<AddEventPage> {
           }
         },
         child: Scaffold(
-          backgroundColor: AppColors.background,
+          backgroundColor: _canvas,
           resizeToAvoidBottomInset: true,
-          appBar: CustomAppBar(
-            title: _punchProjectName ?? widget.projectName,
-            onBackPressed: () => context.push(AppRouter.punchOut),
-            subtitleWidget: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(7),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Icon(
-                    Icons.work_outline_rounded,
-                    color: AppColors.iconColor,
-                    size: 13,
-                  ),
-                  SizedBox(width: 5),
-                  Text(
-                    'Project',
-                    style: TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 10,
+                  if (!keyboardVisible) ...[
+                    Row(
+                      children: [
+                        // IconButton(
+                        //   tooltip: 'Punch out',
+                        //   onPressed: () => context.push(AppRouter.punchOut),
+                        //   color: _muted,
+                        //   icon: const Icon(Icons.apartment_outlined, size: 20),
+                        // ),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(5.0),
+                                child: Center(
+                                  child: Text(
+                                    _punchProjectName ?? widget.projectName,
+                                    style: TextStyle(color: _ink),
+                                  ),
+                                ),
+                              ),
+                              // _buildDateHeader(),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
+                    if (!noteSelected)
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Container(
+                            clipBehavior: Clip.antiAlias,
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: _actionBorderRadius,
+                            ),
+                            child: _selectedItem == null
+                                ? _buildSitePrompt()
+                                : _buildPreviewCard(),
+                          ),
+                        ),
+                      ),
+                    if (noteSelected && _draftError != null) _buildSitePrompt(),
+                  ],
+                  Flexible(
+                    key: const ValueKey('event-composer-area'),
+                    flex: noteSelected ? 1 : 0,
+                    fit: FlexFit.tight,
+                    child: _buildComposer(keyboardVisible, noteSelected),
                   ),
                 ],
               ),
             ),
           ),
-          //  _buildEventHeader(),
-          body: SafeArea(
-            child: LayoutBuilder(
-              builder: (context, _) {
-                final editingNote =
-                    _selectedItem?.type == EventItemType.note &&
-                    keyboardVisible;
-                return Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-                  child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Expanded(
-                              child: _buildPreviewCard(),
-                            ),
-                            if (!editingNote)
-                                    Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                                      children: [
-                              const SizedBox(height: 8),
+        ),
+      ),
+    );
+  }
 
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  _buildItemsHeader(),
-                                  _buildDateHeader(),
-                                ],
-                              ),
+  Widget _buildSitePrompt() {
+    if (_draftError != null) {
+      return Center(
+        child: TextButton(
+          onPressed: _timeSlots.isEmpty ? null : _loadDraft,
+          child: Text(_draftError!, textAlign: TextAlign.center),
+        ),
+      );
+    }
 
-                              const SizedBox(height: 6),
-
-                              if (_items.isNotEmpty) _buildEventItems(),
-
-                              const SizedBox(height: 8),
-
-                              if (_attachmentInvalid) ...[
-                                const Text(
-                                  'Select at least one image, PDF or audio attachment.',
-                                  style: TextStyle(
-                                    color: Colors.redAccent,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                              ],
-                              _buildTimeSlots(),
-
-                              const SizedBox(height: 8),
-
-                              Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(14),
-                                  // border: _attachmentInvalid
-                                  //     ? Border.all(
-                                  //         color: Colors.redAccent,
-                                  //         width: 1.5,
-                                  //       )
-                                  //     : null,
-                                ),
-                                child: _buildBottomTools(),
-                              ),
-                              const SizedBox(height: 8),
-
-                              _buildBottomActions(),
-
-                              const SizedBox(height: 6),
-
-                              Center(
-                                child: Text(
-                                  _saveFailed
-                                      ? 'Save failed. Retry before leaving.'
-                                      : _pendingSaves > 0
-                                      ? 'Saving changes...'
-                                      : _loadingDraft || _loadingTimeSlots
-                                      ? 'Loading...'
-                                      : _items.isEmpty
-                                      ? 'Add an item, then tap Save update.'
-                                      : 'Changes are saved locally.',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: _saveFailed
-                                        ? AppColors.error
-                                        : AppColors.textSecondary,
-                                    fontSize: 11,
-                                  ),
-                                ),
-                              ),
-                                      ],
-                                    ),
-                          ],
-                        ),
-                );
-              },
-            ),
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 24),
+        child: Text(
+          'What’s happening on site?',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: _ink,
+            fontSize: 20,
+            fontWeight: FontWeight.w300,
           ),
         ),
       ),
     );
   }
 
-  Widget _buildBottomActions() {
-    final busy = !_canEdit || _pendingSaves > 0 || _saveFailed || _picking;
+  Widget _buildComposer(bool editingNote, bool noteSelected) {
+    return Column(
+      key: const ValueKey('event-composer'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (noteSelected) Expanded(child: _buildNoteField()),
+        if (editingNote)
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: _noteFocus.unfocus,
+              child: const Text('Done'),
+            ),
+          )
+        else ...[
+          if (_items.isNotEmpty) _buildEventItems(),
+          _buildTimeline(),
+          if (_attachmentInvalid)
+            const Padding(
+              padding: EdgeInsets.only(bottom: 6),
+              child: Text(
+                'Select at least one image, PDF or audio attachment.',
+                style: TextStyle(color: Color(0xFFAA2727), fontSize: 12),
+              ),
+            ),
+          _buildBottomTools(),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              SizedBox.square(
+                dimension: _backButtonSize,
+                child: BackButton(
+                  color: _ink,
+                  onPressed: () => context.go(AppRouter.dashboard),
+                  //  Navigator.of(context).maybePop(),
+                ),
+              ),
+              const SizedBox(width: _actionSpacing),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: FilledButton(
+                    onPressed: !_canEdit || _pendingSaves > 0
+                        ? null
+                        : _saveFailed
+                        ? _saveDraft
+                        : _completeEvent,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: _green,
+                      foregroundColor: Colors.white,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: _actionBorderRadius,
+                      ),
+                    ),
+                    child: Text(_saveFailed ? 'Retry' : 'Add Event'),
+                  ),
+                ),
+              ),
+              const SizedBox(width: _backButtonSize + _actionSpacing),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
 
+  Widget _buildTimeline() {
+    if (_timeSlots.isEmpty) return const SizedBox.shrink();
+    final count = _timeSlots.length.clamp(1, 5);
+    final start = (_selectedTime - 2).clamp(0, _timeSlots.length - count);
+    final enabled = _canEdit && !_saveFailed && _pendingSaves == 0;
     return Row(
       children: [
-        Expanded(
-          child: SizedBox(
-            height: 49,
-            child: OutlinedButton.icon(
-              onPressed: busy ? null : _completeEvent,
-              icon: const Icon(
-                Icons.layers_outlined,
-                size: 17,
-                color: AppColors.textPrimary,
-              ),
-              label: const Text(
-                'Add Event',
-                style: TextStyle(color: AppColors.textPrimary),
-              ),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.textPrimary,
-                side: const BorderSide(color: AppColors.border),
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+        for (var index = start; index < start + count; index++)
+          Expanded(
+            child: Semantics(
+              selected: index == _selectedTime,
+              child: TextButton(
+                onPressed: enabled && index != _selectedTime
+                    ? () => _selectTime(index)
+                    : null,
+                style: TextButton.styleFrom(
+                  backgroundColor: index == _selectedTime ? _green : null,
+                  foregroundColor: _muted,
+                  disabledForegroundColor: index == _selectedTime
+                      ? Colors.white
+                      : _muted,
+                  padding: const EdgeInsets.symmetric(horizontal: 2),
+                  minimumSize: const Size(0, 30),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  textStyle: const TextStyle(fontSize: 11),
                 ),
-                textStyle: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
+                child: Text(
+                  _timeLabel(index),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ),
           ),
-        ),
-
-        const SizedBox(width: 10),
-
-        // Expanded(
-        //   child: SizedBox(
-        //     height: 49,
-        //     child: ElevatedButton.icon(
-        //       onPressed: busyss
-        //           ? null
-        //           : () async {
-        //               final saved = await _saveDraft();
-        //               if (!mounted) return;
-
-        //               if (saved) {
-        //                 _message('Event draft saved locally.');
-        //               } else {
-        //                 _message('Unable to save event draft.');
-        //               }
-        //             },
-        //       icon: const Icon(Icons.check_rounded, size: 18),
-        //       label: const Text('Save update'),
-        //       style: ElevatedButton.styleFrom(
-        //         backgroundColor: AppColors.primary,
-        //         foregroundColor: AppColors.primaryText,
-        //         disabledBackgroundColor: AppColors.disabledButton,
-        //         disabledForegroundColor: AppColors.disabledText,
-        //         elevation: 0,
-        //         padding: const EdgeInsets.symmetric(horizontal: 7),
-        //         shape: RoundedRectangleBorder(
-        //           borderRadius: BorderRadius.circular(12),
-        //         ),
-        //         textStyle: const TextStyle(
-        //           fontSize: 12,
-        //           fontWeight: FontWeight.w500,
-        //         ),
-        //       ),
-        //     ),
-        //   ),
-        // ),
       ],
     );
   }
 
   Widget _buildBottomTools() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          flex: 2,
-          child: Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: _eventTool(
-              label: 'PDF',
-              icon: Icons.description_outlined,
-              onTap: () => _pickAttachment(FileType.custom),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _line),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _tool(
+              'PDF',
+              const Icon(Icons.picture_as_pdf_outlined, size: 19),
+              _canEdit ? _pickPdf : null,
             ),
           ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 56),
-                child: AspectRatio(
-                aspectRatio: 1,
-                child: Semantics(
-                  label: 'Take a photo',
-                  button: true,
-                  child: InkWell(
-                    onTap: _canEdit ? widget.onCamera ?? _takePhoto : null,
-                    customBorder: const CircleBorder(),
-                    child: Container(
-                      padding: const EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 3),
-                      ),
-                      child: const DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
+          Expanded(
+            child: _tool(
+              'Photo',
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: _canEdit ? _ink : _line),
+                ),
+                alignment: Alignment.center,
+                child: Icon(
+                  Icons.circle,
+                  size: 55,
+                  color: _canEdit ? _ink : _line,
+                ),
+              ),
+              _canEdit ? widget.onCamera ?? _takePhoto : null,
+              tooltip: 'Take a photo',
+            ),
+          ),
+          Expanded(
+            child: PopupMenuButton<bool>(
+              tooltip: 'Note & voice',
+              enabled: _canEdit,
+              onSelected: (writeNote) {
+                if (writeNote) {
+                  _startNote();
+                } else {
+                  (widget.onRecordAudio ?? _openRecorder)();
+                }
+              },
+              itemBuilder: (_) => const [
+                PopupMenuItem(value: true, child: Text('Write note')),
+                PopupMenuItem(value: false, child: Text('Record voice note')),
+              ],
+              child: const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.edit_note_outlined, color: _ink, size: 21),
+                    SizedBox(height: 3),
+                    Text(
+                      'Note & voice',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: _ink, fontSize: 11),
                     ),
-                  ),
-                ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 6),
-              const Text(
-                'Photo',
-                style: TextStyle(color: AppColors.textPrimary, fontSize: 12),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: _eventTool(
-              label: 'Note',
-              icon: Icons.edit_note_rounded,
-              onTap: _newNote,
             ),
           ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: _eventTool(
-              label: 'Audio',
-              icon: Icons.mic_none_rounded,
-              onTap: widget.onRecordAudio ?? _openRecorder,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _eventTool({
-    required String label,
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: const Color(0xFF30485C),
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: _canEdit ? onTap : null,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          height: 62,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFA9CFA0)),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 24,
-                color: _canEdit ? AppColors.iconColor : AppColors.disabledText,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
+        ],
       ),
     );
   }
 
-  Widget _buildItemsHeader() => Text(
-    '${_items.length} items · ${_selectedAttachmentIds.length} selected',
-    style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-  );
+  Widget _tool(
+    String label,
+    Widget icon,
+    VoidCallback? onPressed, {
+    String? tooltip,
+  }) {
+    final button = TextButton(
+      onPressed: onPressed,
+      style: TextButton.styleFrom(
+        foregroundColor: _ink,
+        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 5),
+        textStyle: const TextStyle(fontSize: 11),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [icon, const SizedBox(height: 3), Text(label)],
+      ),
+    );
+    return tooltip == null ? button : Tooltip(message: tooltip, child: button);
+  }
 
   Widget _buildEventItems() {
-    if (_items.isEmpty) {
-      return Container(
-        height: 65,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: const Text(
-          'No items added yet',
-          style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
-        ),
-      );
-    }
-
     return SizedBox(
-      height: 76,
+      height: 82,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: _items.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 9),
+        separatorBuilder: (_, _) => const SizedBox(width: 9),
         itemBuilder: (context, index) {
           final item = _items[index];
           final selected = _selectedCard == index;
+          final included = _selectedItemIds.contains(item.id);
+          final notePreview = item.type == EventItemType.note
+              ? item.text.trim()
+              : '';
 
           final icon = switch (item.type) {
             EventItemType.note => Icons.sticky_note_2_outlined,
@@ -1135,26 +1051,24 @@ class _AddEventPageState extends State<AddEventPage> {
           return InkWell(
             onTap: _canEdit
                 ? () {
-                    if (item.type != EventItemType.note) {
-                      setState(() {
-                        if (!_selectedAttachmentIds.add(item.id)) {
-                          _selectedAttachmentIds.remove(item.id);
-                        }
-                      });
-                    }
+                    setState(() {
+                      if (!_selectedItemIds.add(item.id)) {
+                        _selectedItemIds.remove(item.id);
+                      }
+                    });
                     _selectItem(index);
                   }
                 : null,
             borderRadius: BorderRadius.circular(12),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 180),
-              width: 88,
+              width: 82,
               padding: EdgeInsets.all(item.type == EventItemType.photo ? 2 : 7),
               decoration: BoxDecoration(
-                color: AppColors.cardBackground,
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: selected ? AppColors.primary : AppColors.border,
+                  color: selected ? _green : _line,
                   width: selected ? 1.5 : 1,
                 ),
               ),
@@ -1169,50 +1083,48 @@ class _AddEventPageState extends State<AddEventPage> {
                             builder: (context, snapshot) {
                               final file = snapshot.data;
                               if (file == null) {
-                                return Icon(
-                                  icon,
-                                  color: AppColors.iconColor,
-                                  size: 25,
-                                );
+                                return Icon(icon, color: _muted, size: 25);
                               }
                               return Image.file(
                                 file,
                                 width: double.infinity,
                                 height: double.infinity,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, _, _) => Icon(
-                                  icon,
-                                  color: AppColors.iconColor,
-                                  size: 25,
-                                ),
+                                errorBuilder: (_, _, _) =>
+                                    Icon(icon, color: _muted, size: 25),
                               );
                             },
                           ),
                         )
-                      : Icon(
-                          icon,
-                          color: selected
-                              ? AppColors.primary
-                              : AppColors.iconColor,
-                          size: 25,
-                        ),
-                  if (item.type != EventItemType.note)
-                    Positioned(
-                      top: 2,
-                      right: 2,
-                      child: Icon(
-                        _selectedAttachmentIds.contains(item.id)
-                            ? Icons.check_circle
-                            : Icons.radio_button_unchecked,
-                        color: _selectedAttachmentIds.contains(item.id)
-                            ? AppColors.primary
-                            : Colors.white,
-                        size: 23,
-                        shadows: const [
-                          Shadow(color: Colors.black54, blurRadius: 3),
-                        ],
-                      ),
+                      : notePreview.isNotEmpty
+                      ? Padding(
+                          padding: const EdgeInsets.only(top: 23),
+                          child: Text(
+                            notePreview,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: _ink,
+                              fontSize: 12,
+                              height: 1.2,
+                            ),
+                          ),
+                        )
+                      : Icon(icon, color: selected ? _green : _muted, size: 25),
+                  Positioned(
+                    top: 2,
+                    right: 2,
+                    child: Icon(
+                      included
+                          ? Icons.check_circle
+                          : Icons.radio_button_unchecked,
+                      color: included ? _green : Colors.white,
+                      size: 23,
+                      shadows: const [
+                        Shadow(color: Colors.black54, blurRadius: 3),
+                      ],
                     ),
+                  ),
                 ],
               ),
             ),
@@ -1223,235 +1135,85 @@ class _AddEventPageState extends State<AddEventPage> {
   }
 
   Widget _buildPreviewCard() {
-    final item = _selectedItem;
-
-    if (item == null) {
-      return Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: const Color(0xFF192A3B),
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+    final item = _selectedItem!;
+    final photo = item.type == EventItemType.photo;
+    return LayoutBuilder(
+      builder: (context, constraints) => ClipRect(
+        child: Stack(
+          fit: StackFit.expand,
           children: [
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF152435),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: _buildSelectedPreview(),
+            _buildSelectedPreview(),
+            Positioned(
+              top: 6,
+              right: 6,
+              child: IconButton.filled(
+                tooltip: 'Close preview',
+                style: _previewIconStyle,
+                onPressed: () => setState(() {
+                  _selectedCard = -1;
+                  _previewFile = null;
+                  _previewVersion++;
+                }),
+                icon: const Icon(Icons.close, size: 13),
               ),
             ),
-          ],
-        ),
-      );
-    }
-
-    if (item.type == EventItemType.photo || item.type == EventItemType.pdf) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(18),
-        child: SizedBox.expand(
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              ColoredBox(
-                color: AppColors.inputBackground,
-                child: _buildSelectedPreview(),
-              ),
+            if (photo || item.type == EventItemType.pdf)
               Positioned(
-                bottom: 10,
-                left: 12,
-                right: 62,
-                child: Align(
-                  alignment: Alignment.bottomLeft,
-                  child: IgnorePointer(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xA6000000),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        '${_timeLabel(_selectedTime)} · ${_selectedCard + 1} / ${_items.length}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                        ),
-                      ),
+                bottom: 6,
+                left: 6,
+                child: IconButton.filled(
+                  tooltip: photo ? 'Edit photo' : 'Edit PDF',
+                  style: _previewIconStyle,
+                  onPressed: _canEdit && _previewFile != null
+                      ? (photo ? _editPhoto : _editPdf)
+                      : null,
+                  icon: const Icon(Icons.edit_outlined, size: 13),
+                ),
+              ),
+            if (photo)
+              Positioned(
+                bottom: 6,
+                right: 6,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: constraints.maxWidth / 2,
+                  ),
+                  child: TextButton.icon(
+                    style: _previewButtonStyle,
+                    onPressed: _canEdit ? _editSelectedTag : null,
+                    icon: const Icon(Icons.sell_outlined, size: 16),
+                    label: Text(
+                      item.tag.isEmpty ? 'Tag' : item.tag,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ),
               ),
-              if (item.type == EventItemType.photo) ...[
-                Positioned(
-                  bottom: 54,
-                  left: 12,
-                  right: 12,
-                  child: Align(
-                    alignment: Alignment.bottomRight,
-                    child: TextButton.icon(
-                      onPressed: _canEdit ? _editSelectedTag : null,
-                      icon: const Icon(Icons.sell_outlined, size: 14),
-                      label: Text(
-                        item.tag.isEmpty ? 'Add tag' : item.tag,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      style: TextButton.styleFrom(
-                        backgroundColor: const Color(0xB3000000),
-                        foregroundColor: AppColors.primary,
-                        disabledForegroundColor: AppColors.disabledText,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        minimumSize: const Size(0, 36),
-                        textStyle: const TextStyle(fontSize: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  right: 10,
-                  bottom: 8,
-                  child: IconButton.filled(
-                    tooltip: 'Edit photo',
-                    onPressed: _canEdit && _previewFile != null
-                        ? _editPhoto
-                        : null,
-                    icon: const Icon(Icons.edit_outlined, size: 18),
-                    style: IconButton.styleFrom(
-                      backgroundColor: const Color(0xB3000000),
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: const Color(0xB3000000),
-                      minimumSize: const Size(40, 40),
-                      padding: const EdgeInsets.all(10),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-              if (item.type == EventItemType.pdf)
-                Positioned(
-                  right: 10,
-                  bottom: 8,
-                  child: FilledButton.icon(
-                    onPressed: _canEdit ? _editPdf : null,
-                    icon: const Icon(Icons.edit_outlined, size: 18),
-                    label: const Text('Edit'),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              if (item.type == EventItemType.note)
-                TextButton.icon(
-                  onPressed: () => _noteFocus.unfocus(),
-                  icon: const Icon(Icons.check_rounded, size: 16),
-                  label: const Text('Done'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.primary,
-                    minimumSize: const Size(0, 32),
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                ),
-              const Spacer(),
-              Text(
-                _selectedCard >= 0
-                    ? '${_selectedCard + 1} / ${_items.length}'
-                    : '0 / ${_items.length}',
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 11,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 11),
-
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(9),
-              decoration: BoxDecoration(
-                color: AppColors.inputBackground,
-                borderRadius: BorderRadius.circular(13),
-              ),
-              child: _buildSelectedPreview(),
-            ),
-          ),
-
-          if (item.type != EventItemType.note ||
-              MediaQuery.viewInsetsOf(context).bottom == 0) ...[
-            const SizedBox(height: 9),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.inputBackground,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    _timeLabel(_selectedTime),
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-
-                if (item.type == EventItemType.pdf)
-                  TextButton.icon(
-                    onPressed: _canEdit ? _editPdf : null,
-                    icon: const Icon(Icons.edit_outlined, size: 15),
-                    label: const Text('Edit'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                      textStyle: const TextStyle(fontSize: 12),
-                    ),
-                  ),
-              ],
-            ),
           ],
-        ],
+        ),
       ),
     );
   }
+
+  ButtonStyle get _previewIconStyle => IconButton.styleFrom(
+    minimumSize: const Size.square(32),
+    fixedSize: const Size.square(32),
+    visualDensity: VisualDensity.standard,
+    padding: EdgeInsets.zero,
+    tapTargetSize: MaterialTapTargetSize.padded,
+    backgroundColor: const Color(0xD9162C36),
+    foregroundColor: Colors.white,
+    disabledBackgroundColor: _canvas,
+    disabledForegroundColor: _muted,
+  );
+
+  ButtonStyle get _previewButtonStyle => TextButton.styleFrom(
+    backgroundColor: Colors.white,
+    foregroundColor: _ink,
+    disabledBackgroundColor: _canvas,
+    disabledForegroundColor: _muted,
+  );
 
   Future<void> _editSelectedTag() async {
     final item = _selectedItem;
@@ -1518,109 +1280,27 @@ class _AddEventPageState extends State<AddEventPage> {
   }
 
   Widget _buildSelectedPreview() {
-    if (_selectedItem?.type == EventItemType.photo) {
-      return _buildSelectedPreviewContent();
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Align(
-          alignment: Alignment.topRight,
-          child: OutlinedButton.icon(
-            onPressed: _canEdit && _selectedItem != null
-                ? _editSelectedTag
-                : null,
-            icon: const Icon(Icons.sell_outlined, size: 16),
-            label: Text(
-              _selectedItem?.tag.isNotEmpty == true
-                  ? _selectedItem!.tag
-                  : 'Tag',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.primary,
-              disabledForegroundColor: AppColors.disabledText,
-              side: const BorderSide(color: AppColors.border),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              minimumSize: const Size(0, 36),
-              visualDensity: VisualDensity.compact,
-            ),
-          ),
-        ),
-        const SizedBox(height: 6),
-        Expanded(child: _buildSelectedPreviewContent()),
-      ],
-    );
-  }
+    if (_draftError != null) return _buildSitePrompt();
 
-  Widget _buildSelectedPreviewContent() {
-    if (_loadingDraft) {
+    final file = _previewFile;
+    if (file == null) {
       return const Center(
         child: CircularProgressIndicator(color: AppColors.primary),
       );
     }
 
-    if (_draftError != null) {
-      return Center(
-        child: TextButton(
-          onPressed: _timeSlots.isEmpty ? null : _loadDraft,
-          child: Text(_draftError!, textAlign: TextAlign.center),
-        ),
-      );
-    }
+    final item = _selectedItem!;
+    return EventAttachmentPreview(
+      key: ValueKey('${item.id}:$_previewVersion'),
+      file: file,
+      item: item,
+      onEditPdf: _editPdf,
+      fillPreview: item.type == EventItemType.pdf,
+      fitPhotoWidth: true,
+    );
+  }
 
-    final item = _selectedItem;
-
-    if (item == null) {
-      return const Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.file_copy_outlined,
-              color: AppColors.iconColor,
-              size: 34,
-            ),
-            SizedBox(height: 9),
-            Text(
-              'No items for this time',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            SizedBox(height: 5),
-            Text(
-              'Tap Note, Audio, Photo or PDF below to add\nyour first item.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (item.type != EventItemType.note) {
-      if (_previewFile == null) {
-        return const Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
-        );
-      }
-
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(10),
-        child: EventAttachmentPreview(
-          key: ValueKey('${item.id}:$_previewVersion'),
-          file: _previewFile!,
-          item: item,
-          onEditPdf: _editPdf,
-          fillPreview: true,
-        ),
-      );
-    }
-
+  Widget _buildNoteField() {
     return TextField(
       enabled: _canEdit,
       controller: _noteController,
@@ -1631,44 +1311,13 @@ class _AddEventPageState extends State<AddEventPage> {
       maxLines: null,
       keyboardType: TextInputType.multiline,
       textAlignVertical: TextAlignVertical.top,
-      cursorColor: AppColors.primary,
-      style: const TextStyle(
-        color: AppColors.textPrimary,
-        fontSize: 14,
-        height: 1.5,
-      ),
+      cursorColor: _green,
+      style: const TextStyle(color: _ink, fontSize: 14, height: 1.5),
       decoration: const InputDecoration(
-        hintText: 'Write your site note...',
-        hintStyle: TextStyle(color: AppColors.hintText, fontSize: 13),
         border: InputBorder.none,
         enabledBorder: InputBorder.none,
         focusedBorder: InputBorder.none,
         contentPadding: EdgeInsets.all(8),
-      ),
-    );
-  }
-
-  Widget _tool(
-    String label,
-    IconData icon,
-    Color colour,
-    VoidCallback onTap,
-    double scale,
-  ) {
-    return SizedBox(
-      width: 47 * scale,
-      height: 48 * scale,
-      child: IconButton.filled(
-        tooltip: label,
-        onPressed: onTap,
-        style: IconButton.styleFrom(
-          backgroundColor: colour,
-          foregroundColor: AppColors.primaryText,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16 * scale),
-          ),
-        ),
-        icon: Icon(icon, size: 24 * scale),
       ),
     );
   }
