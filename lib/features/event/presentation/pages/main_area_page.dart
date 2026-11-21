@@ -78,100 +78,96 @@ Future<void> _finishSetup(BuildContext context) async {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: AppBackground(
-        child: SafeArea(
-          child: Column(
-            children: [
-              Expanded(
-                child: BlocBuilder<MainAreaCubit, MainAreaState>(
-                  builder: (context, state) {
-                    return CustomScrollView(
-                      slivers: [
-                        SliverPadding(
-                          padding: const EdgeInsets.fromLTRB(28, 25, 28, 0),
-                          sliver: SliverToBoxAdapter(child: _buildHeader()),
+     backgroundColor: AppColors.background,
+      body: Column(
+        children: [
+          Expanded(
+            child: BlocBuilder<MainAreaCubit, MainAreaState>(
+              builder: (context, state) {
+                return CustomScrollView(
+                  slivers: [
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(28, 25, 28, 0),
+                      sliver: SliverToBoxAdapter(child: _buildHeader()),
+                    ),
+            
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(28, 25, 28, 0),
+                      sliver: SliverToBoxAdapter(
+                        child: Text(
+                          'Main Areas',
+                          style: AppTextStyles.titleMedium.copyWith(
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
-
-                        SliverPadding(
-                          padding: const EdgeInsets.fromLTRB(28, 25, 28, 0),
-                          sliver: SliverToBoxAdapter(
-                            child: Text(
-                              'Main Areas',
-                              style: AppTextStyles.titleMedium.copyWith(
-                                fontWeight: FontWeight.w500,
-                                color: AppColors.textSecondary,
-                              ),
+                      ),
+                    ),
+            
+                    if (state.isLoading)
+                      const SliverFillRemaining(
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.white,
+                          ),
+                        ),
+                      )
+                    else if (state.error != null && state.areas.isEmpty)
+                      SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: Center(
+                          child: TextButton(
+                            onPressed: () =>
+                                context.read<MainAreaCubit>().loadAreas(),
+                            child: const Text(
+                              'Unable to load areas. Tap to retry.',
+                              style: TextStyle(color: AppColors.white),
                             ),
                           ),
                         ),
-
-                        if (state.isLoading)
-                          const SliverFillRemaining(
-                            child: Center(
-                              child: CircularProgressIndicator(
-                                color: AppColors.white,
-                              ),
-                            ),
-                          )
-                        else if (state.error != null && state.areas.isEmpty)
-                          SliverFillRemaining(
-                            hasScrollBody: false,
-                            child: Center(
-                              child: TextButton(
-                                onPressed: () =>
-                                    context.read<MainAreaCubit>().loadAreas(),
-                                child: const Text(
-                                  'Unable to load areas. Tap to retry.',
-                                  style: TextStyle(color: AppColors.white),
-                                ),
-                              ),
-                            ),
-                          )
-                        else if (state.areas.isEmpty)
-                          SliverFillRemaining(
-                            hasScrollBody: false,
-                            child: Center(
-                              child: Padding(
-                                padding: const EdgeInsets.all(24),
-                                child: LocationEmptyState(
-                                  title: 'Add your first Main Area',
-                                  subtitle:
-                                      'For example, Building A or Zone 1.',
-                                  onAdd: () => _showAddAreaSheet(context),
-                                ),
-                              ),
-                            ),
-                          )
-                        else
-                          SliverPadding(
-                            padding: const EdgeInsets.fromLTRB(28, 12, 28, 24),
-                            sliver: SliverList.separated(
-                              itemCount: state.areas.length,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(height: 12),
-                              itemBuilder: (context, index) {
-                                final area = state.areas[index];
-
-                                return LocationAreaTile(
-                                  title: area.name,
-                                  subtitle: 'Tap to add sub-areas',
-                                  onTap: () => _onAreaSelected(context, area),
-                                );
-                              },
+                      )
+                    else if (state.areas.isEmpty)
+                      SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: LocationEmptyState(
+                              title: 'Add your first Main Area',
+                              subtitle:
+                                  'For example, Building A or Zone 1.',
+                              onAdd: () => _showAddAreaSheet(context),
                             ),
                           ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-
-              // Bottom fixed actions
-              _buildBottomActions(context),
-            ],
+                        ),
+                      )
+                    else
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(28, 12, 28, 24),
+                        sliver: SliverList.separated(
+                          itemCount: state.areas.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 12),
+                          itemBuilder: (context, index) {
+                            final area = state.areas[index];
+            
+                            return LocationAreaTile(
+                              title: area.name,
+                              subtitle: 'Tap to add sub-areas',
+                              onTap: () => _onAreaSelected(context, area),
+                            );
+                          },
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
           ),
-        ),
+            
+          // Bottom fixed actions
+          _buildBottomActions(context),
+        ],
       ),
     );
   }
