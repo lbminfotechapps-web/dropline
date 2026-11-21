@@ -467,52 +467,189 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
     });
   }
 
-  void _open(EventDraftRecord record) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (context) => Scaffold(
+void _open(EventDraftRecord record) {
+  Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (context) => Scaffold(
+        backgroundColor: _background,
+        appBar: AppBar(
           backgroundColor: _background,
-          appBar: AppBar(
-            backgroundColor: _background,
-            foregroundColor: Colors.white,
-            title: Text(switch (record.item.type) {
+          foregroundColor: Colors.white,
+          elevation: 0,
+          title: Text(
+            switch (record.item.type) {
               EventItemType.photo => 'Photo',
               EventItemType.note => 'Note',
               EventItemType.audio => 'Voice note',
               EventItemType.pdf => 'PDF',
-            }),
+            },
           ),
-          body: SafeArea(
-            child: record.item.type == EventItemType.note
-                ? SingleChildScrollView(
-                    padding: const EdgeInsets.all(24),
-                    child: SelectableText(
-                      record.item.text,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        height: 1.6,
-                      ),
-                    ),
-                  )
-                : record.file == null
-                ? const Center(
-                    child: Text(
-                      'This file is no longer available.',
-                      style: TextStyle(color: _muted),
-                    ),
-                  )
-                : EventAttachmentPreview(
-                    file: record.file!,
-                    item: record.item,
-                    onEditPdf: () {},
-                    fillPreview: record.item.type == EventItemType.pdf,
+        ),
+        body: SafeArea(
+          child: Column(
+            children: [
+              // IMAGE / PDF / NOTE / VOICE PREVIEW
+              Expanded(
+                child: record.item.type == EventItemType.note
+                    ? SingleChildScrollView(
+                        padding: const EdgeInsets.all(20),
+                        child: Align(
+                          alignment: Alignment.topLeft,
+                          child: SelectableText(
+                            record.item.text,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              height: 1.6,
+                            ),
+                          ),
+                        ),
+                      )
+                    : record.file == null
+                        ? const Center(
+                            child: Text(
+                              'This file is no longer available.',
+                              style: TextStyle(color: _muted),
+                            ),
+                          )
+                        : EventAttachmentPreview(
+                            file: record.file!,
+                            item: record.item,
+                            onEditPdf: () {},
+                            fillPreview:
+                                record.item.type == EventItemType.pdf,
+                          ),
+              ),
+
+              // PROJECT / AREA / EVENT DETAILS
+              Container(
+                width: double.infinity,
+                constraints: BoxConstraints(
+                  maxHeight:
+                      MediaQuery.sizeOf(context).height * 0.38,
+                ),
+                decoration: const BoxDecoration(
+                  color: _surface,
+                  border: Border(
+                    top: BorderSide(color: _border),
                   ),
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(20),
+                  ),
+                ),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(
+                    20, 20, 20, 24,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _detailField(
+                        'Project Name',
+                        record.projectName,
+                      ),
+
+                      const SizedBox(height: 16),
+                      const Divider(color: _border),
+                      const SizedBox(height: 12),
+
+                      _detailField(
+                        'Area',
+                        record.item.area,
+                      ),
+
+                      const SizedBox(height: 16),
+                      const Divider(color: _border),
+                      const SizedBox(height: 12),
+
+                      _detailField(
+                        'Event',
+                        record.item.event,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
+
+Widget _detailField(String label, String value) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        style: const TextStyle(
+          color: _muted,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      const SizedBox(height: 6),
+      Text(
+        value.trim().isEmpty ? 'N/A' : value,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+          height: 1.4,
+        ),
+      ),
+    ],
+  );
+}
+  // void _open(EventDraftRecord record) {
+  //   Navigator.of(context).push(
+  //     MaterialPageRoute<void>(
+  //       builder: (context) => Scaffold(
+  //         backgroundColor: _background,
+  //         appBar: AppBar(
+  //           backgroundColor: _background,
+  //           foregroundColor: Colors.white,
+  //           title: Text(switch (record.item.type) {
+  //             EventItemType.photo => 'Photo',
+  //             EventItemType.note => 'Note',
+  //             EventItemType.audio => 'Voice note',
+  //             EventItemType.pdf => 'PDF',
+  //           }),
+  //         ),
+  //         body: SafeArea(
+  //           child: record.item.type == EventItemType.note
+  //               ? SingleChildScrollView(
+  //                   padding: const EdgeInsets.all(24),
+  //                   child: SelectableText(
+  //                     record.item.text,
+  //                     style: const TextStyle(
+  //                       color: Colors.white,
+  //                       fontSize: 16,
+  //                       height: 1.6,
+  //                     ),
+  //                   ),
+  //                 )
+  //               : record.file == null
+  //               ? const Center(
+  //                   child: Text(
+  //                     'This file is no longer available.',
+  //                     style: TextStyle(color: _muted),
+  //                   ),
+  //                 )
+  //               : EventAttachmentPreview(
+  //                   file: record.file!,
+  //                   item: record.item,
+  //                   onEditPdf: () {},
+  //                   fillPreview: record.item.type == EventItemType.pdf,
+  //                 ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {

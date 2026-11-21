@@ -198,7 +198,7 @@ class _EventHierarchySheetState extends State<EventHierarchySheet> {
           if (_path.isNotEmpty) { _path.removeLast(); _room = null; _search.clear(); }
           else { _go(_Step.summary); }
           break;
-        case _Step.newArea: _go(_Step.area); break;
+        case _Step.newArea: _go(_path.isEmpty ? _Step.summary : _Step.area); break;
         case _Step.category: _go(_fromEvent ? _Step.event : _Step.summary); break;
         case _Step.event: _go(_Step.category); _fromEvent = false; break;
         case _Step.newCategory: _go(_Step.summary); break;
@@ -207,7 +207,11 @@ class _EventHierarchySheetState extends State<EventHierarchySheet> {
     });
   }
   void _openArea(bool create) => setState(() {
-    _creatingArea = create; _path.clear(); _room = null; _go(_Step.area);
+    _creatingArea = create;
+    _path.clear();
+    _room = null;
+    if (create) _name.clear();
+    _go(create ? _Step.newArea : _Step.area);
   });
   void _chooseArea(EventArea area) => setState(() {
     if (_depth == _repo.areaLabels.length - 1) { _room = area; }
@@ -230,7 +234,15 @@ class _EventHierarchySheetState extends State<EventHierarchySheet> {
     try {
       final area = await _repo.saveArea(parentId: _parentId, name: _name.text);
       if (!mounted) return;
-      _useArea([..._path, area]);
+      if (_depth < _repo.areaLabels.length - 1) {
+        setState(() {
+          _path.add(area);
+          _room = null;
+          _go(_Step.area);
+        });
+      } else {
+        _useArea([..._path, area]);
+      }
     } catch (e) { if (mounted) setState(() => _error = e.toString()); }
     finally { if (mounted) setState(() => _busy = false); }
   }
@@ -328,14 +340,20 @@ class _EventHierarchySheetState extends State<EventHierarchySheet> {
           _caption('Event'), _dropdown(_category == null ? 'Select category first' : _event?.name ?? 'Select event', _category == null ? null : () => _openCategory(events: true)),
         ];
       case _Step.area:
-        final areas = _repo.children(_parentId).where((a) => _matches(a.name)).toList();
+        final children = _repo.children(_parentId);
+        final areas = children.where((a) => _matches(a.name)).toList();
         final last = _depth == _repo.areaLabels.length - 1;
         return [
           if (_activeAreaPath.isNotEmpty) _breadcrumb(_pathLabel),
-          Row(children: [Expanded(child: _caption(_level)), if (_creatingArea) _newButton(() => setState(() { _name.clear(); _go(_Step.newArea); }))]),
-          _field(_search, 'Search ${_level.toLowerCase()}', search: true),
+          Row(children: [Expanded(child: _caption(_level)), _newButton(() => setState(() { _name.clear(); _go(_Step.newArea); }))]),
+          if (children.isNotEmpty) _field(_search, 'Search ${_level.toLowerCase()}', search: true),
           for (final area in areas) _row(area.name, () => _chooseArea(area), selected: _room?.id == area.id, next: !last),
-          if (areas.isEmpty) _empty(),
+          if (children.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text('No ${_level.toLowerCase()} added yet', textAlign: TextAlign.center),
+            )
+          else if (areas.isEmpty) _empty(),
         ];
       case _Step.newArea:
         return [
