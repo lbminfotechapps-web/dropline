@@ -10,10 +10,23 @@ import 'package:path_provider/path_provider.dart';
 
 import 'photo_editor_page.dart';
 
+class EventCameraActions {
+  Future<void> Function()? capture;
+}
+
 class EventCameraPage extends StatefulWidget {
-  const EventCameraPage({super.key, required this.onConfirm});
+  const EventCameraPage({
+    super.key,
+    required this.onConfirm,
+    this.onClose,
+    this.inline = false,
+    this.actions,
+  });
 
   final Future<void> Function(List<XFile>) onConfirm;
+  final VoidCallback? onClose;
+  final bool inline;
+  final EventCameraActions? actions;
 
   @override
   State<EventCameraPage> createState() => _EventCameraPageState();
@@ -37,6 +50,7 @@ class _EventCameraPageState extends State<EventCameraPage>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    widget.actions?.capture = _capture;
     _updateCamera();
   }
 
@@ -102,6 +116,10 @@ class _EventCameraPageState extends State<EventCameraPage>
         shot.path,
       ).copy('${_folder!.path}/${DateTime.now().microsecondsSinceEpoch}.jpg');
       if (!mounted) return;
+      if (widget.inline) {
+        await widget.onConfirm([XFile(photo.path)]);
+        return;
+      }
       setState(() {
         _photos.add(photo);
         _selected = _photos.length - 1;
@@ -152,7 +170,13 @@ class _EventCameraPageState extends State<EventCameraPage>
     setState(() => _saving = true);
     try {
       await widget.onConfirm(_photos.map((file) => XFile(file.path)).toList());
-      if (mounted) Navigator.pop(context, true);
+      if (mounted) {
+        if (widget.onClose != null) {
+          widget.onClose!();
+        } else {
+          Navigator.pop(context, true);
+        }
+      }
     } catch (_) {
       if (mounted) setState(() => _saving = false);
       _message('Unable to attach photos. Please try again.');
@@ -170,6 +194,7 @@ class _EventCameraPageState extends State<EventCameraPage>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    widget.actions?.capture = null;
     _active = false;
     unawaited(
       _cameraWork.then((_) async {
@@ -189,13 +214,17 @@ class _EventCameraPageState extends State<EventCameraPage>
   @override
   Widget build(BuildContext context) {
     final locked = _busy || _saving || _editing;
+    if (widget.inline) return _buildInlineCamera(locked);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light.copyWith(
         statusBarColor: Colors.transparent,
         systemNavigationBarColor: _panelColor,
       ),
       child: PopScope(
-        canPop: !locked,
+        canPop: !locked && widget.onClose == null,
+        onPopInvokedWithResult: (didPop, result) {
+          if (!didPop && !locked) widget.onClose?.call();
+        },
         child: Scaffold(
           backgroundColor: const Color(0xFF080F16),
           body: SafeArea(
@@ -209,7 +238,13 @@ class _EventCameraPageState extends State<EventCameraPage>
                         tooltip: 'Close camera',
                         onPressed: locked
                             ? null
-                            : () => Navigator.maybePop(context),
+                            : () {
+                                if (widget.onClose != null) {
+                                  widget.onClose!();
+                                } else {
+                                  Navigator.maybePop(context);
+                                }
+                              },
                         style: IconButton.styleFrom(
                           foregroundColor: Colors.white,
                           backgroundColor: Colors.white.withValues(alpha: 0.08),
@@ -275,6 +310,24 @@ class _EventCameraPageState extends State<EventCameraPage>
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildInlineCamera(bool locked) {
+    return Stack(
+            fit: StackFit.expand,
+            children: [
+              _buildViewfinder(),
+              Positioned(
+                top: 4,
+                right: 4,
+                child: IconButton.filled(
+                  tooltip: 'Close camera',
+                  onPressed: locked ? null : widget.onClose,
+                  icon: const Icon(Icons.close),
+                ),
+              ),
+            ],
     );
   }
 
@@ -345,7 +398,7 @@ class _EventCameraPageState extends State<EventCameraPage>
                     );
                   },
                 ),
-              if (camera != null && _error == null)
+              if (!widget.inline && camera != null && _error == null)
                 Positioned(
                   left: 0,
                   right: 0,
