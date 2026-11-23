@@ -11,349 +11,616 @@ class ProjectEventPage extends StatefulWidget {
     this.projectName = 'Laxmi Gauri',
     this.companyName = 'Apex Build',
   });
-
-  final String projectId;
-  final String companyId;
-  final String projectName;
-  final String companyName;
-
+  final String projectId, companyId, projectName, companyName;
   @override
   State<ProjectEventPage> createState() => _ProjectEventPageState();
 }
 
+class _EventCategory {
+  _EventCategory(this.name, this.events);
+  String name;
+  List<String> events;
+  Map<String, dynamic> toJson() => {'name': name, 'events': events};
+  factory _EventCategory.fromJson(dynamic value) => _EventCategory(
+    value['name'] as String,
+    List<String>.from(value['events'] as List),
+  );
+}
+
 class _ProjectEventPageState extends State<ProjectEventPage> {
-  static const _background = Color(0xFF092A3B);
-  static const _surface = Color(0xFF0D3042);
-  static const _border = Color(0xFF31576B);
-  static const _muted = Color(0xFF8EB5C9);
-  static const _text = Color(0xFFF0F4FC);
-  static const _lime = Color(0xFFB5FF65);
-
-  final _categories = <ProjectEventCategory>[
-    const ProjectEventCategory(
-      name: 'Quality',
-      events: ['Workmanship issue', 'Drawing mismatch'],
-    ),
-    const ProjectEventCategory(name: 'Safety', events: ['Trip hazard']),
-    const ProjectEventCategory(name: 'Progress', events: ['Work completed']),
-  ];
-
-  bool _loading = true;
-  bool _saving = false;
-  bool _loadFailed = false;
-
-  String get _storageKey =>
+  static const bg = Color(0xFF092A3B),
+      surface = Color(0xFF123449),
+      border = Color(0xFF31576B),
+      muted = Color(0xFF9FC1D7),
+      white = Color(0xFFF0F4FC),
+      lime = Color(0xFFB5FF65);
+  final categories = <_EventCategory>[];
+  final addText = TextEditingController(),
+      editText = TextEditingController(),
+      categoryText = TextEditingController();
+  int selected = 0;
+  int? editing;
+  bool newCategory = false, loading = true, closing = false, loadFailed = false;
+  Future<void> pendingSave = Future.value();
+  String get keyName =>
       'project_event_categories_v1:${jsonEncode([widget.companyId.isEmpty ? widget.companyName : widget.companyId, widget.projectId.isEmpty ? widget.projectName : widget.projectId])}';
+  _EventCategory? get current =>
+      categories.isEmpty ? null : categories[selected];
 
   @override
   void initState() {
     super.initState();
-    _loadCategories();
-  }
-
-  Future<void> _loadCategories() async {
-    setState(() {
-      _loading = true;
-      _loadFailed = false;
-    });
-    try {
-      final preferences = await SharedPreferences.getInstance();
-      final saved = preferences.getString(_storageKey);
-      final categories = saved == null
-          ? List<ProjectEventCategory>.of(_categories)
-          : (jsonDecode(saved) as List)
-                .map(
-                  (value) => ProjectEventCategory(
-                    name: value['name'] as String,
-                    events: List<String>.from(value['events'] as List),
-                  ),
-                )
-                .toList();
-      if (!mounted) return;
-      setState(() {
-        _categories
-          ..clear()
-          ..addAll(categories);
-        _loading = false;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _loading = false;
-        _loadFailed = true;
-      });
-    }
-  }
-
-  Future<void> _saveCategories(List<ProjectEventCategory> categories) async {
-    if (_saving) return;
-    setState(() => _saving = true);
-    try {
-      final preferences = await SharedPreferences.getInstance();
-      final saved = await preferences.setString(
-        _storageKey,
-        jsonEncode([
-          for (final category in categories)
-            {'name': category.name, 'events': category.events},
-        ]),
-      );
-      if (!saved) throw StateError('Category save failed');
-      if (!mounted) return;
-      setState(
-        () => _categories
-          ..clear()
-          ..addAll(categories),
-      );
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Unable to save categories. Please try again.'),
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
-  }
-
-  Future<void> _newCategory() async {
-    final result = await Navigator.of(context).push<ProjectEventCategory>(
-      MaterialPageRoute<ProjectEventCategory>(
-        builder: (_) => AddCategoryPage(
-          projectName: widget.projectName,
-          existingCategoryNames: _categories.map((entry) => entry.name).toList(),
-        ),
-      ),
-    );
-    if (!mounted || result == null) return;
-    await _saveCategories([..._categories, result]);
-  }
-
-  Future<void> _editCategory(ProjectEventCategory category) async {
-    final result = await Navigator.of(context).push<ProjectEventCategory>(
-      MaterialPageRoute<ProjectEventCategory>(
-        builder: (_) => AddCategoryPage(
-          projectName: widget.projectName,
-          initialCategory: category,
-          existingCategoryNames: _categories
-              .where((entry) => !identical(entry, category))
-              .map((entry) => entry.name)
-              .toList(),
-        ),
-      ),
-    );
-    if (!mounted || result == null) return;
-    final index = _categories.indexOf(category);
-    if (index < 0) return;
-    final updated = [..._categories];
-    updated[index] = result;
-    await _saveCategories(updated);
-  }
-
-  Future<void> _deleteCategory(ProjectEventCategory category) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: _surface,
-        title: const Text('Delete category?', style: TextStyle(color: _text)),
-        content: Text(
-          'Delete "${category.name}" and its events?',
-          style: const TextStyle(color: _muted),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text(
-              'Delete',
-              style: TextStyle(color: Colors.redAccent),
-            ),
-          ),
-        ],
-      ),
-    );
-    if (!mounted || confirmed != true) return;
-    await _saveCategories([..._categories]..remove(category));
+    load();
   }
 
   @override
+  void dispose() {
+    addText.dispose();
+    editText.dispose();
+    categoryText.dispose();
+    super.dispose();
+  }
+
+  void error(String message) {
+    if (mounted)
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> load() async {
+    try {
+      final raw = (await SharedPreferences.getInstance()).getString(keyName);
+      final values = raw == null
+          ? [
+              _EventCategory('Quality', [
+                'Workmanship issue',
+                'Drawing mismatch',
+              ]),
+              _EventCategory('Safety', ['Trip hazard']),
+              _EventCategory('Progress', ['Work completed']),
+            ]
+          : (jsonDecode(raw) as List).map(_EventCategory.fromJson).toList();
+      if (mounted)
+        setState(() {
+          categories.addAll(values);
+          loading = false;
+        });
+    } catch (_) {
+      if (mounted)
+        setState(() {
+          loading = false;
+          loadFailed = true;
+        });
+      error('Unable to load existing events.');
+    }
+  }
+
+  Future<void> save() {
+    final snapshot = jsonEncode(categories.map((c) => c.toJson()).toList());
+    final write = pendingSave.catchError((Object _) {}).then((_) async {
+      final ok = await (await SharedPreferences.getInstance()).setString(
+        keyName,
+        snapshot,
+      );
+      if (!ok) throw StateError('Local save failed');
+    });
+    pendingSave = write;
+    write.catchError((Object _) {
+      error('Could not save locally. Tap Done to retry.');
+    });
+    return write;
+  }
+
+  List<String> parsed(String s) => s
+      .split(RegExp(r'[,\r\n]+'))
+      .map((e) => e.trim())
+      .where((e) => e.isNotEmpty)
+      .toList();
+  bool addEvents({bool optional = false}) {
+    if (current == null) {
+      error('Create a category first');
+      return false;
+    }
+    final names = parsed(addText.text);
+    if (names.isEmpty) {
+      if (!optional) error('Enter an event');
+      return optional;
+    }
+    final known = current!.events.map((e) => e.toLowerCase()).toSet();
+    final added = names.where((e) => known.add(e.toLowerCase())).toList();
+    if (added.isEmpty) {
+      error('Events already exist');
+      return false;
+    }
+    setState(() {
+      current!.events.addAll(added);
+      addText.clear();
+    });
+    FocusManager.instance.primaryFocus?.unfocus();
+    save();
+    return true;
+  }
+
+  bool createCategory({bool optional = false}) {
+    final name = categoryText.text.trim();
+    if (name.isEmpty) {
+      if (!optional) error('Enter category name');
+      return optional;
+    }
+    if (categories.any((c) => c.name.toLowerCase() == name.toLowerCase())) {
+      error('Category already exists');
+      return false;
+    }
+    setState(() {
+      categories.add(_EventCategory(name, []));
+      selected = categories.length - 1;
+      newCategory = false;
+      categoryText.clear();
+      editing = null;
+      addText.clear();
+    });
+    FocusManager.instance.primaryFocus?.unfocus();
+    save();
+    return true;
+  }
+
+  void startEdit(int index) {
+    setState(() {
+      editing = index;
+      editText.text = current!.events[index];
+    });
+  }
+
+  bool saveEdit() {
+    if (editing == null || current == null) return true;
+    final value = editText.text.trim();
+    if (value.isEmpty) {
+      error('Enter event name');
+      return false;
+    }
+    if (current!.events.asMap().entries.any(
+      (e) => e.key != editing && e.value.toLowerCase() == value.toLowerCase(),
+    )) {
+      error('Event already exists');
+      return false;
+    }
+    setState(() {
+      current!.events[editing!] = value;
+      editing = null;
+      editText.clear();
+    });
+    FocusManager.instance.primaryFocus?.unfocus();
+    save();
+    return true;
+  }
+
+  void reorder(int oldIndex, int newIndex) {
+    if (newIndex > oldIndex) newIndex--;
+    if (oldIndex == newIndex) return;
+    setState(() {
+      final item = current!.events.removeAt(oldIndex);
+      current!.events.insert(newIndex, item);
+      if (editing != null) {
+        if (editing == oldIndex)
+          editing = newIndex;
+        else if (oldIndex < editing! && editing! <= newIndex)
+          editing = editing! - 1;
+        else if (newIndex <= editing! && editing! < oldIndex)
+          editing = editing! + 1;
+      }
+    });
+    save();
+  }
+
+  Future<void> done() async {
+    if (closing || loading || loadFailed) return;
+    if (!saveEdit()) return;
+    if (newCategory && !createCategory(optional: true)) return;
+    if (addText.text.trim().isNotEmpty && !addEvents()) return;
+    setState(() => closing = true);
+    try {
+      try {
+        await pendingSave;
+      } catch (_) {
+        /* Final write retries. */
+      }
+      final ok = await (await SharedPreferences.getInstance()).setString(
+        keyName,
+        jsonEncode(categories.map((c) => c.toJson()).toList()),
+      );
+      if (!ok) throw StateError('Write failed');
+      if (mounted) Navigator.of(context).pop(true);
+    } catch (_) {
+      error('Unable to save events. Try again.');
+    } finally {
+      if (mounted) setState(() => closing = false);
+    }
+  }
+
+  InputDecoration field(String hint) => InputDecoration(
+    hintText: hint,
+    hintStyle: const TextStyle(color: muted),
+    filled: true,
+    fillColor: surface,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(11),
+      borderSide: const BorderSide(color: border),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(11),
+      borderSide: const BorderSide(color: border),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(11),
+      borderSide: const BorderSide(color: lime, width: 1.7),
+    ),
+  );
+  Widget action(String text, VoidCallback? press, {double height = 78}) =>
+      SizedBox(
+        width: 70,
+        height: height,
+        child: FilledButton(
+          onPressed: press,
+          style: FilledButton.styleFrom(
+            backgroundColor: lime,
+            foregroundColor: bg,
+            padding: EdgeInsets.zero,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(11),
+            ),
+          ),
+          child: Text(text, style: const TextStyle(fontSize: 16)),
+        ),
+      );
+
+  @override
   Widget build(BuildContext context) {
+    const section = TextStyle(
+      fontSize: 15,
+      color: white,
+      fontWeight: FontWeight.w600,
+    );
+    const help = TextStyle(fontSize: 12, color: muted);
+    final c = current;
     return Scaffold(
-      backgroundColor: _background,
+      backgroundColor: bg,
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final s = constraints.maxWidth / 210;
-            Text label(
-              String value, {
-              double size = 7,
-              Color color = _text,
-              bool bold = false,
-            }) => Text(
-              value,
-              style: TextStyle(
-                color: color,
-                fontSize: size * s,
-                fontWeight: bold ? FontWeight.w500 : FontWeight.w500,
-                letterSpacing: .15 * s,
-              ),
-            );
-            ButtonStyle outline() => OutlinedButton.styleFrom(
-              padding: EdgeInsets.zero,
-              backgroundColor: _surface,
-              side: const BorderSide(color: _border),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(7 * s),
-              ),
-            );
-            return SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(10 * s, 7 * s, 10 * s, 9 * s),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: (constraints.maxHeight - 16 * s).clamp(
-                    0,
-                    double.infinity,
-                  ),
-                ),
-                child: IntrinsicHeight(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        children: [
-                          SizedBox(
-                            width: 21 * s,
-                            height: 22 * s,
-                            child: OutlinedButton(
-                              onPressed: () => Navigator.of(context).maybePop(),
-                              style: outline(),
-                              child: Icon(
-                                Icons.chevron_left,
-                                color: _muted,
-                                size: 13 * s,
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: 7 * s),
-                          Expanded(
-                            child: label('Events', size: 12, bold: true),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 10 * s),
-                      label(
-                        '${widget.projectName} · ${widget.companyName}',
-                        size: 6.5,
-                        color: _muted,
-                      ),
-                      SizedBox(height: 11 * s),
-                      if (_loading || _saving)
-                        const Center(child: CircularProgressIndicator()),
-                      if (_loadFailed)
-                        TextButton(
-                          onPressed: _loadCategories,
-                          child: const Text(
-                            'Unable to load categories. Tap to retry.',
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(15, 5, 15, 12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Events',
+                          style: TextStyle(
+                            fontSize: 23,
+                            fontWeight: FontWeight.w600,
+                            color: white,
                           ),
                         ),
-                      if (!_loading && !_loadFailed)
-                        for (final category in _categories)
-                          Padding(
-                            padding: EdgeInsets.only(bottom: 5 * s),
-                            child: Material(
-                              color: _surface,
-                              shape: RoundedRectangleBorder(
-                                side: const BorderSide(color: _border),
-                                borderRadius: BorderRadius.circular(7 * s),
+                        Text(widget.projectName, style: help),
+                      ],
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: (loading || closing || loadFailed) ? null : done,
+                    child: Text(
+                      closing ? 'Saving...' : 'Done',
+                      style: const TextStyle(
+                        color: lime,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(color: border, height: 1),
+            Expanded(
+              child: loading
+                  ? const Center(child: CircularProgressIndicator(color: lime))
+                  : loadFailed
+                  ? Center(
+                      child: TextButton(
+                        onPressed: () {
+                          setState(() {
+                            loadFailed = false;
+                            loading = true;
+                          });
+                          load();
+                        },
+                        child: const Text('Could not load events. Retry'),
+                      ),
+                    )
+                  : SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(14, 13, 14, 35),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Text('Category', style: help),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Container(
+                                  height: 44,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: surface,
+                                    border: Border.all(color: border),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: categories.isEmpty
+                                      ? const Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: Text(
+                                            'No categories',
+                                            style: help,
+                                          ),
+                                        )
+                                      : DropdownButtonHideUnderline(
+                                          child: DropdownButton<int>(
+                                            isExpanded: true,
+                                            dropdownColor: surface,
+                                            value: selected,
+                                            style: const TextStyle(
+                                              color: white,
+                                              fontSize: 15,
+                                            ),
+                                            iconEnabledColor: white,
+                                            items: [
+                                              for (
+                                                int i = 0;
+                                                i < categories.length;
+                                                i++
+                                              )
+                                                DropdownMenuItem(
+                                                  value: i,
+                                                  child: Text(
+                                                    categories[i].name,
+                                                  ),
+                                                ),
+                                            ],
+                                            onChanged: (v) {
+                                              if (v == null ||
+                                                  (editing != null &&
+                                                      !saveEdit()))
+                                                return;
+                                              setState(() {
+                                                selected = v;
+                                                editing = null;
+                                                addText.clear();
+                                              });
+                                            },
+                                          ),
+                                        ),
+                                ),
                               ),
-                              clipBehavior: Clip.antiAlias,
-                              child: InkWell(
-                                onTap: _saving
-                                    ? null
-                                    : () => _editCategory(category),
-                                child: Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 7 * s,
-                                    vertical: 6 * s,
+                              TextButton(
+                                onPressed: () =>
+                                    setState(() => newCategory = !newCategory),
+                                child: const Text(
+                                  '+ New',
+                                  style: TextStyle(color: lime),
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (newCategory) ...[
+                            const SizedBox(height: 19),
+                            const Text('New category', style: section),
+                            const SizedBox(height: 9),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    controller: categoryText,
+                                    autofocus: true,
+                                    textCapitalization:
+                                        TextCapitalization.words,
+                                    style: const TextStyle(color: white),
+                                    decoration: field('Category name'),
                                   ),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            label(
-                                              category.name,
-                                              size: 8,
-                                              bold: true,
+                                ),
+                                const SizedBox(width: 8),
+                                action('Add', createCategory, height: 50),
+                              ],
+                            ),
+                            TextButton(
+                              onPressed: () => setState(() {
+                                newCategory = false;
+                                categoryText.clear();
+                              }),
+                              child: const Text('Cancel', style: help),
+                            ),
+                          ],
+                          const SizedBox(height: 25),
+                          if (editing != null) ...[
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text('Edit event', style: section),
+                                TextButton(
+                                  onPressed: () => setState(() {
+                                    editing = null;
+                                    editText.clear();
+                                  }),
+                                  child: const Text('Cancel edit', style: help),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    controller: editText,
+                                    minLines: 2,
+                                    maxLines: 3,
+                                    autofocus: true,
+                                    style: const TextStyle(
+                                      color: white,
+                                      fontSize: 16,
+                                    ),
+                                    decoration: field('Event name'),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                action('Save', saveEdit),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            const Text('One event per line.', style: help),
+                          ] else ...[
+                            const Text('Add events', style: section),
+                            const SizedBox(height: 12),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    controller: addText,
+                                    minLines: 2,
+                                    maxLines: 5,
+                                    style: const TextStyle(
+                                      color: white,
+                                      fontSize: 16,
+                                    ),
+                                    decoration: field(
+                                      'Workmanship issue\nInspection needed',
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                action('Add', c == null ? null : addEvents),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            const Text('One event per line.', style: help),
+                          ],
+                          const SizedBox(height: 35),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  '${c?.name ?? 'Category'} events',
+                                  style: section,
+                                ),
+                              ),
+                              Text('${c?.events.length ?? 0}', style: help),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          const Text(
+                            'Drag a grip to reorder. Tap it for up / down.',
+                            style: help,
+                          ),
+                          const SizedBox(height: 12),
+                          if (c != null)
+                            ReorderableListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              buildDefaultDragHandles: false,
+                              itemCount: c.events.length,
+                              onReorder: reorder,
+                              proxyDecorator: (child, index, animation) =>
+                                  Material(
+                                    color: surface,
+                                    elevation: 3,
+                                    child: child,
+                                  ),
+                              itemBuilder: (context, index) => Container(
+                                key: ValueKey('${selected}_${c.events[index]}'),
+                                height: 59,
+                                decoration: const BoxDecoration(
+                                  border: Border(
+                                    bottom: BorderSide(color: border),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 42,
+                                      child:
+                                          ReorderableDelayedDragStartListener(
+                                            index: index,
+                                            child: PopupMenuButton<String>(
+                                              tooltip: 'Move event',
+                                              color: surface,
+                                              icon: const Icon(
+                                                Icons.drag_indicator,
+                                                color: muted,
+                                              ),
+                                              itemBuilder: (_) => [
+                                                if (index > 0)
+                                                  const PopupMenuItem(
+                                                    value: 'up',
+                                                    child: Text(
+                                                      'Move up',
+                                                      style: TextStyle(
+                                                        color: white,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                if (index < c.events.length - 1)
+                                                  const PopupMenuItem(
+                                                    value: 'down',
+                                                    child: Text(
+                                                      'Move down',
+                                                      style: TextStyle(
+                                                        color: white,
+                                                      ),
+                                                    ),
+                                                  ),
+                                              ],
+                                              onSelected: (direction) =>
+                                                  reorder(
+                                                    index,
+                                                    direction == 'up'
+                                                        ? index - 1
+                                                        : index + 2,
+                                                  ),
                                             ),
-                                            SizedBox(height: 2 * s),
-                                            label(
-                                              category.events.join(' · '),
-                                              size: 6,
-                                              color: _muted,
-                                            ),
-                                          ],
+                                          ),
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        c.events[index],
+                                        style: const TextStyle(
+                                          color: white,
+                                          fontSize: 14,
                                         ),
                                       ),
-                                      IconButton(
-                                        tooltip: 'Delete ${category.name}',
-                                        onPressed: _saving
-                                            ? null
-                                            : () => _deleteCategory(category),
-                                        icon: const Icon(
-                                          Icons.delete_outline_rounded,
+                                    ),
+                                    TextButton(
+                                      onPressed: () => startEdit(index),
+                                      child: const Text(
+                                        'Edit',
+                                        style: TextStyle(
+                                          color: muted,
+                                          fontSize: 13,
                                         ),
-                                        color: Colors.redAccent,
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
-                          ),
-                      SizedBox(
-                        height: 28 * s,
-                        child: OutlinedButton(
-                          onPressed: _loading || _saving || _loadFailed
-                              ? null
-                              : _newCategory,
-                          style: outline(),
-                          child: label('+ New category', bold: true),
-                        ),
+                        ],
                       ),
-                      SizedBox(height: 20 * s),
-                      const Spacer(),
-                      SizedBox(
-                        height: 27 * s,
-                        child: FilledButton(
-                          onPressed: () => Navigator.of(context).maybePop(),
-                          style: FilledButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            backgroundColor: _lime,
-                            foregroundColor: _background,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(7 * s),
-                            ),
-                          ),
-                          child: label(
-                            'Back to setup',
-                            color: _background,
-                            bold: true,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
+                    ),
+            ),
+          ],
         ),
       ),
     );

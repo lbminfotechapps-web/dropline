@@ -111,11 +111,11 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
               child: ListWheelScrollView.useDelegate(
                 controller: controller,
-                itemExtent: 56,
+                itemExtent: 32,
                 diameterRatio: 2,
                 useMagnifier: true,
-                magnification: 1.15,
-                overAndUnderCenterOpacity: 0.35,
+                magnification: 1.1,
+                overAndUnderCenterOpacity: 0.6,
                 physics: const FixedExtentScrollPhysics(),
                 onSelectedItemChanged: onChanged,
                 childDelegate: ListWheelChildLoopingListDelegate(
@@ -125,7 +125,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       child: Text(
                         value.toString().padLeft(2, '0'),
                         style: const TextStyle(
-                          fontSize: 40,
+                          fontSize: 22,
                           color: AppColors.textPrimary,
                         ),
                       ),
@@ -159,7 +159,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         child: Text(
                           ':',
                           style: TextStyle(
-                            fontSize: 48,
+                            fontSize: 28,
                             color: AppColors.textPrimary,
                           ),
                         ),

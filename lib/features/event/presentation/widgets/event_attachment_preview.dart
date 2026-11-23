@@ -15,6 +15,7 @@ class EventAttachmentPreview extends StatelessWidget {
     required this.onEditPdf,
     this.fillPreview = false,
     this.fitPhotoWidth = false,
+    this.alignTop = false,
   });
 
   final File file;
@@ -22,6 +23,7 @@ class EventAttachmentPreview extends StatelessWidget {
   final VoidCallback onEditPdf;
   final bool fillPreview;
   final bool fitPhotoWidth;
+  final bool alignTop;
 
   @override
   Widget build(BuildContext context) {
@@ -32,24 +34,33 @@ class EventAttachmentPreview extends StatelessWidget {
       case EventItemType.photo:
         if (fitPhotoWidth) {
           return LayoutBuilder(
-            builder: (context, constraints) => InteractiveViewer(
-              constrained: false,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight,
-                  maxWidth: constraints.maxWidth,
-                ),
-                child: Center(
-                  child: Image.file(
-                    file,
+            builder: (context, constraints) {
+              return ClipRect(
+                child: InteractiveViewer(
+                  minScale: 1.0,
+                  maxScale: 4.0,
+                  child: SizedBox(
                     width: constraints.maxWidth,
-                    fit: BoxFit.fitWidth,
-                    errorBuilder: (_, _, _) =>
-                        const Text('Unable to open photo.'),
+                    height: constraints.maxHeight,
+                    child: Image.file(
+                      file,
+                      width: constraints.maxWidth,
+                      height: constraints.maxHeight,
+                      fit: BoxFit.cover,
+                      alignment: Alignment.center,
+                      errorBuilder: (_, _, _) {
+                        return const Center(
+                          child: Text(
+                            'Unable to open photo.',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
-              ),
-            ),
+              );
+            },
           );
         }
         return InteractiveViewer(
@@ -59,6 +70,7 @@ class EventAttachmentPreview extends StatelessWidget {
               width: double.infinity,
               height: double.infinity,
               fit: fillPreview ? BoxFit.cover : BoxFit.contain,
+              alignment: alignTop ? Alignment.topCenter : Alignment.center,
               errorBuilder: (_, _, _) =>
                   const Center(child: Text('Unable to open photo.')),
             ),
@@ -93,7 +105,7 @@ class EventAttachmentPreview extends StatelessWidget {
           ],
         );
       case EventItemType.audio:
-        return _AudioPreview(path: file.path, name: 'Voice note');
+        return _AudioPreview(path: file.path, name: 'Voice note', alignTop: alignTop);
       case EventItemType.note:
         return const SizedBox.shrink();
     }
@@ -101,9 +113,10 @@ class EventAttachmentPreview extends StatelessWidget {
 }
 
 class _AudioPreview extends StatefulWidget {
-  const _AudioPreview({required this.path, required this.name});
+  const _AudioPreview({required this.path, required this.name, this.alignTop = false});
   final String path;
   final String name;
+  final bool alignTop;
 
   @override
   State<_AudioPreview> createState() => _AudioPreviewState();
@@ -151,7 +164,8 @@ class _AudioPreviewState extends State<_AudioPreview> {
   }
 
   @override
-  Widget build(BuildContext context) => Center(
+  Widget build(BuildContext context) => Align(
+    alignment: widget.alignTop ? Alignment.topCenter : Alignment.center,
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [

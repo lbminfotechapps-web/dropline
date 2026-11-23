@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -45,6 +46,7 @@ class _EventCameraPageState extends State<EventCameraPage>
   bool _saving = false;
   String? _error;
   int _selected = -1;
+  Size? _viewfinderSize;
 
   @override
   void initState() {
@@ -112,9 +114,7 @@ class _EventCameraPageState extends State<EventCameraPage>
       _folder ??= await (await getTemporaryDirectory()).createTemp(
         'event_camera_',
       );
-      final photo = await File(
-        shot.path,
-      ).copy('${_folder!.path}/${DateTime.now().microsecondsSinceEpoch}.jpg');
+      final photo = await _cropToViewfinder(File(shot.path));
       if (!mounted) return;
       if (widget.inline) {
         await widget.onConfirm([XFile(photo.path)]);
@@ -137,6 +137,53 @@ class _EventCameraPageState extends State<EventCameraPage>
       _message('Unable to capture photo. Please try again.');
     } finally {
       if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<File> _cropToViewfinder(File source) async {
+    final size = _viewfinderSize;
+    if (size == null || size.isEmpty) {
+      throw StateError('Camera preview is not ready');
+    }
+    final codec = await ui.instantiateImageCodec(await source.readAsBytes());
+    try {
+      final frame = await codec.getNextFrame();
+      final image = frame.image;
+      try {
+        final imageSize = Size(image.width.toDouble(), image.height.toDouble());
+        final fitted = applyBoxFit(BoxFit.cover, imageSize, size);
+        final crop = Alignment.center.inscribe(fitted.source, Offset.zero & imageSize);
+        final width = crop.width.round();
+        final height = crop.height.round();
+        final recorder = ui.PictureRecorder();
+        Canvas(recorder).drawImageRect(
+          image,
+          crop,
+          Rect.fromLTWH(0, 0, width.toDouble(), height.toDouble()),
+          Paint(),
+        );
+        final picture = recorder.endRecording();
+        try {
+          final cropped = await picture.toImage(width, height);
+          try {
+            final bytes = await cropped.toByteData(format: ui.ImageByteFormat.png);
+            if (bytes == null) throw StateError('Unable to encode photo');
+            final photo = File(
+              '${_folder!.path}/${DateTime.now().microsecondsSinceEpoch}.png',
+            );
+            await photo.writeAsBytes(bytes.buffer.asUint8List(), flush: true);
+            return photo;
+          } finally {
+            cropped.dispose();
+          }
+        } finally {
+          picture.dispose();
+        }
+      } finally {
+        image.dispose();
+      }
+    } finally {
+      codec.dispose();
     }
   }
 
@@ -382,7 +429,8 @@ class _EventCameraPageState extends State<EventCameraPage>
                 )
               else
                 LayoutBuilder(
-                  builder: (context, _) {
+                  builder: (context, constraints) {
+                    _viewfinderSize = constraints.biggest;
                     final aspectRatio = camera.value.aspectRatio;
                     final portrait = MediaQuery.orientationOf(context) ==
                         Orientation.portrait;

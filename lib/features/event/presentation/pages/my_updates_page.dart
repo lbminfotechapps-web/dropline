@@ -1,7 +1,12 @@
+import 'dart:io';
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dropline/core/router/app_router.dart';
 import 'package:intl/intl.dart';
+import 'package:dropline/features/pdf_editor_page.dart';
+import 'photo_editor_page.dart';
 
 import 'package:dropline/core/di/global_di.dart';
 import 'package:dropline/core/secure_storage/secure_storage.dart';
@@ -467,143 +472,433 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
     });
   }
 
-void _open(EventDraftRecord record) {
-  Navigator.of(context).push(
-    MaterialPageRoute<void>(
-      builder: (context) => Scaffold(
-        backgroundColor: _background,
-        appBar: AppBar(
-          backgroundColor: _background,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          title: Text(
-            switch (record.item.type) {
-              EventItemType.photo => 'Photo',
-              EventItemType.note => 'Note',
-              EventItemType.audio => 'Voice note',
-              EventItemType.pdf => 'PDF',
-            },
-          ),
-        ),
-        body: SafeArea(
-          child: Column(
-            children: [
-              // IMAGE / PDF / NOTE / VOICE PREVIEW
-              Expanded(
-                child: record.item.type == EventItemType.note
-                    ? SingleChildScrollView(
-                        padding: const EdgeInsets.all(20),
-                        child: Align(
-                          alignment: Alignment.topLeft,
-                          child: SelectableText(
-                            record.item.text,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              height: 1.6,
-                            ),
-                          ),
-                        ),
-                      )
-                    : record.file == null
-                        ? const Center(
-                            child: Text(
-                              'This file is no longer available.',
-                              style: TextStyle(color: _muted),
-                            ),
-                          )
-                        : EventAttachmentPreview(
-                            file: record.file!,
-                            item: record.item,
-                            onEditPdf: () {},
-                            fillPreview:
-                                record.item.type == EventItemType.pdf,
-                          ),
+  Future<EventDraftRecord?> _editRecord(EventDraftRecord record) async {
+    try {
+      final item = record.item;
+      if (item.type == EventItemType.note) {
+        final controller = TextEditingController(text: item.text);
+        final text = await showDialog<String>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: const Text('Edit note'),
+            content: TextField(
+              controller: controller,
+              autofocus: true,
+              minLines: 4,
+              maxLines: 10,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Cancel'),
               ),
-
-              // PROJECT / AREA / EVENT DETAILS
-              Container(
-                width: double.infinity,
-                constraints: BoxConstraints(
-                  maxHeight:
-                      MediaQuery.sizeOf(context).height * 0.38,
-                ),
-                decoration: const BoxDecoration(
-                  color: _surface,
-                  border: Border(
-                    top: BorderSide(color: _border),
-                  ),
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(20),
-                  ),
-                ),
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(
-                    20, 20, 20, 24,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _detailField(
-                        'Project Name',
-                        record.projectName,
-                      ),
-
-                      const SizedBox(height: 16),
-                      const Divider(color: _border),
-                      const SizedBox(height: 12),
-
-                      _detailField(
-                        'Area',
-                        record.item.area,
-                      ),
-
-                      const SizedBox(height: 16),
-                      const Divider(color: _border),
-                      const SizedBox(height: 12),
-
-                      _detailField(
-                        'Event',
-                        record.item.event,
-                      ),
-                    ],
-                  ),
-                ),
+              FilledButton(
+                onPressed: () => Navigator.pop(dialogContext, controller.text),
+                child: const Text('Save'),
               ),
             ],
           ),
-        ),
-      ),
-    ),
-  );
-}
+        );
+        controller.dispose();
+        if (text == null) return null;
+        final scope = record.scope;
+        if (scope == null) throw StateError('Draft scope is unavailable');
+        final items = await _store.load(scope);
+        final index = items.indexWhere((entry) => entry.id == item.id);
+        if (index < 0) throw StateError('Note is no longer available');
+        items[index] = items[index].withText(text);
+        await _store.save(scope, items);
+        return EventDraftRecord(
+          date: record.date,
+          item: items[index],
+          file: record.file,
+          projectName: record.projectName,
+          scope: scope,
+        );
+      }
+      if (item.type == EventItemType.audio) {
+        if (mounted)
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Voice recordings cannot be edited.')),
+          );
+        return null;
+      }
+      final file = record.file;
+      if (file == null || !await file.exists())
+        throw StateError('File is unavailable');
+      Future<void> saveBytes(List<int> bytes) async {
+        if (record.scope != null) {
+          await _store.replaceFile(record.scope!, item, bytes);
+        } else {
+          final temporary = File('${file.path}.tmp');
+          await temporary.writeAsBytes(bytes, flush: true);
+          await temporary.rename(file.path);
+        }
+      }
 
+      if (!mounted) return null;
+      final bool? saved;
+      if (item.type == EventItemType.photo) {
+        saved = await Navigator.of(context).push<bool>(
+          MaterialPageRoute(
+            builder: (_) => PhotoEditorPage(file: file, onSave: saveBytes),
+          ),
+        );
+        if (saved == true) await FileImage(file).evict();
+      } else {
+        final bytes = await file.readAsBytes();
+        if (!mounted) return null;
+        saved = await Navigator.of(context).push<bool>(
+          MaterialPageRoute(
+            builder: (_) => PdfEditorPage(
+              initialBytes: bytes,
+              fileName: item.name,
+              onSave: saveBytes,
+            ),
+          ),
+        );
+      }
+      return saved == true ? record : null;
+    } catch (_) {
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Unable to edit this update. Please try again.'),
+          ),
+        );
+      return null;
+    }
+  }
 
-Widget _detailField(String label, String value) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        label,
-        style: const TextStyle(
-          color: _muted,
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
+  Future<bool> _confirmDeleteImage(EventDraftRecord record) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: _surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: const Text(
+          'Delete attachment?',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          'Are you sure you want to delete this attachment? '
+          'This action cannot be undone.',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.white70),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text(
+              'Delete',
+              style: TextStyle(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return false;
+    try {
+      final scope = record.scope;
+      if (scope == null) throw StateError('Draft scope is unavailable');
+      final items = await _store.load(scope);
+      final index = items.indexWhere((item) => item.id == record.item.id);
+      if (index < 0) throw StateError('Update is no longer available');
+      final removed = items.removeAt(index);
+      await _store.save(scope, items);
+      if (removed.fileName != null &&
+          !items.any((item) => item.fileName == removed.fileName)) {
+        try {
+          final file = await _store.file(scope, removed);
+          if (await file.exists()) await file.delete();
+        } catch (_) {
+          // Metadata is already saved; an orphaned file can be cleaned up later.
+        }
+      }
+      if (mounted) {
+        setState(
+          () => _records.removeWhere(
+            (entry) => entry.scope == scope && entry.item.id == record.item.id,
+          ),
+        );
+      }
+      return true;
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Unable to delete this update. Please try again.'),
+          ),
+        );
+      }
+      return false;
+    }
+  }
+
+  Future<Size?> _photoSize(EventDraftRecord record) async {
+    final file = record.file;
+    if (record.item.type != EventItemType.photo || file == null) return null;
+    try {
+      final codec = await ui.instantiateImageCodec(await file.readAsBytes());
+      try {
+        final frame = await codec.getNextFrame();
+        final size = Size(
+          frame.image.width.toDouble(),
+          frame.image.height.toDouble(),
+        );
+        frame.image.dispose();
+        return size;
+      } finally {
+        codec.dispose();
+      }
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void _open(EventDraftRecord record) {
+    var current = record;
+    var previewVersion = 0;
+    var photoSize = _photoSize(record);
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => StatefulBuilder(
+          builder: (context, refresh) {
+            final record = current;
+            return Scaffold(
+              backgroundColor: _background,
+              appBar: AppBar(
+                backgroundColor: _background,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                title: Text(switch (record.item.type) {
+                  EventItemType.photo => 'Photo',
+                  EventItemType.note => 'Note',
+                  EventItemType.audio => 'Voice note',
+                  EventItemType.pdf => 'PDF',
+                }),
+              ),
+              body: Column(
+                children: [
+                  Expanded(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) => Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          // EXISTING IMAGE / PDF / NOTE / VOICE PREVIEW
+                          record.item.type == EventItemType.note
+                              ? SingleChildScrollView(
+                                  padding: const EdgeInsets.all(12),
+                                  child: SelectableText(
+                                    record.item.text,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      height: 1.6,
+                                    ),
+                                  ),
+                                )
+                              : record.file == null
+                              ? const Center(
+                                  child: Text(
+                                    'This file is no longer available.',
+                                    style: TextStyle(color: _muted),
+                                  ),
+                                )
+                              : EventAttachmentPreview(
+                                  key: ValueKey(
+                                    '${record.item.id}:$previewVersion',
+                                  ),
+                                  file: record.file!,
+                                  item: record.item,
+                                  onEditPdf: () {},
+                                  fillPreview:
+                                      record.item.type == EventItemType.pdf,
+                                  alignTop: true,
+                                ),
+
+                          FutureBuilder<Size?>(
+                            future: photoSize,
+                            builder: (context, snapshot) {
+                              final size = snapshot.data;
+                              final photoHeight = size == null
+                                  ? null
+                                  : applyBoxFit(
+                                      BoxFit.contain,
+                                      size,
+                                      constraints.biggest,
+                                    ).destination.height;
+                              return Positioned(
+                                left: 0,
+                                right: 0,
+                                top: photoHeight == null
+                                    ? null
+                                    : (photoHeight - 72).clamp(
+                                        0.0,
+                                        constraints.maxHeight,
+                                      ),
+                                bottom: photoHeight == null ? 16 : null,
+                                child: Center(
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.55,
+                                      ),
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        // CROSS ICON - DELETE
+                                        IconButton(
+                                          tooltip: 'Delete attachment',
+                                          icon: const Icon(
+                                            Icons.close_rounded,
+                                            color: Colors.redAccent,
+                                            size: 25,
+                                          ),
+                                          onPressed: () async {
+                                            final deleted =
+                                                await _confirmDeleteImage(
+                                                  record,
+                                                );
+                                            if (deleted && context.mounted)
+                                              Navigator.of(context).pop();
+                                          },
+                                        ),
+
+                                        const SizedBox(width: 14),
+
+                                        // EDIT ICON
+                                        IconButton(
+                                          tooltip: 'Edit attachment',
+                                          icon: const Icon(
+                                            Icons.edit_outlined,
+                                            color: Colors.white,
+                                            size: 23,
+                                          ),
+                                          onPressed: () async {
+                                            final updated = await _editRecord(
+                                              record,
+                                            );
+                                            if (updated == null ||
+                                                !context.mounted)
+                                              return;
+                                            refresh(() {
+                                              current = updated;
+                                              previewVersion++;
+                                              photoSize = _photoSize(updated);
+                                            });
+                                            if (mounted)
+                                              setState(() {
+                                                final index = _records.indexOf(
+                                                  record,
+                                                );
+                                                if (index >= 0)
+                                                  _records[index] = updated;
+                                              });
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  Container(
+                    width: double.infinity,
+                    color: _background,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _verticalDetail('Project Name', record.projectName),
+                        const SizedBox(height: 10),
+                        _verticalDetail('Area', record.item.area),
+                        const SizedBox(height: 10),
+                        _verticalDetail('Event', record.item.event),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
         ),
       ),
-      const SizedBox(height: 6),
-      Text(
-        value.trim().isEmpty ? 'N/A' : value,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 15,
-          fontWeight: FontWeight.w600,
-          height: 1.4,
-        ),
+    );
+  }
+
+  Widget _imageActionButton({
+    required IconData icon,
+    required Color iconColor,
+    required String tooltip,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.black.withValues(alpha: 0.65),
+      shape: const CircleBorder(),
+      child: IconButton(
+        tooltip: tooltip,
+        onPressed: onTap,
+        icon: Icon(icon, color: iconColor, size: 23),
+        constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
       ),
-    ],
-  );
-}
+    );
+  }
+
+  Widget _verticalDetail(String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 95,
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: _muted,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value.trim().isEmpty ? 'N/A' : value,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   // void _open(EventDraftRecord record) {
   //   Navigator.of(context).push(
   //     MaterialPageRoute<void>(

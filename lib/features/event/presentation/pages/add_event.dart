@@ -73,6 +73,8 @@ class _AddEventPageState extends State<AddEventPage> {
   late final EventHierarchyRepository _hierarchyRepository;
   bool _eventFlowOpen = false;
   bool _cameraOpen = false;
+  bool _noteVoiceOpen = false;
+  bool _voiceActive = false;
   final _cameraActions = EventCameraActions();
   EventHierarchySelection? _pendingHierarchy;
   final _draftDate = DateTime.now();
@@ -359,6 +361,32 @@ class _AddEventPageState extends State<AddEventPage> {
   Future<void> _removeSelectedItem() async {
     final item = _selectedItem;
     if (item == null || !_canEdit || _pendingSaves > 0 || _saveFailed) return;
+    final scope = _scope;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Remove attachment?'),
+        content: const Text('Are you sure you want to remove this attachment?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true ||
+        !mounted ||
+        scope != _scope ||
+        _selectedItem?.id != item.id ||
+        !_canEdit ||
+        _pendingSaves > 0 ||
+        _saveFailed)
+      return;
     setState(() {
       _items.removeWhere((entry) => entry.id == item.id);
       _selectedItemIds.remove(item.id);
@@ -403,36 +431,6 @@ class _AddEventPageState extends State<AddEventPage> {
         }
       }
     }
-  }
-
-  void _startNote() {
-    if (_selectedItem?.type != EventItemType.note ||
-        _noteController.text.isNotEmpty) {
-      _newNote();
-    }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && _selectedItem?.type == EventItemType.note) {
-        _noteFocus.requestFocus();
-      }
-    });
-  }
-
-  void _newNote() {
-    if (!_canEdit) return;
-    FocusScope.of(context).unfocus();
-    final item = EventDraftItem(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
-      type: EventItemType.note,
-      name:
-          'Note ${_items.where((e) => e.type == EventItemType.note).length + 1}',
-    );
-    setState(() {
-      _items.add(item);
-      _selectedCard = _items.length - 1;
-      _previewFile = null;
-      _noteController.clear();
-    });
-    unawaited(_saveDraft());
   }
 
   void _noteChanged(String value) {
@@ -551,26 +549,6 @@ class _AddEventPageState extends State<AddEventPage> {
     setState(() => _picking = true);
     try {
       await _attachCameraPhotos(photos);
-    } finally {
-      if (mounted) setState(() => _picking = false);
-    }
-  }
-
-  Future<void> _openRecorder() async {
-    if (!_canEdit) return;
-    FocusScope.of(context).unfocus();
-    setState(() => _picking = true);
-    try {
-      final path = await showDialog<String>(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => const AudioRecorderDialog(),
-      );
-      if (path != null && mounted) {
-        await _addFiles([XFile(path)], EventItemType.audio);
-      }
-    } catch (_) {
-      _message('Unable to attach recording. Please try again.');
     } finally {
       if (mounted) setState(() => _picking = false);
     }
@@ -744,9 +722,17 @@ class _AddEventPageState extends State<AddEventPage> {
       ),
       child: PopScope(
         canPop:
-            !_eventFlowOpen && _pendingSaves == 0 && !_picking && !_saveFailed,
+            !_noteVoiceOpen &&
+            !_eventFlowOpen &&
+            _pendingSaves == 0 &&
+            !_picking &&
+            !_saveFailed,
         onPopInvokedWithResult: (didPop, result) {
           if (!didPop) {
+            if (_noteVoiceOpen) {
+              if (!_voiceActive) setState(() => _noteVoiceOpen = false);
+              return;
+            }
             _message(
               _saveFailed
                   ? 'Your changes are not saved. Tap Retry before leaving.'
@@ -759,77 +745,195 @@ class _AddEventPageState extends State<AddEventPage> {
           backgroundColor: AppColors.background,
           resizeToAvoidBottomInset: true,
           body: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (!keyboardVisible) ...[
-                    Row(
+            child: _noteVoiceOpen
+                ? _buildNoteVoiceScreen()
+                : Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // IconButton(
-                        //   tooltip: 'Punch out',
-                        //   onPressed: () => context.push(AppRouter.punchOut),
-                        //   color: _muted,
-                        //   icon: const Icon(Icons.apartment_outlined, size: 20),
-                        // ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                        if (!keyboardVisible) ...[
+                          Row(
                             children: [
-                              Padding(
-                                padding: const EdgeInsets.all(5.0),
-                                child: Center(
-                                  child: Text(
-                                    _punchProjectName ?? widget.projectName,
-                                    style: AppTextStyles.titleSmall,
-                                  ),
+                              // IconButton(
+                              //   tooltip: 'Punch out',
+                              //   onPressed: () => context.push(AppRouter.punchOut),
+                              //   color: _muted,
+                              //   icon: const Icon(Icons.apartment_outlined, size: 20),
+                              // ),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(5.0),
+                                      child: Center(
+                                        child: Text(
+                                          _punchProjectName ??
+                                              widget.projectName,
+                                          style: AppTextStyles.titleSmall,
+                                        ),
+                                      ),
+                                    ),
+                                    // _buildDateHeader(),
+                                  ],
                                 ),
                               ),
-                              // _buildDateHeader(),
                             ],
                           ),
+                          if (!noteSelected)
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
+                                child: Container(
+                                  clipBehavior: Clip.antiAlias,
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.surface,
+                                    borderRadius: _actionBorderRadius,
+                                  ),
+                                  child: _cameraOpen
+                                      ? EventCameraPage(
+                                          onConfirm: _attachInlinePhoto,
+                                          onClose: _closeCamera,
+                                          inline: true,
+                                          actions: _cameraActions,
+                                        )
+                                      : _selectedItem == null
+                                      ? _buildSitePrompt()
+                                      : _buildPreviewCard(),
+                                ),
+                              ),
+                            ),
+                          if (noteSelected && _draftError != null)
+                            _buildSitePrompt(),
+                        ],
+                        Flexible(
+                          key: const ValueKey('event-composer-area'),
+                          flex: noteSelected ? 1 : 0,
+                          fit: FlexFit.tight,
+                          child: _buildComposer(keyboardVisible, noteSelected),
                         ),
                       ],
                     ),
-                    if (!noteSelected)
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: Container(
-                            clipBehavior: Clip.antiAlias,
-                            decoration: const BoxDecoration(
-                              color: AppColors.surface,
-                              borderRadius: _actionBorderRadius,
-                            ),
-                            child: _cameraOpen
-                                ? EventCameraPage(
-                                    onConfirm: _attachInlinePhoto,
-                                    onClose: _closeCamera,
-                                    inline: true,
-                                    actions: _cameraActions,
-                                  )
-                                : _selectedItem == null
-                                ? _buildSitePrompt()
-                                : _buildPreviewCard(),
-                          ),
-                        ),
-                      ),
-                    if (noteSelected && _draftError != null) _buildSitePrompt(),
-                  ],
-                  Flexible(
-                    key: const ValueKey('event-composer-area'),
-                    flex: noteSelected ? 1 : 0,
-                    fit: FlexFit.tight,
-                    child: _buildComposer(keyboardVisible, noteSelected),
                   ),
-                ],
-              ),
-            ),
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildNoteVoiceScreen() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              IconButton(
+                color: AppColors.textPrimary,
+                onPressed: _voiceActive
+                    ? null
+                    : () => setState(() => _noteVoiceOpen = false),
+                icon: const Icon(Icons.arrow_back_ios_new, size: 18),
+              ),
+              const Expanded(
+                child: Text('Note & voice', style: AppTextStyles.titleSmall),
+              ),
+            ],
+          ),
+          Expanded(
+            child: ListView(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: _line),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Write', style: AppTextStyles.bodyMedium),
+                      const SizedBox(height: 8),
+                      SizedBox(height: 180, child: _buildNoteField()),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: _line),
+                  ),
+                  child: Column(
+                    children: [
+                      AudioRecorderDialog(
+                        onActiveChanged: (active) =>
+                            setState(() => _voiceActive = active),
+                        onAttach: (path) =>
+                            _addAudioPreservingNote([XFile(path)]),
+                      ),
+                      TextButton.icon(
+                        onPressed: _pickAudio,
+                        style: TextButton.styleFrom(foregroundColor: AppColors.textSecondary),
+                        icon: const Icon(Icons.attach_file),
+                        label: const Text('Choose audio file'),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.primaryText,
+            ),
+            onPressed: _voiceActive
+                ? null
+                : () {
+                    FocusScope.of(context).unfocus();
+                    setState(() => _noteVoiceOpen = false);
+                  },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _pickAudio() async {
+    try {
+      final files = await FilePicker.pickFiles(type: FileType.audio);
+      if (mounted)
+        await _addAudioPreservingNote(files.map((file) => file.xFile).toList());
+    } catch (_) {
+      _message('Unable to attach audio. Please try again.');
+    }
+  }
+
+  Future<void> _addAudioPreservingNote(List<XFile> files) async {
+    final noteId = _selectedItem?.type == EventItemType.note
+        ? _selectedItem!.id
+        : null;
+    final text = _noteController.text;
+    await _addFiles(files, EventItemType.audio);
+    if (!mounted) return;
+    setState(() {
+      _noteController.text = text;
+      if (noteId != null) {
+        _selectedCard = _items.indexWhere((item) => item.id == noteId);
+      } else {
+        _selectedCard = -1;
+      }
+    });
   }
 
   Widget _buildSitePrompt() {
@@ -846,7 +950,7 @@ class _AddEventPageState extends State<AddEventPage> {
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 24),
         child: Text(
-          'What’s happening on site?',
+          '''What's happening on site?''',
           textAlign: TextAlign.center,
           style: AppTextStyles.titleLarge,
         ),
@@ -1040,31 +1144,20 @@ class _AddEventPageState extends State<AddEventPage> {
             ),
           ),
           Expanded(
-            child: PopupMenuButton<bool>(
-              tooltip: 'Note & voice',
-              color: AppColors.surface,
-              enabled: _canEdit,
-              onSelected: (writeNote) {
-                if (_cameraOpen) _closeCamera();
-                if (writeNote) {
-                  _startNote();
-                } else {
-                  (widget.onRecordAudio ?? _openRecorder)();
-                }
-              },
-              itemBuilder: (_) => const [
-                PopupMenuItem(
-                  value: true,
-                  child: Text('Write note', style: AppTextStyles.bodyMedium),
-                ),
-                PopupMenuItem(
-                  value: false,
-                  child: Text(
-                    'Record voice note',
-                    style: AppTextStyles.bodyMedium,
-                  ),
-                ),
-              ],
+            child: InkWell(
+              onTap: _canEdit
+                  ? () {
+                      if (_cameraOpen) _closeCamera();
+                      _noteController.clear();
+                      setState(() {
+                        _selectedCard = -1;
+                        _noteVoiceOpen = true;
+                      });
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (mounted && _noteVoiceOpen) _noteFocus.requestFocus();
+                      });
+                    }
+                  : null,
               child: const Padding(
                 padding: EdgeInsets.symmetric(vertical: 12),
                 child: Column(
@@ -1134,16 +1227,12 @@ class _AddEventPageState extends State<AddEventPage> {
             onTap: _canEdit
                 ? () {
                     if (_cameraOpen) _closeCamera();
-                    setState(() {
-                      if (!_selectedItemIds.add(item.id)) {
-                        _selectedItemIds.remove(item.id);
-                      }
-                    });
                     _selectItem(index);
                   }
                 : null,
             borderRadius: BorderRadius.circular(12),
             child: AnimatedContainer(
+              height: 82,
               duration: const Duration(milliseconds: 180),
               width: 82,
               padding: EdgeInsets.all(item.type == EventItemType.photo ? 2 : 7),
@@ -1151,8 +1240,16 @@ class _AddEventPageState extends State<AddEventPage> {
                 color: AppColors.cardBackground,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: selected ? _green : _line,
-                  width: selected ? 1.5 : 1,
+                  color: _attachmentInvalid
+                      ? AppColors.error
+                      : selected
+                      ? _green
+                      : _line,
+                  width: _attachmentInvalid
+                      ? 2
+                      : selected
+                      ? 1.5
+                      : 1,
                 ),
               ),
               child: Stack(
@@ -1197,15 +1294,29 @@ class _AddEventPageState extends State<AddEventPage> {
                   Positioned(
                     top: 2,
                     right: 2,
-                    child: Icon(
-                      included
-                          ? Icons.check_circle
-                          : Icons.radio_button_unchecked,
-                      color: included ? _green : AppColors.textSecondary,
-                      size: 23,
-                      shadows: const [
-                        Shadow(color: Colors.black54, blurRadius: 3),
-                      ],
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: _canEdit
+                          ? () => setState(() {
+                              if (!_selectedItemIds.add(item.id)) {
+                                _selectedItemIds.remove(item.id);
+                              }
+                            })
+                          : null,
+                      child: Icon(
+                        included
+                            ? Icons.check_circle
+                            : Icons.radio_button_unchecked,
+                        color: included
+                            ? _green
+                            : _attachmentInvalid
+                            ? AppColors.error
+                            : AppColors.textSecondary,
+                        size: 23,
+                        shadows: const [
+                          Shadow(color: Colors.black54, blurRadius: 3),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -1227,28 +1338,31 @@ class _AddEventPageState extends State<AddEventPage> {
           children: [
             _buildSelectedPreview(),
             Positioned(
-              top: 6,
-              right: 6,
+              bottom: 6,
+              left: 6,
               child: IconButton.filled(
                 tooltip: 'Remove attachment',
                 style: _previewIconStyle,
                 onPressed: _canEdit && _pendingSaves == 0 && !_saveFailed
                     ? _removeSelectedItem
                     : null,
-                icon: const Icon(Icons.close, size: 13),
+                icon: const Icon(Icons.close, size: 22),
               ),
             ),
             if (photo || item.type == EventItemType.pdf)
               Positioned(
                 bottom: 6,
-                left: 6,
-                child: IconButton.filled(
-                  tooltip: photo ? 'Edit photo' : 'Edit PDF',
-                  style: _previewIconStyle,
-                  onPressed: _canEdit && _previewFile != null
-                      ? (photo ? _editPhoto : _editPdf)
-                      : null,
-                  icon: const Icon(Icons.edit_outlined, size: 13),
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: IconButton.filled(
+                    tooltip: photo ? 'Edit photo' : 'Edit PDF',
+                    style: _previewIconStyle,
+                    onPressed: _canEdit && _previewFile != null
+                        ? (photo ? _editPhoto : _editPdf)
+                        : null,
+                    icon: const Icon(Icons.edit_outlined, size: 22),
+                  ),
                 ),
               ),
             if (photo)
@@ -1278,8 +1392,8 @@ class _AddEventPageState extends State<AddEventPage> {
   }
 
   ButtonStyle get _previewIconStyle => IconButton.styleFrom(
-    minimumSize: const Size.square(32),
-    fixedSize: const Size.square(32),
+    minimumSize: const Size.square(44),
+    fixedSize: const Size.square(44),
     visualDensity: VisualDensity.standard,
     padding: EdgeInsets.zero,
     tapTargetSize: MaterialTapTargetSize.padded,
@@ -1395,9 +1509,17 @@ class _AddEventPageState extends State<AddEventPage> {
       cursorColor: _green,
       style: const TextStyle(color: _ink, fontSize: 14, height: 1.5),
       decoration: const InputDecoration(
-        border: InputBorder.none,
-        enabledBorder: InputBorder.none,
-        focusedBorder: InputBorder.none,
+        hintText: 'Start typing...',
+        hintStyle: TextStyle(color: AppColors.hintText),
+        filled: true,
+        fillColor: AppColors.inputBackground,
+        border: OutlineInputBorder(),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: AppColors.inputBorder),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: _green),
+        ),
         contentPadding: EdgeInsets.all(8),
       ),
     );
