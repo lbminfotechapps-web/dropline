@@ -13,11 +13,13 @@ class EventDraftRecord {
     required this.item,
     this.file,
     this.projectName = '',
+    this.scope,
   });
   final String projectName;
   final DateTime date;
   final EventDraftItem item;
   final File? file;
+  final String? scope;
 
   DateTime? get createdAt {
     final timestamp = int.tryParse(item.id);
@@ -211,6 +213,7 @@ class EventDraftStore {
         records.add(
           EventDraftRecord(
             projectName: scope[1] as String,
+            scope: jsonEncode(scope),
             date: date,
             item: item,
             file: item.fileName == null

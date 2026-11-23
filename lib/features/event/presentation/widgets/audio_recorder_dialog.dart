@@ -9,7 +9,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 
 class AudioRecorderDialog extends StatefulWidget {
-  const AudioRecorderDialog({super.key});
+  const AudioRecorderDialog({super.key, this.onAttach, this.onActiveChanged});
+
+  final Future<void> Function(String path)? onAttach;
+  final ValueChanged<bool>? onActiveChanged;
 
   @override
   State<AudioRecorderDialog> createState() => _AudioRecorderDialogState();
@@ -68,6 +71,7 @@ class _AudioRecorderDialogState extends State<AudioRecorderDialog>
         if (mounted) setState(() {});
       });
       if (mounted) setState(() => _recording = true);
+      widget.onActiveChanged?.call(true);
     } catch (error) {
       if (mounted) {
         setState(
@@ -87,6 +91,7 @@ class _AudioRecorderDialogState extends State<AudioRecorderDialog>
       final path = await _recorder!.stop();
       _watch.stop();
       _timer?.cancel();
+      if (path == null) widget.onActiveChanged?.call(false);
       if (mounted) {
         setState(() {
           _recording = false;
@@ -149,6 +154,47 @@ class _AudioRecorderDialogState extends State<AudioRecorderDialog>
   Widget build(BuildContext context) {
     final seconds = _watch.elapsed.inSeconds;
     final colour = Theme.of(context).colorScheme.onSurface;
+    if (widget.onAttach != null) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: CircleAvatar(
+              backgroundColor: AppColors.primary,
+              child: IconButton(
+                color: AppColors.primaryText,
+                onPressed: _busy ? null : _recording ? _stop : _path != null
+                    ? () async {
+                        final path = _path!;
+                        setState(() => _busy = true);
+                        try {
+                          await widget.onAttach!(path);
+                          if (mounted) setState(() { _path = null; _watch.reset(); });
+                          widget.onActiveChanged?.call(false);
+                          try {
+                            await File(path).delete();
+                          } catch (_) {
+                            // The attachment has already been copied to the draft.
+                          }
+                        } catch (_) {
+                          if (mounted) setState(() => _error = 'Unable to attach recording. Please try again.');
+                        } finally {
+                          if (mounted) setState(() => _busy = false);
+                        }
+                      }
+                    : _start,
+                icon: Icon(_recording ? Icons.stop : _path != null ? Icons.check : Icons.mic_none),
+              ),
+            ),
+            title: const Text('Voice note', style: TextStyle(color: AppColors.textPrimary)),
+            subtitle: Text(_recording ? 'Tap to stop' : _path != null ? 'Tap to attach' : 'Tap to record', style: const TextStyle(color: AppColors.textSecondary)),
+            trailing: Text('${(seconds ~/ 60).toString().padLeft(2, '0')}:${(seconds % 60).toString().padLeft(2, '0')}', style: const TextStyle(color: AppColors.textSecondary)),
+          ),
+          if (_error != null) Text(_error!, style: const TextStyle(color: AppColors.error)),
+        ],
+      );
+    }
     return PopScope(
       canPop: false,
       child: AlertDialog(
