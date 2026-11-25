@@ -1,6 +1,6 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:flutter/material.dart';
-
 
 import '../../../../core/theme/app_text_styles.dart';
 
@@ -35,7 +35,7 @@ class LocationAreaTile extends StatelessWidget {
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
               color: isSelected
-                  ? const Color(0xFFACEE70)
+                  ? AppColors.primary
                   : Colors.transparent,
               width: 1.8,
             ),
@@ -46,7 +46,7 @@ class LocationAreaTile extends StatelessWidget {
                 height: 48,
                 width: 48,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF2D394C),
+                  color: context.surfaceColor(const Color(0xFF2D394C)),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: AppColors.white.withValues(
@@ -54,9 +54,9 @@ class LocationAreaTile extends StatelessWidget {
                     ),
                   ),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.folder_outlined,
-                  color: AppColors.white,
+                  color: context.foregroundColor(AppColors.white),
                   size: 23,
                 ),
               ),
@@ -72,20 +72,23 @@ class LocationAreaTile extends StatelessWidget {
                       title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style:
-                          AppTextStyles.titleMedium.copyWith(
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.white,
-                      ),
+                      style: context
+                          .themedText(AppTextStyles.titleMedium)
+                          .copyWith(
+                            fontWeight: FontWeight.w500,
+                            color: context.foregroundColor(AppColors.white),
+                          ),
                     ),
 
                     const SizedBox(height: 5),
 
                     Text(
                       subtitle,
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
+                      style: context
+                          .themedText(AppTextStyles.bodySmall)
+                          .copyWith(
+                            color: context.mutedColor(AppColors.textSecondary),
+                          ),
                     ),
                   ],
                 ),
@@ -93,9 +96,9 @@ class LocationAreaTile extends StatelessWidget {
 
               const SizedBox(width: 8),
 
-              const Icon(
+              Icon(
                 Icons.chevron_right_rounded,
-                color: AppColors.textSecondary,
+                color: context.mutedColor(AppColors.textSecondary),
                 size: 26,
               ),
             ],

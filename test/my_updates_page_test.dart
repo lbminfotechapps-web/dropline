@@ -1,9 +1,25 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/features/event/data/repositories/event_draft_store.dart';
 import 'package:dropline/features/event/presentation/pages/my_updates_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets('Records title follows the selected theme', (tester) async {
+    for (final whiteTheme in [false, true]) {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(extensions: [if (whiteTheme) const WhiteAppTheme()]),
+          home: MyUpdatesPage(recordsLoader: () async => []),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final title = tester.widget<Text>(find.text('Records'));
+      expect(title.style?.color, whiteTheme ? Colors.black : Colors.white);
+    }
+  });
+
   testWidgets('filter dependencies, count, clear and cancel', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -103,8 +119,10 @@ void main() {
           text: text,
         ),
       );
+      final whiteTheme = size.width == 390;
       await tester.pumpWidget(
         MaterialApp(
+          theme: ThemeData(extensions: [if (whiteTheme) const WhiteAppTheme()]),
           home: MyUpdatesPage(
             recordsLoader: () async => [
               record(

@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/theme/app_text_styles.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:dropline/core/utility/widgets/appbar.dart';
@@ -7,7 +8,6 @@ import 'package:flutter/material.dart';
 // Add the correct imports for:
 // CustomAppBar, AppColors, AppTextStyles,
 // and your existing CheckSheetModel.
-
 
 // Keep your existing imports for:
 // AppColors
@@ -229,7 +229,7 @@ class _SetupCheckSheetPageState extends State<SetupCheckSheetPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.backgroundColor(AppColors.background),
       resizeToAvoidBottomInset: true,
 
       appBar: CustomAppBar(
@@ -237,7 +237,7 @@ class _SetupCheckSheetPageState extends State<SetupCheckSheetPage> {
             ? 'Edit ${widget.sheet.code}'
             : 'Set up ${widget.sheet.code}',
         subtitle: widget.companyName,
-        backgroundColor: AppColors.background,
+        backgroundColor: context.backgroundColor(AppColors.background),
       ),
 
       body: Form(
@@ -249,7 +249,7 @@ class _SetupCheckSheetPageState extends State<SetupCheckSheetPage> {
             Text(
               widget.sheet.description,
               style: AppTextStyles.custom(
-                color: const Color(0xFFB8FF65),
+                color: AppColors.primary,
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
               ),
@@ -261,7 +261,7 @@ class _SetupCheckSheetPageState extends State<SetupCheckSheetPage> {
             Text(
               'Check sheet name',
               style: AppTextStyles.custom(
-                color: AppColors.textPrimary,
+                color: context.foregroundColor(AppColors.textPrimary),
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
               ),
@@ -279,8 +279,8 @@ class _SetupCheckSheetPageState extends State<SetupCheckSheetPage> {
                 }
                 return null;
               },
-              style: const TextStyle(
-                color: AppColors.textPrimary,
+              style: TextStyle(
+                color: context.foregroundColor(AppColors.textPrimary),
                 fontSize: 14,
               ),
               decoration: _inputDecoration(
@@ -294,7 +294,7 @@ class _SetupCheckSheetPageState extends State<SetupCheckSheetPage> {
             Text(
               'Points to check',
               style: AppTextStyles.custom(
-                color: AppColors.textPrimary,
+                color: context.foregroundColor(AppColors.textPrimary),
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
               ),
@@ -318,8 +318,8 @@ class _SetupCheckSheetPageState extends State<SetupCheckSheetPage> {
                         });
                       }
                     },
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
+                    style: TextStyle(
+                      color: context.foregroundColor(AppColors.textPrimary),
                       fontSize: 14,
                     ),
                     decoration: _inputDecoration('New point'),
@@ -361,7 +361,7 @@ class _SetupCheckSheetPageState extends State<SetupCheckSheetPage> {
               Text(
                 'Drag a handle to change the order.',
                 style: AppTextStyles.custom(
-                  color: AppColors.textSecondary,
+                  color: context.mutedColor(AppColors.textSecondary),
                   fontSize: 11,
                 ),
               ),
@@ -399,10 +399,10 @@ class _SetupCheckSheetPageState extends State<SetupCheckSheetPage> {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.surface,
+                          color: context.surfaceColor(AppColors.surface),
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                            color: AppColors.border,
+                            color: context.borderColor(AppColors.border),
                           ),
                         ),
                         child: Row(
@@ -410,13 +410,15 @@ class _SetupCheckSheetPageState extends State<SetupCheckSheetPage> {
                             // Drag handle
                             ReorderableDragStartListener(
                               index: index,
-                              child: const SizedBox(
+                              child: SizedBox(
                                 height: 42,
                                 width: 30,
                                 child: Icon(
                                   Icons.drag_indicator,
                                   size: 20,
-                                  color: AppColors.textSecondary,
+                                  color: context.mutedColor(
+                                    AppColors.textSecondary,
+                                  ),
                                 ),
                               ),
                             ),
@@ -427,7 +429,9 @@ class _SetupCheckSheetPageState extends State<SetupCheckSheetPage> {
                               child: Text(
                                 points[index],
                                 style: AppTextStyles.custom(
-                                  color: AppColors.textPrimary,
+                                  color: context.foregroundColor(
+                                    AppColors.textPrimary,
+                                  ),
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -468,11 +472,11 @@ class _SetupCheckSheetPageState extends State<SetupCheckSheetPage> {
       // Fixed bottom save button
       bottomNavigationBar: Container(
         padding: const EdgeInsets.fromLTRB(10, 12, 10, 8),
-        decoration: const BoxDecoration(
-          color: AppColors.background,
+        decoration: BoxDecoration(
+          color: context.backgroundColor(AppColors.background),
           border: Border(
             top: BorderSide(
-              color: AppColors.border,
+              color: context.borderColor(AppColors.border),
               width: 0.7,
             ),
           ),
@@ -490,7 +494,7 @@ class _SetupCheckSheetPageState extends State<SetupCheckSheetPage> {
               ),
               label: const Text('Save check sheet'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFB5FF60),
+                backgroundColor: AppColors.primary,
                 foregroundColor: const Color(0xFF092537),
                 elevation: 0,
                 textStyle: const TextStyle(
@@ -515,11 +519,9 @@ class _SetupCheckSheetPageState extends State<SetupCheckSheetPage> {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(9),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.surfaceColor(AppColors.surface),
         borderRadius: BorderRadius.circular(11),
-        border: Border.all(
-          color: AppColors.border,
-        ),
+        border: Border.all(color: context.borderColor(AppColors.border)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -527,7 +529,7 @@ class _SetupCheckSheetPageState extends State<SetupCheckSheetPage> {
           Text(
             'Edit point',
             style: AppTextStyles.custom(
-              color: AppColors.textPrimary,
+              color: context.foregroundColor(AppColors.textPrimary),
               fontSize: 13,
               fontWeight: FontWeight.w700,
             ),
@@ -547,24 +549,22 @@ class _SetupCheckSheetPageState extends State<SetupCheckSheetPage> {
                 });
               }
             },
-            style: const TextStyle(
-              color: AppColors.textPrimary,
+            style: TextStyle(
+              color: context.foregroundColor(AppColors.textPrimary),
               fontSize: 14,
             ),
-            decoration: _inputDecoration(
-              'Edit point',
-            ).copyWith(
+            decoration: _inputDecoration('Edit point').copyWith(
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(
-                  color: Color(0xFFB5FF60),
+                borderSide: BorderSide(
+                  color: context.accentColor(AppColors.primary),
                   width: 1.5,
                 ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(
-                  color: Color(0xFFB5FF60),
+                borderSide: BorderSide(
+                  color: context.accentColor(AppColors.primary),
                   width: 1.8,
                 ),
               ),
@@ -641,17 +641,10 @@ class _SetupCheckSheetPageState extends State<SetupCheckSheetPage> {
   // Common outlined button style
   ButtonStyle _outlinedButtonStyle() {
     return OutlinedButton.styleFrom(
-      foregroundColor: AppColors.textPrimary,
-      side: const BorderSide(
-        color: AppColors.border,
-        width: 1,
-      ),
-      padding: const EdgeInsets.symmetric(
-        horizontal: 12,
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
+      foregroundColor: context.foregroundColor(AppColors.textPrimary),
+      side: BorderSide(color: context.borderColor(AppColors.border), width: 1),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
     );
   }
 
@@ -659,12 +652,12 @@ class _SetupCheckSheetPageState extends State<SetupCheckSheetPage> {
   InputDecoration _inputDecoration(String hint) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(
-        color: AppColors.textSecondary,
+      hintStyle: TextStyle(
+        color: context.mutedColor(AppColors.textSecondary),
         fontSize: 14,
       ),
       filled: true,
-      fillColor: AppColors.background,
+      fillColor: context.backgroundColor(AppColors.background),
       isDense: true,
       contentPadding: const EdgeInsets.symmetric(
         horizontal: 12,
@@ -672,20 +665,16 @@ class _SetupCheckSheetPageState extends State<SetupCheckSheetPage> {
       ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(
-          color: AppColors.border,
-        ),
+        borderSide: BorderSide(color: context.borderColor(AppColors.border)),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(
-          color: AppColors.border,
-        ),
+        borderSide: BorderSide(color: context.borderColor(AppColors.border)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(
-          color: Color(0xFFB5FF60),
+        borderSide: BorderSide(
+          color: context.accentColor(AppColors.primary),
           width: 1.5,
         ),
       ),

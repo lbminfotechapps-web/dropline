@@ -1,4 +1,4 @@
-
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:flutter/material.dart';
 
@@ -116,10 +116,10 @@ class _AddAreaBottomSheetState
                       width: 54,
                       height: 5,
                       decoration: BoxDecoration(
-                        color: AppColors.textMuted
+                        color: context
+                            .mutedColor(AppColors.textMuted)
                             .withValues(alpha: 0.65),
-                        borderRadius:
-                            BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                   ),
@@ -131,10 +131,9 @@ class _AddAreaBottomSheetState
                       Expanded(
                         child: Text(
                           widget.title,
-                          style: AppTextStyles.headingSmall
-                              .copyWith(
-                            fontWeight: FontWeight.w500,
-                          ),
+                          style: context
+                              .themedText(AppTextStyles.headingSmall)
+                              .copyWith(fontWeight: FontWeight.w500),
                         ),
                       ),
 
@@ -154,9 +153,9 @@ class _AddAreaBottomSheetState
                             ),
                           ),
                         ),
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.close_rounded,
-                          color: AppColors.white,
+                          color: context.foregroundColor(AppColors.white),
                         ),
                       ),
                     ],
@@ -166,21 +165,23 @@ class _AddAreaBottomSheetState
 
                   Text(
                     widget.description,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
+                    style: context
+                        .themedText(AppTextStyles.bodyMedium)
+                        .copyWith(
+                          color: context.mutedColor(AppColors.textSecondary),
+                        ),
                   ),
 
                   if (widget.parentName != null) ...[
                     const SizedBox(height: 18),
                     Text(
                       'Adding under',
-                      style: AppTextStyles.bodySmall,
+                      style: context.themedText(AppTextStyles.bodySmall),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       widget.parentName!,
-                      style: AppTextStyles.titleSmall,
+                      style: context.themedText(AppTextStyles.titleSmall),
                     ),
                   ],
 
@@ -188,9 +189,11 @@ class _AddAreaBottomSheetState
 
                   Text(
                     'Name',
-                    style: AppTextStyles.labelMedium.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
+                    style: context
+                        .themedText(AppTextStyles.labelMedium)
+                        .copyWith(
+                          color: context.mutedColor(AppColors.textSecondary),
+                        ),
                   ),
 
                   const SizedBox(height: 9),
@@ -203,12 +206,12 @@ class _AddAreaBottomSheetState
                         TextCapitalization.words,
                     textInputAction: TextInputAction.done,
                     onFieldSubmitted: (_) => _save(),
-                    style: AppTextStyles.inputText,
+                    style: context.themedText(AppTextStyles.inputText),
                     decoration: InputDecoration(
                       hintText: widget.hintText,
-                      hintStyle: AppTextStyles.inputHint,
+                      hintStyle: context.themedText(AppTextStyles.inputHint),
                       filled: true,
-                      fillColor: const Color(0xFF1B2535),
+                      fillColor: context.surfaceColor(Color(0xFF1B2535)),
                       contentPadding:
                           const EdgeInsets.symmetric(
                         horizontal: 20,
@@ -254,9 +257,9 @@ class _AddAreaBottomSheetState
                     const SizedBox(height: 12),
                     Text(
                       _saveError!,
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: AppColors.error,
-                      ),
+                      style: context
+                          .themedText(AppTextStyles.bodySmall)
+                          .copyWith(color: AppColors.error),
                     ),
                   ],
 

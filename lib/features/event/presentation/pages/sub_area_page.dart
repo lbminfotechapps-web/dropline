@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/router/app_router.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:dropline/core/utility/widgets/app_background.dart';
@@ -117,18 +118,22 @@ Future<void> _finishSetup(BuildContext context) async {
                           sliver: SliverToBoxAdapter(
                             child: Text(
                               'Add sub-areas inside ${mainArea.name}.',
-                              style: AppTextStyles.bodyLarge.copyWith(
-                                color: AppColors.textSecondary,
-                              ),
+                              style: context
+                                  .themedText(AppTextStyles.bodyLarge)
+                                  .copyWith(
+                                    color: context.mutedColor(
+                                      AppColors.textSecondary,
+                                    ),
+                                  ),
                             ),
                           ),
                         ),
 
                         if (state.isLoading)
-                          const SliverFillRemaining(
+                          SliverFillRemaining(
                             child: Center(
                               child: CircularProgressIndicator(
-                                color: AppColors.white,
+                                color: context.foregroundColor(AppColors.white),
                               ),
                             ),
                           )
@@ -141,7 +146,9 @@ Future<void> _finishSetup(BuildContext context) async {
                                     context.read<SubAreaCubit>().loadSubAreas(),
                                 child: Text(
                                   'Unable to load sub-areas. Retry',
-                                  style: AppTextStyles.bodyMedium,
+                                  style: context.themedText(
+                                    AppTextStyles.bodyMedium,
+                                  ),
                                 ),
                               ),
                             ),
@@ -215,9 +222,9 @@ Future<void> _finishSetup(BuildContext context) async {
                   color: AppColors.white.withValues(alpha: 0.20),
                 ),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.arrow_back_rounded,
-                color: AppColors.white,
+                color: context.foregroundColor(AppColors.white),
                 size: 24,
               ),
             ),
@@ -229,10 +236,9 @@ Future<void> _finishSetup(BuildContext context) async {
         Expanded(
           child: Text(
             'Sub-areas',
-            style: AppTextStyles.headingLarge.copyWith(
-              fontSize: 28,
-              fontWeight: FontWeight.w500,
-            ),
+            style: context
+                .themedText(AppTextStyles.headingLarge)
+                .copyWith(fontSize: 28, fontWeight: FontWeight.w500),
           ),
         ),
       ],
@@ -285,8 +291,10 @@ Future<void> _finishSetup(BuildContext context) async {
                   //     ? null
                   //     : () => _finishSetup(context),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.white,
-                    disabledForegroundColor: AppColors.textSecondary,
+                    foregroundColor: context.foregroundColor(AppColors.white),
+                    disabledForegroundColor: context.mutedColor(
+                      AppColors.textSecondary,
+                    ),
                     side: BorderSide(
                       color: AppColors.white.withValues(alpha: 0.28),
                     ),

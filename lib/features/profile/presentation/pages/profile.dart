@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:dropline/core/router/app_router.dart';
 import 'package:dropline/core/utility/widgets/appbar.dart';
@@ -76,7 +77,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
   }) async {
     await showModalBottomSheet<void>(
       context: context,
-      backgroundColor: AppColors.sheetBackground,
+      backgroundColor: context.surfaceColor(AppColors.sheetBackground),
       isScrollControlled: true,
       useSafeArea: true,
       shape: const RoundedRectangleBorder(
@@ -98,7 +99,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
                     height: 5,
                     width: 48,
                     decoration: BoxDecoration(
-                      color: AppColors.sheetHandle,
+                      color: context.mutedColor(AppColors.sheetHandle),
                       borderRadius: BorderRadius.circular(20),
                     ),
                   ),
@@ -106,8 +107,8 @@ class _MyProfilePageState extends State<MyProfilePage> {
                 const SizedBox(height: 22),
                 Text(
                   title,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
+                  style: TextStyle(
+                    color: context.foregroundColor(AppColors.textPrimary),
                     fontSize: 22,
                     fontWeight: FontWeight.w500,
                   ),
@@ -123,7 +124,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
                       final isSelected = selected == option;
 
                       return Material(
-                        color: AppColors.cardBackground,
+                        color: context.surfaceColor(AppColors.cardBackground),
                         borderRadius: BorderRadius.circular(12),
                         child: InkWell(
                           onTap: () {
@@ -141,7 +142,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
                               border: Border.all(
                                 color: isSelected
                                     ? AppColors.primary
-                                    : AppColors.border,
+                                    : context.borderColor(AppColors.border),
                               ),
                             ),
                             child: Row(
@@ -149,16 +150,18 @@ class _MyProfilePageState extends State<MyProfilePage> {
                                 Expanded(
                                   child: Text(
                                     option,
-                                    style: const TextStyle(
-                                      color: AppColors.textPrimary,
+                                    style: TextStyle(
+                                      color: context.foregroundColor(
+                                        AppColors.textPrimary,
+                                      ),
                                       fontSize: 14,
                                     ),
                                   ),
                                 ),
                                 if (isSelected)
-                                  const Icon(
+                                  Icon(
                                     Icons.check_circle_rounded,
-                                    color: AppColors.primary,
+                                    color: context.accentColor(AppColors.primary),
                                     size: 21,
                                   ),
                               ],
@@ -185,7 +188,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      backgroundColor: AppColors.sheetBackground,
+      backgroundColor: context.surfaceColor(AppColors.sheetBackground),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -207,7 +210,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
                     height: 5,
                     width: 48,
                     decoration: BoxDecoration(
-                      color: AppColors.sheetHandle,
+                      color: context.mutedColor(AppColors.sheetHandle),
                       borderRadius: BorderRadius.circular(20),
                     ),
                   ),
@@ -215,8 +218,8 @@ class _MyProfilePageState extends State<MyProfilePage> {
                 const SizedBox(height: 22),
                 Text(
                   title,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
+                  style: TextStyle(
+                    color: context.foregroundColor(AppColors.textPrimary),
                     fontSize: 22,
                     fontWeight: FontWeight.w500,
                   ),
@@ -264,21 +267,28 @@ class _MyProfilePageState extends State<MyProfilePage> {
         controller: controller,
         keyboardType: keyboardType,
         onChanged: (_) => _markChanged(),
-        style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+        style: TextStyle(
+          color: context.foregroundColor(AppColors.textPrimary),
+          fontSize: 14,
+        ),
         cursorColor: AppColors.primary,
         decoration: InputDecoration(
           labelText: label,
           prefixIcon: prefixIcon,
-          labelStyle: const TextStyle(color: AppColors.textSecondary),
+          labelStyle: TextStyle(
+            color: context.mutedColor(AppColors.textSecondary),
+          ),
           filled: true,
-          fillColor: AppColors.inputBackground,
+          fillColor: context.surfaceColor(AppColors.inputBackground),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.border),
+            borderSide: BorderSide(
+              color: context.borderColor(AppColors.border),
+            ),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.primary),
+            borderSide: BorderSide(color: context.accentColor(AppColors.primary)),
           ),
         ),
       ),
@@ -331,23 +341,31 @@ class _MyProfilePageState extends State<MyProfilePage> {
             showDropDownButton: true,
             flagWidth: 22,
             padding: const EdgeInsets.only(left: 8),
-            textStyle: const TextStyle(
-              color: AppColors.textPrimary,
+            textStyle: TextStyle(
+              color: context.foregroundColor(AppColors.textPrimary),
               fontSize: 14,
             ),
-            dialogBackgroundColor: AppColors.surface,
-            dialogTextStyle: const TextStyle(color: Colors.white, fontSize: 14),
-            searchStyle: const TextStyle(color: Colors.white),
-            headerTextStyle: const TextStyle(
-              color: Colors.white,
+            dialogBackgroundColor: context.surfaceColor(AppColors.surface),
+            dialogTextStyle: TextStyle(
+              color: context.foregroundColor(Colors.white),
+              fontSize: 14,
+            ),
+            searchStyle: TextStyle(
+              color: context.foregroundColor(Colors.white),
+            ),
+            headerTextStyle: TextStyle(
+              color: context.foregroundColor(Colors.white),
               fontSize: 18,
               fontWeight: FontWeight.w500,
             ),
-            closeIcon: const Icon(Icons.close, color: Colors.white),
-            searchDecoration: const InputDecoration(
+            closeIcon: Icon(
+              Icons.close,
+              color: context.foregroundColor(Colors.white),
+            ),
+            searchDecoration: InputDecoration(
               hintText: 'Search country or code',
-              hintStyle: TextStyle(color: Colors.white70),
-              prefixIcon: Icon(Icons.search, color: Colors.white),
+              hintStyle: TextStyle(color: context.mutedColor(Colors.white70)),
+              prefixIcon: Icon(Icons.search, color: context.foregroundColor(Colors.white)),
             ),
             onChanged: (country) {
               final code = country.code;
@@ -366,7 +384,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
   void _openHealthSupport() {
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: AppColors.sheetBackground,
+      backgroundColor: context.surfaceColor(AppColors.sheetBackground),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -377,28 +395,28 @@ class _MyProfilePageState extends State<MyProfilePage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
+              Icon(
                 Icons.lock_outline_rounded,
-                color: AppColors.primary,
+                color: context.accentColor(AppColors.primary),
                 size: 36,
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Health & support',
                 style: TextStyle(
-                  color: AppColors.textPrimary,
+                  color: context.foregroundColor(AppColors.textPrimary),
                   fontSize: 21,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               const SizedBox(height: 10),
-              const Text(
+              Text(
                 'This section is private. Health and '
                 'support details can be added when the '
                 'secure profile feature is available.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: AppColors.textSecondary,
+                  color: context.mutedColor(AppColors.textSecondary),
                   fontSize: 13,
                   height: 1.5,
                 ),
@@ -406,9 +424,9 @@ class _MyProfilePageState extends State<MyProfilePage> {
               const SizedBox(height: 20),
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text(
+                child: Text(
                   'Close',
-                  style: TextStyle(color: AppColors.primary),
+                  style: TextStyle(color: context.accentColor(AppColors.primary)),
                 ),
               ),
             ],
@@ -433,7 +451,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.backgroundColor(AppColors.background),
       appBar: const CustomAppBar(title: 'Profile', showBackButton: true),
       body: SafeArea(
         child: LayoutBuilder(
@@ -497,16 +515,20 @@ class _MyProfilePageState extends State<MyProfilePage> {
                                 trailing: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const Icon(
+                                    Icon(
                                       Icons.lock_outline_rounded,
                                       size: 15,
-                                      color: AppColors.textSecondary,
+                                      color: context.mutedColor(
+                                        AppColors.textSecondary,
+                                      ),
                                     ),
                                     const SizedBox(width: 5),
-                                    const Text(
+                                    Text(
                                       'Private',
                                       style: TextStyle(
-                                        color: AppColors.textSecondary,
+                                        color: context.mutedColor(
+                                          AppColors.textSecondary,
+                                        ),
                                         fontSize: 12,
                                       ),
                                     ),
@@ -548,8 +570,12 @@ class _MyProfilePageState extends State<MyProfilePage> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             foregroundColor: AppColors.primaryText,
-                            disabledBackgroundColor: AppColors.disabledButton,
-                            disabledForegroundColor: AppColors.disabledText,
+                            disabledBackgroundColor: context.borderColor(
+                              AppColors.disabledButton,
+                            ),
+                            disabledForegroundColor: context.mutedColor(
+                              AppColors.disabledText,
+                            ),
                             elevation: 0,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(14),
@@ -579,7 +605,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
     return Row(
       children: [
         Material(
-          color: AppColors.surface,
+          color: context.surfaceColor(AppColors.surface),
           borderRadius: BorderRadius.circular(13),
           child: InkWell(
             onTap: () => Navigator.of(context).maybePop(),
@@ -589,11 +615,13 @@ class _MyProfilePageState extends State<MyProfilePage> {
               height: 45,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(13),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(
+                  color: context.borderColor(AppColors.border),
+                ),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.arrow_back_ios_new_rounded,
-                color: AppColors.textPrimary,
+                color: context.foregroundColor(AppColors.textPrimary),
                 size: 19,
               ),
             ),
@@ -602,11 +630,11 @@ class _MyProfilePageState extends State<MyProfilePage> {
 
         const SizedBox(width: 14),
 
-        const Expanded(
+        Expanded(
           child: Text(
             'My profile',
             style: TextStyle(
-              color: AppColors.textPrimary,
+              color: context.foregroundColor(AppColors.textPrimary),
               fontSize: 24,
               fontWeight: FontWeight.w500,
             ),
@@ -624,7 +652,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
     required VoidCallback onTap,
   }) {
     return Material(
-      color: AppColors.cardBackground,
+      color: context.surfaceColor(AppColors.cardBackground),
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         onTap: onTap,
@@ -635,7 +663,10 @@ class _MyProfilePageState extends State<MyProfilePage> {
           padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.border, width: 1),
+            border: Border.all(
+              color: context.borderColor(AppColors.border),
+              width: 1,
+            ),
           ),
           child: Row(
             children: [
@@ -646,8 +677,8 @@ class _MyProfilePageState extends State<MyProfilePage> {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
+                      style: TextStyle(
+                        color: context.foregroundColor(AppColors.textPrimary),
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
@@ -658,8 +689,8 @@ class _MyProfilePageState extends State<MyProfilePage> {
                         subtitle,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
+                        style: TextStyle(
+                          color: context.mutedColor(AppColors.textSecondary),
                           fontSize: 11,
                         ),
                       ),
@@ -671,7 +702,11 @@ class _MyProfilePageState extends State<MyProfilePage> {
               if (trailing != null)
                 trailing
               else if (icon != null)
-                Icon(icon, color: AppColors.textPrimary, size: 21),
+                Icon(
+                  icon,
+                  color: context.foregroundColor(AppColors.textPrimary),
+                  size: 21,
+                ),
             ],
           ),
         ),

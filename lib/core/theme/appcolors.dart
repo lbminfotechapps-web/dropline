@@ -23,7 +23,6 @@ import 'package:flutter/material.dart';
 //   static const Color gradientTop = Color(0xFF123D5B);
 //   static const Color gradientBottom = Color(0xFF09283A);
 
-
 //   static const Color primaryLight = Color(0xFF8C9AAA);
 
 //   static const Color primaryDark = Color(0xFF4D5C70);
@@ -60,17 +59,13 @@ import 'package:flutter/material.dart';
 //   // CARD / CONTAINER COLORS
 //   // ==========================================
 
-
-
 //   static const Color cardBackgroundLight = Color(0xFF718094);
 
 //   static const Color cardBorder = Color(0xFF8592A2);
 
-
 //   // ==========================================
 //   // TEXT COLORS
 //   // ==========================================
-
 
 //   static const Color textMuted = Color(0xFFB6C0CE);
 
@@ -106,14 +101,11 @@ import 'package:flutter/material.dart';
 
 //   static const Color inputFocusedBorder = Color(0xFFE0E7F0);
 
-
 //   // ==========================================
 //   // STATUS COLORS
 //   // ==========================================
 
 //   static const Color success = Color(0xFF48B28A);
-
-
 
 //   static const Color warning = Color(0xFFFFC46B);
 
@@ -154,12 +146,9 @@ import 'package:flutter/material.dart';
 
 //   static const Color black = Color(0xFF000000);
 
-
-
 //   static const Color divider = Color(0xFF8290A1);
 
 //   static const Color shadow = Color(0x33000000);
-
 
 //     static const Color certificateBackgroundTop = Color(0xFF8192A8);
 //   static const Color certificateBackgroundBottom = Color(0xFF53657B);
@@ -177,9 +166,6 @@ import 'package:flutter/material.dart';
 // static const Color disabledButton = Color(0xFF355B73);
 // static const Color disabledText = Color(0xFF93B5CC);
 // }
-
-
-
 
 class AppColors {
   AppColors._();
@@ -204,8 +190,10 @@ class AppColors {
   static const Color divider = border;
 
   // PRIMARY THEME
-  static const Color primary = Color(0xFFB5FF76);
-  static const Color primaryText = Color(0xFF09283A);
+  static const Color primary = Color(0xFF92C5FF);
+  static const Color primarySoft = Color(0xFFE4F0FF);
+  static const Color primaryBorder = Color(0xFF6C9FD4);
+  static const Color primaryText = Color(0xFF102442);
 
   // TEXT
   static const Color textPrimary = Color(0xFFFFFFFF);
@@ -236,24 +224,16 @@ class AppColors {
   static const Color gradientTop = Color(0xFF123D5B);
   static const Color gradientBottom = background;
 
-  static const LinearGradient backgroundGradient =
-      LinearGradient(
+  static const LinearGradient backgroundGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [
-      gradientTop,
-      gradientBottom,
-    ],
+    colors: [gradientTop, gradientBottom],
   );
 
-  static const LinearGradient buttonGradient =
-      LinearGradient(
+  static const LinearGradient buttonGradient = LinearGradient(
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
-    colors: [
-      primary,
-      primary,
-    ],
+    colors: [primary, primary],
   );
 
   // BOTTOM SHEET / DATE PICKER
@@ -267,18 +247,13 @@ class AppColors {
   static const Color transparent = Colors.transparent;
   static const Color shadow = Color(0x33000000);
 
-
-
-
-  
-    static const Color certificateBackgroundTop = Color(0xFF8192A8);
+  static const Color certificateBackgroundTop = Color(0xFF8192A8);
   static const Color certificateBackgroundBottom = Color(0xFF53657B);
   static const Color certificateSurface = Color(0xFF586B82);
   static const Color certificateBorder = Color(0xFF9AABBF);
-  static const Color certificatePrimary = Color(0xFF65FF45);
+  static const Color certificatePrimary = primary;
   static const Color certificateTextPrimary = Color(0xFFF7F9FF);
   static const Color certificateTextSecondary = Color(0xFFD3DBE8);
   static const Color certificateIcon = Color(0xFFDCE6F1);
   static const Color certificateButtonText = Color(0xFF0B2535);
-
 }

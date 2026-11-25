@@ -1,3 +1,5 @@
+import 'package:dropline/core/theme/appcolors.dart';
+import 'package:dropline/core/theme/app_theme.dart';
 import 'dart:async';
 import 'dart:convert';
 
@@ -32,7 +34,7 @@ class _AddCompaniesPageState extends State<AddCompaniesPage> {
   static const _border = Color(0xFF31576B);
   static const _muted = Color(0xFF8EB5C9);
   static const _text = Color(0xFFF0F4FC);
-  static const _lime = Color(0xFFB5FF65);
+  static const _primaryAccent = AppColors.primary;
 
   final _formKey = GlobalKey<FormState>();
   final _company = TextEditingController();
@@ -165,7 +167,7 @@ class _AddCompaniesPageState extends State<AddCompaniesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _background,
+      backgroundColor: context.backgroundColor(_background),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -173,13 +175,13 @@ class _AddCompaniesPageState extends State<AddCompaniesPage> {
             Text label(
               String value, {
               double size = 7,
-              Color color = _text,
+              Color? color,
               bool bold = false,
             }) => Text(
               value,
               style: TextStyle(
                 fontSize: size * s,
-                color: color,
+                color: color ?? context.foregroundColor(_text),
                 fontWeight: bold ? FontWeight.w500 : FontWeight.w500,
                 letterSpacing: .15 * s,
               ),
@@ -196,23 +198,29 @@ class _AddCompaniesPageState extends State<AddCompaniesPage> {
                       controller: controller,
                       keyboardType: TextInputType.text,
                       textCapitalization: TextCapitalization.words,
-                      style: TextStyle(color: _text, fontSize: 7 * s),
+                      style: TextStyle(
+                        color: context.foregroundColor(_text),
+                        fontSize: 7 * s,
+                      ),
                       validator: (value) =>
                           value == null || value.trim().isEmpty
                           ? 'Required'
                           : null,
                       decoration: InputDecoration(
                         hintText: title,
-                        hintStyle: TextStyle(color: _muted, fontSize: 7 * s),
+                        hintStyle: TextStyle(
+                          color: context.mutedColor(_muted),
+                          fontSize: 7 * s,
+                        ),
                         isDense: true,
                         filled: true,
-                        fillColor: _surface,
+                        fillColor: context.surfaceColor(_surface),
                         contentPadding: EdgeInsets.symmetric(
                           horizontal: 6 * s,
                           vertical: 7 * s,
                         ),
-                        enabledBorder: border(_border),
-                        focusedBorder: border(_muted),
+                        enabledBorder: border(context.borderColor(_border)),
+                        focusedBorder: border(context.mutedColor(_muted)),
                         errorBorder: border(Colors.redAccent),
                         focusedErrorBorder: border(Colors.redAccent),
                       ),
@@ -244,15 +252,19 @@ class _AddCompaniesPageState extends State<AddCompaniesPage> {
                                     Navigator.of(context).maybePop(),
                                 style: OutlinedButton.styleFrom(
                                   padding: EdgeInsets.zero,
-                                  backgroundColor: _surface,
-                                  side: const BorderSide(color: _border),
+                                  backgroundColor: context.surfaceColor(
+                                    _surface,
+                                  ),
+                                  side: BorderSide(
+                                    color: context.borderColor(_border),
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(6 * s),
                                   ),
                                 ),
                                 child: Icon(
                                   Icons.chevron_left,
-                                  color: _muted,
+                                  color: context.mutedColor(_muted),
                                   size: 13 * s,
                                 ),
                               ),
@@ -264,7 +276,11 @@ class _AddCompaniesPageState extends State<AddCompaniesPage> {
                           ],
                         ),
                         SizedBox(height: 10 * s),
-                        label(widget.projectName, size: 6.5, color: _muted),
+                        label(
+                          widget.projectName,
+                          size: 6.5,
+                          color: context.mutedColor(_muted),
+                        ),
                         SizedBox(height: 11 * s),
                         field('Company name or Dropline ID', _company),
                         SizedBox(height: 2 * s),
@@ -273,41 +289,48 @@ class _AddCompaniesPageState extends State<AddCompaniesPage> {
                           child: label(
                             'New company · create with this invitation',
                             size: 5.5,
-                            color: _lime,
+                            color: _primaryAccent,
                           ),
                         ),
                         SizedBox(height: 9 * s),
-                        label('Trades', size: 6.5, color: _muted, bold: true),
+                        label(
+                          'Trades',
+                          size: 6.5,
+                          color: context.mutedColor(_muted),
+                          bold: true,
+                        ),
                         SizedBox(height: 3 * s),
                         DropdownButtonFormField<String>(
                           initialValue: _trade,
                           isExpanded: true,
                           hint: Text(
                             _loadingTrades ? 'Loading trades…' : 'Select trade',
-                            style: const TextStyle(color: Colors.white),
+                            style: TextStyle(
+                              color: context.foregroundColor(Colors.white),
+                            ),
                           ),
                           validator: (value) =>
                               value == null ? 'Select a trade' : null,
-                          dropdownColor: _surface,
+                          dropdownColor: context.surfaceColor(_surface),
                           style: TextStyle(
-                            color: Colors.white,
+                            color: context.foregroundColor(Colors.white),
                             fontSize: 7 * s,
                           ),
                           icon: Icon(
                             Icons.keyboard_arrow_down,
-                            color: _muted,
+                            color: context.mutedColor(_muted),
                             size: 13 * s,
                           ),
                           decoration: InputDecoration(
                             isDense: true,
                             filled: true,
-                            fillColor: _surface,
+                            fillColor: context.surfaceColor(_surface),
                             contentPadding: EdgeInsets.symmetric(
                               horizontal: 6 * s,
                               vertical: 7 * s,
                             ),
-                            enabledBorder: border(_border),
-                            focusedBorder: border(_muted),
+                            enabledBorder: border(context.borderColor(_border)),
+                            focusedBorder: border(context.mutedColor(_muted)),
                           ),
                           items: _trades
                               .map(
@@ -315,7 +338,11 @@ class _AddCompaniesPageState extends State<AddCompaniesPage> {
                                   value: trade['id'],
                                   child: Text(
                                     trade['name']!,
-                                    style: const TextStyle(color: Colors.white),
+                                    style: TextStyle(
+                                      color: context.foregroundColor(
+                                        Colors.white,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               )
@@ -329,13 +356,18 @@ class _AddCompaniesPageState extends State<AddCompaniesPage> {
                             onPressed: _loadTrades,
                             child: Text(
                               _tradeError!,
-                              style: const TextStyle(color: _muted),
+                              style: TextStyle(
+                                color: context.mutedColor(_muted),
+                              ),
                             ),
                           ),
                         if (!_loadingTrades &&
                             _tradeError == null &&
                             _trades.isEmpty)
-                          label('No trades available', color: _muted),
+                          label(
+                            'No trades available',
+                            color: context.mutedColor(_muted),
+                          ),
                         SizedBox(height: 20 * s),
                         const Spacer(),
                         SizedBox(
@@ -345,7 +377,7 @@ class _AddCompaniesPageState extends State<AddCompaniesPage> {
                                 ? null
                                 : _saveCompany,
                             style: FilledButton.styleFrom(
-                              backgroundColor: _lime,
+                              backgroundColor: _primaryAccent,
                               foregroundColor: _background,
                               padding: EdgeInsets.zero,
                               shape: RoundedRectangleBorder(

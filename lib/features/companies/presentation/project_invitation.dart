@@ -1,3 +1,5 @@
+import 'package:dropline/core/theme/appcolors.dart';
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 /// The recipient's project invitation. Returns true on accept, false on decline.
@@ -30,12 +32,12 @@ class ProjectInvitationPage extends StatelessWidget {
   static const _border = Color(0xFF31576B);
   static const _muted = Color(0xFF8EB5C9);
   static const _text = Color(0xFFF0F4FC);
-  static const _lime = Color(0xFFB5FF65);
+  static const _primaryAccent = AppColors.primary;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _background,
+      backgroundColor: context.backgroundColor(_background),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -43,12 +45,12 @@ class ProjectInvitationPage extends StatelessWidget {
             Text label(
               String value, {
               double size = 7,
-              Color color = _text,
+              Color? color,
               bool bold = false,
             }) => Text(
               value,
               style: TextStyle(
-                color: color,
+                color: color ?? context.foregroundColor(_text),
                 fontSize: size * s,
                 fontWeight: bold ? FontWeight.w500 : FontWeight.w500,
                 letterSpacing: .15 * s,
@@ -58,8 +60,8 @@ class ProjectInvitationPage extends StatelessWidget {
               margin: EdgeInsets.only(bottom: 5 * s),
               padding: EdgeInsets.symmetric(horizontal: 7 * s, vertical: 6 * s),
               decoration: BoxDecoration(
-                color: _surface,
-                border: Border.all(color: _border),
+                color: context.surfaceColor(_surface),
+                border: Border.all(color: context.borderColor(_border)),
                 borderRadius: BorderRadius.circular(7 * s),
               ),
               child: Column(
@@ -67,7 +69,7 @@ class ProjectInvitationPage extends StatelessWidget {
                 children: [
                   label(title, size: 8, bold: true),
                   SizedBox(height: 2 * s),
-                  label(value, size: 6, color: _muted),
+                  label(value, size: 6, color: context.mutedColor(_muted)),
                 ],
               ),
             );
@@ -94,15 +96,17 @@ class ProjectInvitationPage extends StatelessWidget {
                               onPressed: () => Navigator.of(context).maybePop(),
                               style: OutlinedButton.styleFrom(
                                 padding: EdgeInsets.zero,
-                                backgroundColor: _surface,
-                                side: const BorderSide(color: _border),
+                                backgroundColor: context.surfaceColor(_surface),
+                                side: BorderSide(
+                                  color: context.borderColor(_border),
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(6 * s),
                                 ),
                               ),
                               child: Icon(
                                 Icons.chevron_left,
-                                color: _muted,
+                                color: context.mutedColor(_muted),
                                 size: 13 * s,
                               ),
                             ),
@@ -121,7 +125,7 @@ class ProjectInvitationPage extends StatelessWidget {
                       label(
                         '$projectName · $companyName',
                         size: 6.5,
-                        color: _muted,
+                        color: context.mutedColor(_muted),
                       ),
                       SizedBox(height: 11 * s),
                       card('Project', '$projectName · $projectType'),
@@ -134,7 +138,7 @@ class ProjectInvitationPage extends StatelessWidget {
                         child: label(
                           'Invited by $inviterName · $inviterCompany',
                           size: 6,
-                          color: _muted,
+                          color: context.mutedColor(_muted),
                         ),
                       ),
                       SizedBox(height: 20 * s),
@@ -150,7 +154,7 @@ class ProjectInvitationPage extends StatelessWidget {
                         child: label(
                           'Decline invitation',
                           size: 6.5,
-                          color: _muted,
+                          color: context.mutedColor(_muted),
                         ),
                       ),
                       SizedBox(
@@ -160,7 +164,7 @@ class ProjectInvitationPage extends StatelessWidget {
                               onAccept ?? () => Navigator.of(context).pop(true),
                           style: FilledButton.styleFrom(
                             padding: EdgeInsets.zero,
-                            backgroundColor: _lime,
+                            backgroundColor: _primaryAccent,
                             foregroundColor: _background,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(7 * s),

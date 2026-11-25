@@ -1,3 +1,5 @@
+import 'package:dropline/core/theme/appcolors.dart';
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/di/global_di.dart';
 import 'package:dropline/core/secure_storage/secure_storage.dart';
 import '../domain/entities/multiple_company_admin_entity.dart';
@@ -35,7 +37,7 @@ class _InvitePeoplePageState extends State<InvitePeoplePage> {
   static const _border = Color(0xFF31576B);
   static const _muted = Color(0xFF8EB5C9);
   static const _text = Color(0xFFF0F4FC);
-  static const _lime = Color(0xFFB5FF65);
+  static const _primaryAccent = AppColors.primary;
 
   final _formKey = GlobalKey<FormState>();
   final _people = [_PersonForm()];
@@ -224,7 +226,7 @@ class _InvitePeoplePageState extends State<InvitePeoplePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _background,
+      backgroundColor: context.backgroundColor(_background),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -232,12 +234,12 @@ class _InvitePeoplePageState extends State<InvitePeoplePage> {
             Text label(
               String value, {
               double size = 7,
-              Color color = _text,
+              Color? color,
               bool bold = false,
             }) => Text(
               value,
               style: TextStyle(
-                color: color,
+                color: color ?? context.foregroundColor(_text),
                 fontSize: size * s,
                 fontWeight: bold ? FontWeight.w500 : FontWeight.w500,
                 letterSpacing: .15 * s,
@@ -250,18 +252,18 @@ class _InvitePeoplePageState extends State<InvitePeoplePage> {
             InputDecoration decoration({String? hint}) => InputDecoration(
               isDense: true,
               filled: true,
-              fillColor: _surface,
+              fillColor: context.surfaceColor(_surface),
               hintText: hint,
               hintStyle: TextStyle(
-                color: _muted.withValues(alpha: 0.55),
+                color: context.mutedColor(_muted).withValues(alpha: 0.55),
                 fontSize: 7 * s,
               ),
               contentPadding: EdgeInsets.symmetric(
                 horizontal: 7 * s,
                 vertical: 7 * s,
               ),
-              enabledBorder: border(_border),
-              focusedBorder: border(_muted),
+              enabledBorder: border(context.borderColor(_border)),
+              focusedBorder: border(context.mutedColor(_muted)),
               errorBorder: border(Colors.redAccent),
               focusedErrorBorder: border(Colors.redAccent),
             );
@@ -274,7 +276,10 @@ class _InvitePeoplePageState extends State<InvitePeoplePage> {
               textCapitalization: phone
                   ? TextCapitalization.none
                   : TextCapitalization.words,
-              style: TextStyle(color: _text, fontSize: 7 * s),
+              style: TextStyle(
+                color: context.foregroundColor(_text),
+                fontSize: 7 * s,
+              ),
               decoration: decoration(
                 hint: phone ? '+91 *******88888' : 'Amit Desai',
               ),
@@ -290,8 +295,8 @@ class _InvitePeoplePageState extends State<InvitePeoplePage> {
               margin: EdgeInsets.only(bottom: 4 * s),
               padding: EdgeInsets.symmetric(horizontal: 7 * s),
               decoration: BoxDecoration(
-                color: _surface,
-                border: Border.all(color: _border),
+                color: context.surfaceColor(_surface),
+                border: Border.all(color: context.borderColor(_border)),
                 borderRadius: BorderRadius.circular(6 * s),
               ),
               child: Row(
@@ -306,9 +311,9 @@ class _InvitePeoplePageState extends State<InvitePeoplePage> {
                         onChanged: (value) =>
                             setState(() => person.permissions[taskId] = value),
                         activeThumbColor: Colors.white,
-                        activeTrackColor: _lime,
-                        inactiveThumbColor: _text,
-                        inactiveTrackColor: _border,
+                        activeTrackColor: _primaryAccent,
+                        inactiveThumbColor: context.foregroundColor(_text),
+                        inactiveTrackColor: context.borderColor(_border),
                         trackOutlineColor: const WidgetStatePropertyAll(
                           Colors.transparent,
                         ),
@@ -347,8 +352,12 @@ class _InvitePeoplePageState extends State<InvitePeoplePage> {
                                       Navigator.of(context).maybePop(),
                                   style: OutlinedButton.styleFrom(
                                     padding: EdgeInsets.zero,
-                                    backgroundColor: _surface,
-                                    side: const BorderSide(color: _border),
+                                    backgroundColor: context.surfaceColor(
+                                      _surface,
+                                    ),
+                                    side: BorderSide(
+                                      color: context.borderColor(_border),
+                                    ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(
                                         6 * s,
@@ -357,7 +366,7 @@ class _InvitePeoplePageState extends State<InvitePeoplePage> {
                                   ),
                                   child: Icon(
                                     Icons.chevron_left,
-                                    color: _muted,
+                                    color: context.mutedColor(_muted),
                                     size: 13 * s,
                                   ),
                                 ),
@@ -376,7 +385,7 @@ class _InvitePeoplePageState extends State<InvitePeoplePage> {
                           label(
                             '${widget.projectName} · ${widget.companyName}',
                             size: 6.5,
-                            color: _muted,
+                            color: context.mutedColor(_muted),
                           ),
                           for (final person in _people) ...[
                             SizedBox(height: 10 * s),
@@ -386,7 +395,7 @@ class _InvitePeoplePageState extends State<InvitePeoplePage> {
                                   child: label(
                                     'Full name',
                                     size: 6.5,
-                                    color: _muted,
+                                    color: context.mutedColor(_muted),
                                     bold: true,
                                   ),
                                 ),
@@ -410,7 +419,7 @@ class _InvitePeoplePageState extends State<InvitePeoplePage> {
                                   child: label(
                                     'Contacts',
                                     size: 6,
-                                    color: _lime,
+                                    color: _primaryAccent,
                                     bold: true,
                                   ),
                                 ),
@@ -422,13 +431,18 @@ class _InvitePeoplePageState extends State<InvitePeoplePage> {
                             label(
                               'Contact number',
                               size: 6.5,
-                              color: _muted,
+                              color: context.mutedColor(_muted),
                               bold: true,
                             ),
                             SizedBox(height: 3 * s),
                             field(person.contact, phone: true),
                             SizedBox(height: 8 * s),
-                            label('Role', size: 6.5, color: _muted, bold: true),
+                            label(
+                              'Role',
+                              size: 6.5,
+                              color: context.mutedColor(_muted),
+                              bold: true,
+                            ),
                             SizedBox(height: 3 * s),
                             DropdownButtonFormField<String>(
                               initialValue: person.roleId,
@@ -436,18 +450,20 @@ class _InvitePeoplePageState extends State<InvitePeoplePage> {
                                 _loadingRoles
                                     ? 'Loading roles…'
                                     : 'Select role',
-                                style: const TextStyle(color: Colors.white),
+                                style: TextStyle(
+                                  color: context.foregroundColor(Colors.white),
+                                ),
                               ),
                               validator: (value) =>
                                   value == null ? 'Select a role' : null,
-                              dropdownColor: _surface,
+                              dropdownColor: context.surfaceColor(_surface),
                               style: TextStyle(
-                                color: Colors.white,
+                                color: context.foregroundColor(Colors.white),
                                 fontSize: 7 * s,
                               ),
                               icon: Icon(
                                 Icons.keyboard_arrow_down,
-                                color: _muted,
+                                color: context.mutedColor(_muted),
                                 size: 12 * s,
                               ),
                               decoration: decoration(),
@@ -457,8 +473,10 @@ class _InvitePeoplePageState extends State<InvitePeoplePage> {
                                       value: role['id'],
                                       child: Text(
                                         role['name']!,
-                                        style: const TextStyle(
-                                          color: Colors.white,
+                                        style: TextStyle(
+                                          color: context.foregroundColor(
+                                            Colors.white,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -478,7 +496,7 @@ class _InvitePeoplePageState extends State<InvitePeoplePage> {
                             label(
                               'Choose permissions for the selected role.',
                               size: 6,
-                              color: _muted,
+                              color: context.mutedColor(_muted),
                             ),
                             SizedBox(height: 7 * s),
                             if (_roleError != null)
@@ -489,11 +507,14 @@ class _InvitePeoplePageState extends State<InvitePeoplePage> {
                             if (!_loadingRoles &&
                                 _roleError == null &&
                                 _roles.isEmpty)
-                              label('No roles available', color: _muted),
+                              label(
+                                'No roles available',
+                                color: context.mutedColor(_muted),
+                              ),
                             if (person.loading)
-                              const Center(
+                              Center(
                                 child: CircularProgressIndicator(
-                                  color: Colors.white,
+                                  color: context.foregroundColor(Colors.white),
                                 ),
                               ),
                             if (person.error != null)
@@ -509,7 +530,7 @@ class _InvitePeoplePageState extends State<InvitePeoplePage> {
                                 person.roleId == null
                                     ? 'Select a role to view permissions'
                                     : 'No permissions defined for this role',
-                                color: _muted,
+                                color: context.mutedColor(_muted),
                               ),
                             for (final task in person.tasks)
                               permission(person, task['id']!, task['name']!),
@@ -523,7 +544,7 @@ class _InvitePeoplePageState extends State<InvitePeoplePage> {
                             ),
                             child: label(
                               '+ Add another person',
-                              color: _lime,
+                              color: _primaryAccent,
                               bold: true,
                             ),
                           ),
@@ -546,7 +567,7 @@ class _InvitePeoplePageState extends State<InvitePeoplePage> {
                                   : _submit,
                               style: FilledButton.styleFrom(
                                 padding: EdgeInsets.zero,
-                                backgroundColor: _lime,
+                                backgroundColor: _primaryAccent,
                                 foregroundColor: _background,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(7 * s),

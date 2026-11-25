@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:dropline/core/utility/widgets/appbar.dart';
 import 'package:flutter/material.dart';
@@ -36,44 +37,50 @@ class HandoverAreaData {
   });
 }
 
-const handoverLime = Color(0xFFB5FF65);
+const handoverAccent = AppColors.primary;
 
-InputDecoration handoverInputDecoration(String hint) {
+InputDecoration handoverInputDecoration(BuildContext context, String hint) {
   return InputDecoration(
     hintText: hint,
-    hintStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+    hintStyle: TextStyle(
+      color: context.mutedColor(AppColors.textSecondary),
+      fontSize: 14,
+    ),
     filled: true,
-    fillColor: AppColors.background,
+    fillColor: context.backgroundColor(AppColors.background),
     contentPadding: const EdgeInsets.all(12),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(10),
-      borderSide: const BorderSide(color: AppColors.border),
+      borderSide: BorderSide(color: context.borderColor(AppColors.border)),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(10),
-      borderSide: const BorderSide(color: handoverLime, width: 1.5),
+      borderSide: BorderSide(color: context.accentColor(handoverAccent), width: 1.5),
     ),
   );
 }
 
-ButtonStyle handoverOutlineStyle() {
+ButtonStyle handoverOutlineStyle(BuildContext context) {
   return OutlinedButton.styleFrom(
-    foregroundColor: AppColors.textPrimary,
-    side: const BorderSide(color: AppColors.border),
+    foregroundColor: context.foregroundColor(AppColors.textPrimary),
+    side: BorderSide(color: context.borderColor(AppColors.border)),
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
   );
 }
 
-Widget handoverBottomButton({
+Widget handoverBottomButton(
+  BuildContext context, {
   required String title,
   required VoidCallback? onPressed,
   IconData? icon,
 }) {
   return Container(
     padding: const EdgeInsets.fromLTRB(10, 10, 10, 8),
-    decoration: const BoxDecoration(
-      color: AppColors.background,
-      border: Border(top: BorderSide(color: AppColors.border)),
+    decoration: BoxDecoration(
+      color: context.backgroundColor(AppColors.background),
+      border: Border(
+        top: BorderSide(color: context.borderColor(AppColors.border)),
+      ),
     ),
     child: SafeArea(
       top: false,
@@ -85,10 +92,12 @@ Widget handoverBottomButton({
           icon: icon == null ? const SizedBox.shrink() : Icon(icon, size: 18),
           label: Text(title),
           style: ElevatedButton.styleFrom(
-            backgroundColor: handoverLime,
+            backgroundColor: handoverAccent,
             foregroundColor: const Color(0xFF092537),
             disabledBackgroundColor: const Color(0xFF284853),
-            disabledForegroundColor: AppColors.textSecondary,
+            disabledForegroundColor: context.mutedColor(
+              AppColors.textSecondary,
+            ),
             elevation: 0,
             textStyle: const TextStyle(
               fontSize: 13,
@@ -104,7 +113,7 @@ Widget handoverBottomButton({
   );
 }
 
-Widget handoverAreaHeading(HandoverAreaData data) {
+Widget handoverAreaHeading(BuildContext context, HandoverAreaData data) {
   return Row(
     crossAxisAlignment: CrossAxisAlignment.center,
     children: [
@@ -112,9 +121,9 @@ Widget handoverAreaHeading(HandoverAreaData data) {
         width: 35,
         height: 36,
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.surfaceColor(AppColors.surface),
           borderRadius: BorderRadius.circular(9),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: context.borderColor(AppColors.border)),
         ),
         child: const Icon(
           Icons.location_on_outlined,
@@ -129,8 +138,8 @@ Widget handoverAreaHeading(HandoverAreaData data) {
           children: [
             Text(
               data.area,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
+              style: TextStyle(
+                color: context.foregroundColor(AppColors.textPrimary),
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
               ),
@@ -196,7 +205,7 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
   Future<void> addAttachments() async {
     await showModalBottomSheet<void>(
       context: context,
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.surfaceColor(AppColors.surface),
       isScrollControlled: true,
       builder: (sheetContext) {
         return SafeArea(
@@ -209,11 +218,11 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
               children: [
                 Row(
                   children: [
-                    const Expanded(
+                    Expanded(
                       child: Text(
                         'Add to handover',
                         style: TextStyle(
-                          color: AppColors.textPrimary,
+                          color: context.foregroundColor(AppColors.textPrimary),
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
                         ),
@@ -221,9 +230,9 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
                     ),
                     IconButton(
                       onPressed: () => Navigator.pop(sheetContext),
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.close,
-                        color: AppColors.textPrimary,
+                        color: context.foregroundColor(AppColors.textPrimary),
                       ),
                     ),
                   ],
@@ -271,18 +280,18 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 7),
       child: Material(
-        color: AppColors.surface,
+        color: context.surfaceColor(AppColors.surface),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
-          side: const BorderSide(color: AppColors.border),
+          side: BorderSide(color: context.borderColor(AppColors.border)),
         ),
         child: ListTile(
           onTap: onTap,
           leading: Icon(icon, color: const Color(0xFFA7D3FF)),
           title: Text(
             title,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
+            style: TextStyle(
+              color: context.foregroundColor(AppColors.textPrimary),
               fontSize: 13,
               fontWeight: FontWeight.w700,
             ),
@@ -405,7 +414,7 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.backgroundColor(AppColors.background),
       appBar: CustomAppBar(
         title: workNotReady ? 'Save progress' : 'Hand over area',
         subtitle: widget.data.projectName,
@@ -413,7 +422,7 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
       body: ListView(
         padding: const EdgeInsets.all(14),
         children: [
-          handoverAreaHeading(widget.data),
+          handoverAreaHeading(context, widget.data),
 
           const SizedBox(height: 14),
 
@@ -421,9 +430,11 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: context.surfaceColor(AppColors.surface),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(
+                  color: context.borderColor(AppColors.border),
+                ),
               ),
               child: Row(
                 children: [
@@ -434,8 +445,8 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
                   const Spacer(),
                   Text(
                     widget.data.receivingCompany,
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
+                    style: TextStyle(
+                      color: context.foregroundColor(AppColors.textPrimary),
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
                     ),
@@ -446,10 +457,10 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
 
             const SizedBox(height: 15),
 
-            const Text(
+            Text(
               'Handing on check sheet',
               style: TextStyle(
-                color: AppColors.textPrimary,
+                color: context.foregroundColor(AppColors.textPrimary),
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
               ),
@@ -465,12 +476,12 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
                 decoration: BoxDecoration(
                   color: answersSaved
                       ? const Color(0xFF173C40)
-                      : AppColors.surface,
+                      : context.surfaceColor(AppColors.surface),
                   borderRadius: BorderRadius.circular(11),
                   border: Border.all(
                     color: answersSaved
-                        ? const Color(0xFF77AE49)
-                        : AppColors.border,
+                        ? AppColors.primaryBorder
+                        : context.borderColor(AppColors.border),
                   ),
                 ),
                 child: Row(
@@ -482,9 +493,9 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
                         color: const Color(0xFF244A39),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.assignment_turned_in_outlined,
-                        color: handoverLime,
+                        color: context.accentColor(handoverAccent),
                         size: 20,
                       ),
                     ),
@@ -495,8 +506,10 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
                         children: [
                           Text(
                             '${widget.data.checkSheetCode} · ${widget.data.checkSheetTitle}',
-                            style: const TextStyle(
-                              color: AppColors.textPrimary,
+                            style: TextStyle(
+                              color: context.foregroundColor(
+                                AppColors.textPrimary,
+                              ),
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
                             ),
@@ -508,8 +521,8 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
                                 : 'Tap to complete check sheet',
                             style: TextStyle(
                               color: answersSaved
-                                  ? handoverLime
-                                  : AppColors.textSecondary,
+                                  ? context.accentColor(handoverAccent)
+                                  : context.mutedColor(AppColors.textSecondary),
                               fontSize: 11,
                             ),
                           ),
@@ -518,7 +531,7 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
                     ),
                     Icon(
                       answersSaved ? Icons.check : Icons.chevron_right,
-                      color: handoverLime,
+                      color: context.accentColor(handoverAccent),
                       size: 20,
                     ),
                   ],
@@ -528,10 +541,10 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
 
             const SizedBox(height: 18),
 
-            const Text(
+            Text(
               'Note (optional)',
               style: TextStyle(
-                color: AppColors.textPrimary,
+                color: context.foregroundColor(AppColors.textPrimary),
                 fontWeight: FontWeight.w700,
                 fontSize: 12,
               ),
@@ -543,21 +556,22 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
               controller: noteController,
               maxLines: 3,
               minLines: 3,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
+              style: TextStyle(
+                color: context.foregroundColor(AppColors.textPrimary),
                 fontSize: 14,
               ),
               decoration: handoverInputDecoration(
+                context,
                 'Add anything the team should know.',
               ),
             ),
 
             const SizedBox(height: 9),
           ] else ...[
-            const Text(
+            Text(
               "What's left?",
               style: TextStyle(
-                color: AppColors.textPrimary,
+                color: context.foregroundColor(AppColors.textPrimary),
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
               ),
@@ -573,8 +587,13 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
                 validator: (value) => value == null || value.trim().isEmpty
                     ? 'Please describe the remaining work'
                     : null,
-                style: const TextStyle(color: AppColors.textPrimary),
-                decoration: handoverInputDecoration('Say what work remains.'),
+                style: TextStyle(
+                  color: context.foregroundColor(AppColors.textPrimary),
+                ),
+                decoration: handoverInputDecoration(
+                  context,
+                  'Say what work remains.',
+                ),
               ),
             ),
             const SizedBox(height: 9),
@@ -587,13 +606,16 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
             children: [
               Checkbox(
                 value: workNotReady,
-                activeColor: handoverLime,
+                activeColor: handoverAccent,
                 checkColor: const Color(0xFF092537),
                 onChanged: submitting ? null : onWorkNotReadyChanged,
               ),
-              const Text(
+              Text(
                 'Work is not ready yet',
-                style: TextStyle(color: AppColors.textPrimary, fontSize: 12),
+                style: TextStyle(
+                  color: context.foregroundColor(AppColors.textPrimary),
+                  fontSize: 12,
+                ),
               ),
             ],
           ),
@@ -609,6 +631,7 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
         ],
       ),
       bottomNavigationBar: handoverBottomButton(
+        context,
         title: workNotReady
             ? 'Save progress'
             : (submitting ? 'Sending...' : 'Send handover'),
@@ -625,17 +648,17 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: context.surfaceColor(AppColors.surface),
             borderRadius: BorderRadius.circular(11),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: context.borderColor(AppColors.border)),
           ),
           child: Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
                   'Photos and files',
                   style: TextStyle(
-                    color: AppColors.textPrimary,
+                    color: context.foregroundColor(AppColors.textPrimary),
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                   ),
@@ -645,7 +668,7 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
                 onPressed: addAttachments,
                 icon: const Icon(Icons.add, size: 18),
                 label: const Text('Add'),
-                style: handoverOutlineStyle(),
+                style: handoverOutlineStyle(context),
               ),
             ],
           ),
@@ -660,8 +683,8 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
               fileName,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
+              style: TextStyle(
+                color: context.foregroundColor(AppColors.textPrimary),
                 fontSize: 12,
               ),
             ),
@@ -725,7 +748,7 @@ class _HandoverCheckSheetPageState extends State<HandoverCheckSheetPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.backgroundColor(AppColors.background),
       appBar: CustomAppBar(
         title: 'Check sheet',
         subtitle: '${widget.data.checkSheetCode} · Taking over',
@@ -735,8 +758,8 @@ class _HandoverCheckSheetPageState extends State<HandoverCheckSheetPage> {
         children: [
           Text(
             '${widget.data.activityCode} · ${widget.data.activityName}',
-            style: const TextStyle(
-              color: handoverLime,
+            style: TextStyle(
+              color: context.accentColor(handoverAccent),
               fontSize: 12,
               fontWeight: FontWeight.w700,
             ),
@@ -744,8 +767,8 @@ class _HandoverCheckSheetPageState extends State<HandoverCheckSheetPage> {
           const SizedBox(height: 5),
           Text(
             widget.data.checkSheetTitle,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
+            style: TextStyle(
+              color: context.foregroundColor(AppColors.textPrimary),
               fontSize: 20,
               fontWeight: FontWeight.w800,
             ),
@@ -761,17 +784,19 @@ class _HandoverCheckSheetPageState extends State<HandoverCheckSheetPage> {
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: context.surfaceColor(AppColors.surface),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(
+                  color: context.borderColor(AppColors.border),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     widget.data.questions[index],
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
+                    style: TextStyle(
+                      color: context.foregroundColor(AppColors.textPrimary),
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
                     ),
@@ -793,6 +818,7 @@ class _HandoverCheckSheetPageState extends State<HandoverCheckSheetPage> {
         ],
       ),
       bottomNavigationBar: handoverBottomButton(
+        context,
         title: 'Save answers',
         icon: Icons.check,
         onPressed: saveAnswers,
@@ -803,11 +829,11 @@ class _HandoverCheckSheetPageState extends State<HandoverCheckSheetPage> {
   Widget _answerButton(int index, String answer, IconData icon) {
     final selected = answers[index] == answer;
 
-    Color bg = AppColors.background;
-    Color fg = AppColors.textPrimary;
+    Color bg = context.backgroundColor(AppColors.background);
+    Color fg = context.foregroundColor(AppColors.textPrimary);
 
     if (selected && answer == 'Yes') {
-      bg = handoverLime;
+      bg = handoverAccent;
       fg = const Color(0xFF092537);
     } else if (selected && answer == 'No') {
       bg = const Color(0xFF573039);
@@ -832,8 +858,8 @@ class _HandoverCheckSheetPageState extends State<HandoverCheckSheetPage> {
             foregroundColor: fg,
             side: BorderSide(
               color: selected && answer == 'Yes'
-                  ? handoverLime
-                  : AppColors.border,
+                  ? context.accentColor(handoverAccent)
+                  : context.borderColor(AppColors.border),
             ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
@@ -876,7 +902,7 @@ class _SaveHandoverProgressPageState extends State<SaveHandoverProgressPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.backgroundColor(AppColors.background),
       appBar: CustomAppBar(
         title: 'Save progress',
         subtitle: widget.data.projectName,
@@ -884,12 +910,12 @@ class _SaveHandoverProgressPageState extends State<SaveHandoverProgressPage> {
       body: ListView(
         padding: const EdgeInsets.all(10),
         children: [
-          handoverAreaHeading(widget.data),
+          handoverAreaHeading(context, widget.data),
           const SizedBox(height: 22),
-          const Text(
+          Text(
             "What's left?",
             style: TextStyle(
-              color: AppColors.textPrimary,
+              color: context.foregroundColor(AppColors.textPrimary),
               fontSize: 13,
               fontWeight: FontWeight.w700,
             ),
@@ -899,24 +925,29 @@ class _SaveHandoverProgressPageState extends State<SaveHandoverProgressPage> {
             controller: remainingController,
             maxLines: 3,
             minLines: 3,
-            style: const TextStyle(color: AppColors.textPrimary),
-            decoration: handoverInputDecoration('Say what work remains.'),
+            style: TextStyle(
+              color: context.foregroundColor(AppColors.textPrimary),
+            ),
+            decoration: handoverInputDecoration(
+              context,
+              'Say what work remains.',
+            ),
           ),
           const SizedBox(height: 9),
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: context.surfaceColor(AppColors.surface),
               borderRadius: BorderRadius.circular(11),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: context.borderColor(AppColors.border)),
             ),
             child: Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
                     'Photos and files',
                     style: TextStyle(
-                      color: AppColors.textPrimary,
+                      color: context.foregroundColor(AppColors.textPrimary),
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
                     ),
@@ -927,7 +958,7 @@ class _SaveHandoverProgressPageState extends State<SaveHandoverProgressPage> {
                     // Add the same attachment picker used
                     // by HandOverAreaPage here.
                   },
-                  style: handoverOutlineStyle(),
+                  style: handoverOutlineStyle(context),
                   icon: const Icon(Icons.add),
                   label: const Text('Add'),
                 ),
@@ -938,11 +969,14 @@ class _SaveHandoverProgressPageState extends State<SaveHandoverProgressPage> {
           CheckboxListTile(
             value: workNotReady,
             contentPadding: EdgeInsets.zero,
-            activeColor: handoverLime,
+            activeColor: handoverAccent,
             checkColor: const Color(0xFF092537),
-            title: const Text(
+            title: Text(
               'Work is not ready yet',
-              style: TextStyle(color: AppColors.textPrimary, fontSize: 12),
+              style: TextStyle(
+                color: context.foregroundColor(AppColors.textPrimary),
+                fontSize: 12,
+              ),
             ),
             controlAffinity: ListTileControlAffinity.leading,
             onChanged: (value) {
@@ -959,6 +993,7 @@ class _SaveHandoverProgressPageState extends State<SaveHandoverProgressPage> {
         ],
       ),
       bottomNavigationBar: handoverBottomButton(
+        context,
         title: 'Save progress',
         onPressed: () {
           // TODO: Save remaining work and draft state
@@ -982,7 +1017,7 @@ class HandoverSavedPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.backgroundColor(AppColors.background),
       appBar: CustomAppBar(title: 'Handover saved', subtitle: data.projectName),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(12, 38, 12, 20),
@@ -994,17 +1029,17 @@ class HandoverSavedPage extends StatelessWidget {
               decoration: BoxDecoration(
                 color: const Color(0xFF214536),
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFF548D45)),
+                border: Border.all(color: AppColors.primaryBorder),
               ),
-              child: const Icon(Icons.check, color: handoverLime, size: 28),
+              child: Icon(Icons.check, color: context.accentColor(handoverAccent), size: 28),
             ),
           ),
           const SizedBox(height: 17),
-          const Text(
+          Text(
             'Handover sent',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: AppColors.textPrimary,
+              color: context.foregroundColor(AppColors.textPrimary),
               fontSize: 24,
               fontWeight: FontWeight.w800,
             ),
@@ -1016,7 +1051,7 @@ class HandoverSavedPage extends StatelessWidget {
             style: const TextStyle(color: Color(0xFFA7D3FF), fontSize: 14),
           ),
           const SizedBox(height: 32),
-          handoverAreaHeading(data),
+          handoverAreaHeading(context, data),
           const SizedBox(height: 16),
           SizedBox(
             height: 46,
@@ -1024,7 +1059,7 @@ class HandoverSavedPage extends StatelessWidget {
               onPressed: () {
                 Navigator.pop(context, 'view');
               },
-              style: handoverOutlineStyle(),
+              style: handoverOutlineStyle(context),
               icon: const Icon(Icons.chevron_right),
               label: const Text('View area'),
             ),
@@ -1032,6 +1067,7 @@ class HandoverSavedPage extends StatelessWidget {
         ],
       ),
       bottomNavigationBar: handoverBottomButton(
+        context,
         title: 'Back to handovers',
         onPressed: () => Navigator.pop(context, 'sent'),
       ),

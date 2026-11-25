@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/utility/showcase_once.dart';
 import 'package:dropline/core/utility/widgets/appbar.dart';
 import 'dart:async';
@@ -106,7 +107,7 @@ class _DashboardPageState extends State<DashboardPage> {
               height: 112,
               clipBehavior: Clip.antiAlias,
               decoration: BoxDecoration(
-                color: AppColors.inputBackground,
+                color: context.surfaceColor(AppColors.inputBackground),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: ListWheelScrollView.useDelegate(
@@ -124,9 +125,9 @@ class _DashboardPageState extends State<DashboardPage> {
                     (value) => Center(
                       child: Text(
                         value.toString().padLeft(2, '0'),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 22,
-                          color: AppColors.textPrimary,
+                          color: context.foregroundColor(AppColors.textPrimary),
                         ),
                       ),
                     ),
@@ -137,10 +138,13 @@ class _DashboardPageState extends State<DashboardPage> {
           );
 
           return AlertDialog(
-            backgroundColor: AppColors.surface,
-            title: const Text(
+            backgroundColor: context.surfaceColor(AppColors.surface),
+            title: Text(
               'Select Time',
-              style: TextStyle(fontSize: 16, color: AppColors.textPrimary),
+              style: TextStyle(
+                fontSize: 16,
+                color: context.foregroundColor(AppColors.textPrimary),
+              ),
             ),
             content: SizedBox(
               width: 264,
@@ -154,13 +158,15 @@ class _DashboardPageState extends State<DashboardPage> {
                         count: 24,
                         onChanged: (value) => selectedHour = value,
                       ),
-                      const Padding(
+                      Padding(
                         padding: EdgeInsets.symmetric(horizontal: 12),
                         child: Text(
                           ':',
                           style: TextStyle(
                             fontSize: 28,
-                            color: AppColors.textPrimary,
+                            color: context.foregroundColor(
+                              AppColors.textPrimary,
+                            ),
                           ),
                         ),
                       ),
@@ -365,26 +371,25 @@ class _DashboardPageState extends State<DashboardPage> {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (dialogContext) => AlertDialog(
-          backgroundColor: AppColors.cardBackground,
+          backgroundColor: context.surfaceColor(AppColors.cardBackground),
           surfaceTintColor: AppColors.transparent,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(24),
-            side: const BorderSide(color: AppColors.cardBorder),
+            side: BorderSide(color: context.borderColor(AppColors.cardBorder)),
           ),
           titleTextStyle: Theme.of(dialogContext).textTheme.titleLarge
               ?.copyWith(
-                color: AppColors.textPrimary,
+                color: context.foregroundColor(AppColors.textPrimary),
                 fontWeight: FontWeight.w500,
               ),
-          contentTextStyle: Theme.of(
-            dialogContext,
-          ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+          contentTextStyle: Theme.of(dialogContext).textTheme.bodyMedium
+              ?.copyWith(color: context.mutedColor(AppColors.textSecondary)),
           title: const Text('Log out?'),
           content: const Text('Are you sure you want to log out?'),
           actions: [
             TextButton(
               style: TextButton.styleFrom(
-                foregroundColor: AppColors.textSecondary,
+                foregroundColor: context.mutedColor(AppColors.textSecondary),
               ),
               onPressed: () => Navigator.of(dialogContext).pop(false),
               child: const Text('Cancel'),
@@ -437,13 +442,15 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    final themeController = context.read<AppThemeController?>();
     return PopScope(
       canPop: Theme.of(context).platform != TargetPlatform.android,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
         final now = DateTime.now();
         if (_lastBackPressed != null &&
-            now.difference(_lastBackPressed!) < const Duration(seconds: 2)) {
+            now.difference(_lastBackPressed!) < const Duration(seconds: 2))
+             {
           SystemNavigator.pop();
           return;
         }
@@ -458,15 +465,26 @@ class _DashboardPageState extends State<DashboardPage> {
           );
       },
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.backgroundColor(AppColors.background),
         appBar: CustomAppBar(
           title: 'Clock in',
           showBackButton: false,
           actions: [
+            if (themeController != null)
+              Tooltip(
+                message: 'White theme',
+                child: Switch(
+                  value: WhiteAppTheme.isEnabled(context),
+                  onChanged: themeController.setWhiteTheme,
+                ),
+              ),
             IconButton(
               tooltip: 'Log out',
               onPressed: _isLoggingOut ? null : _logout,
-              icon: const Icon(Icons.logout_outlined, color: Color(0xFFADC6D9)),
+              icon: Icon(
+                Icons.logout_outlined,
+                color: context.mutedColor(const Color(0xFFADC6D9)),
+              ),
             ),
             BlocBuilder<DashboardBloc, DashboardState>(
               builder: (context, state) {
@@ -485,7 +503,7 @@ class _DashboardPageState extends State<DashboardPage> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.qr_code_scanner),
-                  color: const Color(0xFFADC6D9),
+                  color: context.mutedColor(const Color(0xFFADC6D9)),
                 );
               },
             ),
@@ -549,9 +567,13 @@ class _DashboardPageState extends State<DashboardPage> {
                         Text(
                           'Clock-in time',
                           textAlign: TextAlign.center,
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: const Color(0xFFADC6D9),
-                          ),
+                          style: context
+                              .themedText(AppTextStyles.bodyMedium)
+                              .copyWith(
+                                color: context.mutedColor(
+                                  const Color(0xFFADC6D9),
+                                ),
+                              ),
                         ),
                         const SizedBox(height: 12),
                         Center(
@@ -563,24 +585,32 @@ class _DashboardPageState extends State<DashboardPage> {
                                   TextSpan(
                                     text:
                                         '${two(time.hour)}:${two(time.minute)}',
-                                    style: AppTextStyles.displayMedium.copyWith(
-                                      fontSize: compact ? 44 : 56,
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                                    style: context
+                                        .themedText(AppTextStyles.displayMedium)
+                                        .copyWith(
+                                          fontSize: compact ? 44 : 56,
+                                          fontWeight: FontWeight.w500,
+                                        ),
                                   ),
                                   TextSpan(
                                     text: ':${two(time.second)}',
-                                    style: AppTextStyles.displaySmall.copyWith(
-                                      fontSize: compact ? 26 : 30,
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                                    style: context
+                                        .themedText(AppTextStyles.displaySmall)
+                                        .copyWith(
+                                          fontSize: compact ? 26 : 30,
+                                          fontWeight: FontWeight.w500,
+                                        ),
                                   ),
                                 ],
                               ),
-                              style: AppTextStyles.displayMedium.copyWith(
-                                color: const Color(0xFFF8FAFC),
-                                height: 1.1,
-                              ),
+                              style: context
+                                  .themedText(AppTextStyles.displayMedium)
+                                  .copyWith(
+                                    color: context.foregroundColor(
+                                      const Color(0xFFF8FAFC),
+                                    ),
+                                    height: 1.1,
+                                  ),
                             ),
                           ),
                         ),
@@ -592,8 +622,12 @@ class _DashboardPageState extends State<DashboardPage> {
                             icon: const Icon(Icons.edit_outlined, size: 18),
                             label: const Text('Edit'),
                             style: TextButton.styleFrom(
-                              foregroundColor: const Color(0xFFADC6D9),
-                              textStyle: AppTextStyles.labelMedium,
+                              foregroundColor: context.mutedColor(
+                                Color(0xFFADC6D9),
+                              ),
+                              textStyle: context.themedText(
+                                AppTextStyles.labelMedium,
+                              ),
                             ),
                           ),
                         ),

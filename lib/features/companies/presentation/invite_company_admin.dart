@@ -1,3 +1,5 @@
+import 'package:dropline/core/theme/appcolors.dart';
+import 'package:dropline/core/theme/app_theme.dart';
 import 'dart:async';
 import 'package:dropline/core/di/global_di.dart';
 import 'package:dropline/core/secure_storage/secure_storage.dart';
@@ -35,7 +37,7 @@ class _InviteCompanyAdminPageState extends State<InviteCompanyAdminPage> {
   static const _border = Color(0xFF264C63);
   static const _muted = Color(0xFF80B2CD);
   static const _text = Color(0xFFE9F2F8);
-  static const _lime = Color(0xFFB5FF65);
+  static const _primaryAccent = AppColors.primary;
   final _formKey = GlobalKey<FormState>();
   final _name = TextEditingController(text: '');
   final _mobile = TextEditingController();
@@ -222,7 +224,7 @@ class _InviteCompanyAdminPageState extends State<InviteCompanyAdminPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _background,
+      backgroundColor: context.backgroundColor(_background),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -230,19 +232,19 @@ class _InviteCompanyAdminPageState extends State<InviteCompanyAdminPage> {
             Text label(
               String value, {
               double size = 7,
-              Color color = _text,
+              Color? color,
               bool bold = false,
             }) => Text(
               value,
               style: TextStyle(
-                color: color,
+                color: color ?? context.foregroundColor(_text),
                 fontSize: size * s,
                 fontWeight: bold ? FontWeight.w500 : FontWeight.w500,
               ),
             );
             BoxDecoration panel() => BoxDecoration(
-              color: _surface,
-              border: Border.all(color: _border),
+              color: context.surfaceColor(_surface),
+              border: Border.all(color: context.borderColor(_border)),
               borderRadius: BorderRadius.circular(5 * s),
             );
             OutlineInputBorder border(Color color) => OutlineInputBorder(
@@ -256,7 +258,7 @@ class _InviteCompanyAdminPageState extends State<InviteCompanyAdminPage> {
             }) => Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                label(title, size: 6.5, color: _muted),
+                label(title, size: 6.5, color: context.mutedColor(_muted)),
                 SizedBox(height: 3 * s),
                 TextFormField(
                   controller: controller,
@@ -266,24 +268,27 @@ class _InviteCompanyAdminPageState extends State<InviteCompanyAdminPage> {
                   textCapitalization: phone
                       ? TextCapitalization.none
                       : TextCapitalization.words,
-                  style: TextStyle(color: _text, fontSize: 8 * s),
+                  style: TextStyle(
+                    color: context.foregroundColor(_text),
+                    fontSize: 8 * s,
+                  ),
                   validator: (value) =>
                       value == null || value.trim().isEmpty ? 'Required' : null,
                   decoration: InputDecoration(
                     hintText: phone ? '+91 *******88888' : 'Amit Desai',
                     hintStyle: TextStyle(
-                      color: _muted.withValues(alpha: 0.55),
+                      color: context.mutedColor(_muted).withValues(alpha: 0.55),
                       fontSize: 8 * s,
                     ),
                     filled: true,
-                    fillColor: _surface,
+                    fillColor: context.surfaceColor(_surface),
                     isDense: true,
                     contentPadding: EdgeInsets.symmetric(
                       horizontal: 8 * s,
                       vertical: 8 * s,
                     ),
-                    enabledBorder: border(_border),
-                    focusedBorder: border(_muted),
+                    enabledBorder: border(context.borderColor(_border)),
+                    focusedBorder: border(context.mutedColor(_muted)),
                     errorBorder: border(Colors.redAccent),
                     focusedErrorBorder: border(Colors.redAccent),
                   ),
@@ -306,14 +311,16 @@ class _InviteCompanyAdminPageState extends State<InviteCompanyAdminPage> {
                             onPressed: () => Navigator.of(context).maybePop(),
                             style: OutlinedButton.styleFrom(
                               padding: EdgeInsets.zero,
-                              side: const BorderSide(color: _border),
+                              side: BorderSide(
+                                color: context.borderColor(_border),
+                              ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(5 * s),
                               ),
                             ),
                             child: Icon(
                               Icons.chevron_left,
-                              color: _muted,
+                              color: context.mutedColor(_muted),
                               size: 12 * s,
                             ),
                           ),
@@ -336,7 +343,7 @@ class _InviteCompanyAdminPageState extends State<InviteCompanyAdminPage> {
                         children: [
                           Icon(
                             Icons.apartment_outlined,
-                            color: _muted,
+                            color: context.mutedColor(_muted),
                             size: 19 * s,
                           ),
                           SizedBox(width: 10 * s),
@@ -349,7 +356,7 @@ class _InviteCompanyAdminPageState extends State<InviteCompanyAdminPage> {
                                 label(
                                   widget.projectName,
                                   size: 6.5,
-                                  color: _muted,
+                                  color: context.mutedColor(_muted),
                                 ),
                               ],
                             ),
@@ -362,40 +369,42 @@ class _InviteCompanyAdminPageState extends State<InviteCompanyAdminPage> {
                     SizedBox(height: 11 * s),
                     field('Mobile number', _mobile, phone: true),
                     SizedBox(height: 11 * s),
-                    label('Role', size: 6.5, color: _muted),
+                    label('Role', size: 6.5, color: context.mutedColor(_muted)),
                     SizedBox(height: 3 * s),
                     DropdownButtonFormField<String>(
                       initialValue: _roleId,
                       isExpanded: true,
                       hint: Text(
                         _loadingRoles ? 'Loading roles…' : 'Select role',
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(
+                          color: context.foregroundColor(Colors.white),
+                        ),
                       ),
                       validator: (value) =>
                           value == null ? 'Select a role' : null,
-                      dropdownColor: _surface,
-                      style: TextStyle(color: Colors.white, fontSize: 8 * s),
+                      dropdownColor: context.surfaceColor(_surface),
+                      style: TextStyle(color: context.foregroundColor(Colors.white), fontSize: 8 * s),
                       icon: Icon(
                         Icons.keyboard_arrow_down,
-                        color: _muted,
+                        color: context.mutedColor(_muted),
                         size: 13 * s,
                       ),
                       decoration: InputDecoration(
                         prefixIcon: Icon(
                           Icons.person_outline,
-                          color: _muted,
+                          color: context.mutedColor(_muted),
                           size: 14 * s,
                         ),
                         prefixIconConstraints: BoxConstraints(minWidth: 29 * s),
                         isDense: true,
                         filled: true,
-                        fillColor: _surface,
+                        fillColor: context.surfaceColor(_surface),
                         contentPadding: EdgeInsets.symmetric(
                           horizontal: 7 * s,
                           vertical: 8 * s,
                         ),
-                        enabledBorder: border(_border),
-                        focusedBorder: border(_muted),
+                        enabledBorder: border(context.borderColor(_border)),
+                        focusedBorder: border(context.mutedColor(_muted)),
                       ),
                       items: _roles
                           .map(
@@ -403,7 +412,9 @@ class _InviteCompanyAdminPageState extends State<InviteCompanyAdminPage> {
                               value: role['id'],
                               child: Text(
                                 role['name']!,
-                                style: const TextStyle(color: Colors.white),
+                                style: TextStyle(
+                                  color: context.foregroundColor(Colors.white),
+                                ),
                               ),
                             ),
                           )
@@ -420,7 +431,10 @@ class _InviteCompanyAdminPageState extends State<InviteCompanyAdminPage> {
                         child: Text('$_roleError · Retry'),
                       ),
                     if (!_loadingRoles && _roleError == null && _roles.isEmpty)
-                      label('No roles available', color: _muted),
+                      label(
+                        'No roles available',
+                        color: context.mutedColor(_muted),
+                      ),
                     SizedBox(height: 11 * s),
                     Container(
                       padding: EdgeInsets.all(11 * s),
@@ -435,9 +449,9 @@ class _InviteCompanyAdminPageState extends State<InviteCompanyAdminPage> {
                           ),
                           SizedBox(height: 4 * s),
                           if (_loadingTasks)
-                            const Center(
+                            Center(
                               child: CircularProgressIndicator(
-                                color: Colors.white,
+                                color: context.foregroundColor(Colors.white),
                               ),
                             ),
                           if (_taskError != null)
@@ -452,7 +466,7 @@ class _InviteCompanyAdminPageState extends State<InviteCompanyAdminPage> {
                               _roleId == null
                                   ? 'Select a role to view tasks'
                                   : 'No tasks defined for this role',
-                              color: _muted,
+                              color: context.mutedColor(_muted),
                             ),
                           for (final task in _tasks)
                             Padding(
@@ -463,7 +477,7 @@ class _InviteCompanyAdminPageState extends State<InviteCompanyAdminPage> {
                                     child: label(
                                       task['name']!,
                                       size: 7,
-                                      color: _muted,
+                                      color: context.mutedColor(_muted),
                                     ),
                                   ),
                                   SizedBox(width: 6 * s),
@@ -478,9 +492,12 @@ class _InviteCompanyAdminPageState extends State<InviteCompanyAdminPage> {
                                               _permissions[task['id']!] = value,
                                         ),
                                         activeThumbColor: Colors.white,
-                                        activeTrackColor: _lime,
-                                        inactiveThumbColor: _text,
-                                        inactiveTrackColor: _border,
+                                        activeTrackColor: _primaryAccent,
+                                        inactiveThumbColor: context
+                                            .foregroundColor(_text),
+                                        inactiveTrackColor: context.borderColor(
+                                          _border,
+                                        ),
                                         trackOutlineColor:
                                             const WidgetStatePropertyAll(
                                               Colors.transparent,
@@ -493,11 +510,14 @@ class _InviteCompanyAdminPageState extends State<InviteCompanyAdminPage> {
                                 ],
                               ),
                             ),
-                          Divider(color: _border, height: 17 * s),
+                          Divider(
+                            color: context.borderColor(_border),
+                            height: 17 * s,
+                          ),
                           label(
                             'Access is for ${widget.companyName} on this project.',
                             size: 6.5,
-                            color: _muted,
+                            color: context.mutedColor(_muted),
                           ),
                         ],
                       ),
@@ -516,7 +536,7 @@ class _InviteCompanyAdminPageState extends State<InviteCompanyAdminPage> {
                             : _submitAdmin,
                         style: FilledButton.styleFrom(
                           padding: EdgeInsets.zero,
-                          backgroundColor: _lime,
+                          backgroundColor: _primaryAccent,
                           foregroundColor: _background,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(5 * s),

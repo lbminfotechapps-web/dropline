@@ -4,7 +4,6 @@ import 'package:dropline/core/di/global_di.dart';
 import 'package:dropline/core/router/app_router.dart';
 import 'package:dropline/core/secure_storage/secure_storage.dart';
 import 'package:dropline/core/theme/appcolors.dart';
-import 'package:dropline/features/dashboard/presentation/widgets/dashboard_background.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 
@@ -131,7 +130,10 @@ class _SplashScreenState extends State<SplashScreen>
     return Scaffold(
       // backgroundColor: AppColors.background,
       body: SizedBox.expand(
-        child: DashboardBackground(
+        child: DecoratedBox(
+          decoration: const BoxDecoration(
+            gradient: AppColors.backgroundGradient,
+          ),
           child: Center(
             child: AnimatedBuilder(
               animation: _controller,

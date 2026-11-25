@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:dropline/features/event/data/repositories/event_draft_store.dart';
@@ -81,13 +82,13 @@ class _PunchEventRecordsState extends State<PunchEventRecords> {
       showDialog<void>(
         context: context,
         builder: (context) => AlertDialog(
-          backgroundColor: AppColors.surface,
+          backgroundColor: context.surfaceColor(AppColors.surface),
           surfaceTintColor: Colors.transparent,
           scrollable: true,
           content: SelectableText(
             record.item.text,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
+            style: TextStyle(
+              color: context.foregroundColor(AppColors.textPrimary),
               fontSize: 16,
               height: 1.5,
             ),
@@ -105,7 +106,7 @@ class _PunchEventRecordsState extends State<PunchEventRecords> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.surfaceColor(AppColors.surface),
       showDragHandle: true,
       builder: (context) => SafeArea(
         child: SizedBox(
@@ -159,9 +160,9 @@ class _PunchEventRecordsState extends State<PunchEventRecords> {
                   Image.file(
                     record.file!,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => const Icon(
+                    errorBuilder: (_, _, _) => Icon(
                       Icons.broken_image_outlined,
-                      color: AppColors.textSecondary,
+                      color: context.mutedColor(AppColors.textSecondary),
                     ),
                   ),
                   Positioned(
@@ -178,8 +179,8 @@ class _PunchEventRecordsState extends State<PunchEventRecords> {
                       ),
                       child: Text(
                         label,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: context.foregroundColor(Colors.white),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -200,7 +201,7 @@ class _PunchEventRecordsState extends State<PunchEventRecords> {
                       children: [
                         Icon(
                           icon,
-                          color: AppColors.textSecondary,
+                          color: context.mutedColor(AppColors.textSecondary),
                           size: item.type == EventItemType.audio ? 30 : 22,
                         ),
                         const SizedBox(width: 6),
@@ -209,8 +210,8 @@ class _PunchEventRecordsState extends State<PunchEventRecords> {
                             title,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: context.foregroundColor(Colors.white),
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
                             ),
@@ -218,8 +219,8 @@ class _PunchEventRecordsState extends State<PunchEventRecords> {
                         ),
                         Text(
                           label,
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
+                          style: TextStyle(
+                            color: context.mutedColor(AppColors.textSecondary),
                             fontSize: 10,
                           ),
                         ),
@@ -235,8 +236,8 @@ class _PunchEventRecordsState extends State<PunchEventRecords> {
                             : 'Tap to open document',
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
+                        style: TextStyle(
+                          color: context.mutedColor(AppColors.textSecondary),
                           fontSize: 12,
                         ),
                       ),
@@ -271,8 +272,8 @@ class _PunchEventRecordsState extends State<PunchEventRecords> {
                 Expanded(
                   child: Text(
                     _dateLabel(date),
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: context.foregroundColor(Colors.white),
                       fontSize: 20,
                       fontWeight: FontWeight.w500,
                     ),
@@ -281,17 +282,21 @@ class _PunchEventRecordsState extends State<PunchEventRecords> {
                 if (widget.showCounts)
                   Text(
                     '${groups[date]!.length} items',
-                    style: const TextStyle(color: AppColors.textSecondary),
+                    style: TextStyle(
+                      color: context.mutedColor(AppColors.textSecondary),
+                    ),
                   ),
               ],
             ),
           ),
           if (groups[date]!.isEmpty)
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(vertical: 20),
               child: Text(
                 'No events yet. Tap Add to record your work.',
-                style: TextStyle(color: AppColors.textSecondary),
+                style: TextStyle(
+                  color: context.mutedColor(AppColors.textSecondary),
+                ),
                 textAlign: TextAlign.center,
               ),
             )
@@ -338,7 +343,7 @@ class _PunchEventRecordsState extends State<PunchEventRecords> {
             label: Text(_showOld ? 'Hide Old Records' : 'View Old Records'),
             icon: Icon(_showOld ? Icons.expand_less : Icons.expand_more),
             style: TextButton.styleFrom(
-              foregroundColor: AppColors.textSecondary,
+              foregroundColor: context.mutedColor(AppColors.textSecondary),
             ),
           ),
       ],

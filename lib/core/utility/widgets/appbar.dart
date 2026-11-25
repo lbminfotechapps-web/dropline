@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:flutter/material.dart';
 
@@ -33,7 +34,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     // AppBar reserves the platform's top inset above the toolbar, keeping
     // controls below status bars, camera cutouts, and the Dynamic Island.
     return AppBar(
-      backgroundColor: backgroundColor ?? AppColors.background,
+      backgroundColor:
+          backgroundColor ?? context.backgroundColor(AppColors.background),
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       scrolledUnderElevation: 0,
@@ -51,13 +53,15 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 height: 40,
                 width: 40,
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: context.surfaceColor(AppColors.surface),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(
+                    color: context.borderColor(AppColors.border),
+                  ),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.arrow_back_ios_new_rounded,
-                  color: AppColors.iconColor,
+                  color: context.linkColor(AppColors.iconColor),
                   size: 16,
                 ),
               ),
@@ -75,10 +79,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                   title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.textPrimary,
+                    color: context.foregroundColor(AppColors.textPrimary),
                   ),
                 ),
 
@@ -91,9 +95,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                     subtitle!,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.textSecondary,
+                      color: context.mutedColor(AppColors.textSecondary),
                     ),
                   ),
                 ],

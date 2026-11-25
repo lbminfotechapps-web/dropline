@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:dropline/core/utility/showcase_once.dart';
 import 'dart:async';
@@ -272,7 +273,7 @@ class _PunchOutPageState extends State<PunchOutPage>
 
   Widget _buildPage(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.backgroundColor(AppColors.background),
       appBar: CustomAppBar(
         title: projectName.isEmpty ? 'No Project Selected' : projectName,
         showBackButton: false,
@@ -294,21 +295,21 @@ class _PunchOutPageState extends State<PunchOutPage>
                   children: [
                     Row(
                       children: [
-                        const Text(
+                        Text(
                           'Clocked in',
-                          style: TextStyle(color: Colors.white, fontSize: 16),
+                          style: TextStyle(color: context.foregroundColor(Colors.white), fontSize: 16),
                         ),
                         const Spacer(),
-                        const Icon(
+                        Icon(
                           Icons.circle,
-                          color: AppColors.primary,
+                          color: context.accentColor(AppColors.primary),
                           size: 11,
                         ),
                         const Spacer(),
                         Text(
                           'Started ${inTime.isEmpty ? '--:--' : inTime.split(':').take(2).join(':')}',
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
+                          style: TextStyle(
+                            color: context.mutedColor(AppColors.textSecondary),
                             fontSize: 14,
                           ),
                         ),
@@ -344,8 +345,10 @@ class _PunchOutPageState extends State<PunchOutPage>
                                       ),
                                     ],
                                   ),
-                                  style: const TextStyle(
-                                    color: Colors.white,
+                                  style: TextStyle(
+                                    color: context.foregroundColor(
+                                      Colors.white,
+                                    ),
                                     fontSize: 42,
                                     fontWeight: FontWeight.w500,
                                     height: 1.1,
@@ -353,10 +356,12 @@ class _PunchOutPageState extends State<PunchOutPage>
                                 ),
                               ),
                               const SizedBox(height: 6),
-                              const Text(
+                              Text(
                                 'Time worked · hrs:min:sec',
                                 style: TextStyle(
-                                  color: AppColors.textSecondary,
+                                  color: context.mutedColor(
+                                    AppColors.textSecondary,
+                                  ),
                                   fontSize: 11,
                                 ),
                               ),
@@ -467,7 +472,9 @@ class _PunchOutPageState extends State<PunchOutPage>
     String route,
     bool selected,
   ) {
-    final color = selected ? const Color(0xFFC3FF00) : const Color(0xFFADC6D9);
+    final color = selected
+        ? context.accentColor(AppColors.primary)
+        : context.mutedColor(const Color(0xFFADC6D9));
     return Expanded(
       child: InkWell(
         onTap: () => context.go(route),

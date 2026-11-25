@@ -1,3 +1,5 @@
+import 'package:dropline/core/theme/appcolors.dart';
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 class EventArea {
@@ -143,7 +145,7 @@ class EventHierarchySheet extends StatefulWidget {
 class _EventHierarchySheetState extends State<EventHierarchySheet> {
   static const _bg = Color(0xFF293D50);
   static const _surface = Color(0xFF203344);
-  static const _accent = Color(0xFFBDF67C);
+  static const _accent = AppColors.primary;
   static const _muted = Color(0xFFB5C4D1);
   static const _border = Color(0xFF607589);
   _Step _step = _Step.summary;
@@ -272,15 +274,19 @@ class _EventHierarchySheetState extends State<EventHierarchySheet> {
       child: Padding(
         padding: EdgeInsets.only(bottom: media.viewInsets.bottom),
         child: Theme(
-          data: ThemeData.dark().copyWith(colorScheme: const ColorScheme.dark(primary: _accent, surface: _bg)),
+          data: WhiteAppTheme.isEnabled(context)
+              ? Theme.of(context)
+              : ThemeData.dark().copyWith(
+                  colorScheme: const ColorScheme.dark(primary: _accent, surface: _bg),
+                ),
           child: Material(
-            color: _bg, borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            color: context.backgroundColor(_bg), borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
             clipBehavior: Clip.antiAlias,
             child: SafeArea(top: false, child: ConstrainedBox(
               constraints: BoxConstraints(maxHeight: (media.size.height - media.viewInsets.bottom - media.padding.top) * (media.viewInsets.bottom > 0 ? .93 : .65)),
               child: Padding(padding: const EdgeInsets.fromLTRB(16, 8, 16, 16), child: Column(
                 mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  Center(child: Container(width: 36, height: 4, decoration: BoxDecoration(color: _muted, borderRadius: BorderRadius.circular(5)))),
+                  Center(child: Container(width: 36, height: 4, decoration: BoxDecoration(color: context.mutedColor(_muted), borderRadius: BorderRadius.circular(5)))),
                   Row(children: [
                     if (_step != _Step.summary) IconButton(onPressed: _busy ? null : _back, icon: const Icon(Icons.arrow_back)),
                     Expanded(child: Text(_title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
@@ -302,31 +308,31 @@ class _EventHierarchySheetState extends State<EventHierarchySheet> {
       ),
     );
   }
-  Widget _caption(String text) => Padding(padding: const EdgeInsets.symmetric(vertical: 6), child: Text(text, style: const TextStyle(color: _muted, fontSize: 13)));
+  Widget _caption(String text) => Padding(padding: const EdgeInsets.symmetric(vertical: 6), child: Text(text, style: TextStyle(color: context.mutedColor(_muted), fontSize: 13)));
   Widget _breadcrumb(String value) => Padding(
     padding: const EdgeInsets.only(bottom: 10, top: 2),
-    child: Text(value, style: const TextStyle(
-      color: _accent, fontSize: 13, fontWeight: FontWeight.w500, height: 1.4,
+    child: Text(value, style: TextStyle(
+      color: context.accentColor(_accent), fontSize: 13, fontWeight: FontWeight.w500, height: 1.4,
     )),
   );
   Widget _field(TextEditingController controller, String hint, {bool search = false}) => TextField(
     controller: controller, enabled: !_busy, onChanged: (_) => setState(() => _error = null),
-    decoration: InputDecoration(hintText: hint, hintStyle: const TextStyle(color: _muted),
+    decoration: InputDecoration(hintText: hint, hintStyle: TextStyle(color: context.mutedColor(_muted)),
       prefixIcon: search ? const Icon(Icons.search, size: 20) : null,
-      filled: true, fillColor: _surface, isDense: true,
+      filled: true, fillColor: context.surfaceColor(_surface), isDense: true,
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: _border))),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: context.borderColor(_border)))),
   );
   Widget _newButton(VoidCallback action) => OutlinedButton.icon(onPressed: _busy ? null : action,
-    style: OutlinedButton.styleFrom(foregroundColor: _accent, side: const BorderSide(color: _accent)), icon: const Icon(Icons.add, size: 16), label: const Text('New'));
+    style: OutlinedButton.styleFrom(foregroundColor: context.accentColor(_accent), side: BorderSide(color: context.accentColor(_accent))), icon: const Icon(Icons.add, size: 16), label: const Text('New'));
   Widget _dropdown(String label, VoidCallback? action) => OutlinedButton(onPressed: action,
-    style: OutlinedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: _surface, padding: const EdgeInsets.all(12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+    style: OutlinedButton.styleFrom(foregroundColor: context.foregroundColor(Colors.white), backgroundColor: context.surfaceColor(_surface), padding: const EdgeInsets.all(12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
     child: Row(children: [Expanded(child: Text(label, overflow: TextOverflow.ellipsis)), const Icon(Icons.expand_more, size: 20)]));
   Widget _row(String name, VoidCallback action, {bool selected = false, bool next = false}) => Padding(
-    padding: const EdgeInsets.only(top: 5), child: Material(color: selected ? const Color(0xFF365044) : _surface, borderRadius: BorderRadius.circular(9), child: ListTile(
-      dense: true, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9), side: BorderSide(color: selected ? _accent : _border)),
-      title: Text(name, style: TextStyle(color: selected ? _accent : Colors.white)),
-      trailing: Icon(selected ? Icons.check : next ? Icons.chevron_right : Icons.radio_button_unchecked, color: selected ? _accent : _muted, size: 19),
+    padding: const EdgeInsets.only(top: 5), child: Material(color: selected ? context.selectedColor(const Color(0xFF365044)) : context.surfaceColor(_surface), borderRadius: BorderRadius.circular(9), child: ListTile(
+      dense: true, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9), side: BorderSide(color: selected ? context.accentColor(_accent) : context.borderColor(_border))),
+      title: Text(name, style: TextStyle(color: selected ? context.accentColor(_accent) : context.foregroundColor(Colors.white))),
+      trailing: Icon(selected ? Icons.check : next ? Icons.chevron_right : Icons.radio_button_unchecked, color: selected ? context.accentColor(_accent) : context.mutedColor(_muted), size: 19),
       onTap: _busy ? null : action,
     )));
   Widget _empty() => const Padding(padding: EdgeInsets.all(16), child: Text('No matching items', textAlign: TextAlign.center));

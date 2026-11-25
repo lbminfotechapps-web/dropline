@@ -1,3 +1,5 @@
+import 'package:dropline/core/theme/appcolors.dart';
+import 'package:dropline/core/theme/app_theme.dart';
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -29,7 +31,7 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
   static const _surface = Color(0xFF173B4B);
   static const _muted = Color(0xFFA5C1CF);
   static const _border = Color(0xFF2B4C5B);
-  static const _accent = Color(0xFFB5FF65);
+  static const _accent = AppColors.primary;
   final _store = EventDraftStore();
   List<EventDraftRecord> _records = [];
   bool _loading = true;
@@ -182,13 +184,13 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
     var oldest = _oldestFirst;
     final applied = await showModalBottomSheet<bool>(
       context: context,
-      backgroundColor: const Color(0xFF122C3B),
+      backgroundColor: context.backgroundColor(Color(0xFF122C3B)),
       isScrollControlled: true,
       useSafeArea: true,
       showDragHandle: true,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        side: BorderSide(color: _border),
+        side: BorderSide(color: context.borderColor(_border)),
       ),
       builder: (context) => StatefulBuilder(
         builder: (context, update) {
@@ -239,18 +241,21 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
                 key: ValueKey('$label:$value:${entries.keys.join(',')}'),
                 initialValue: value,
                 isExpanded: true,
-                dropdownColor: const Color(0xFF122C3B),
-                style: const TextStyle(color: Colors.white, fontSize: 13),
-                iconEnabledColor: Colors.white,
-                iconDisabledColor: Colors.white,
-                icon: const Icon(
+                dropdownColor: context.surfaceColor(const Color(0xFF122C3B)),
+                style: TextStyle(
+                  color: context.foregroundColor(Colors.white),
+                  fontSize: 13,
+                ),
+                iconEnabledColor: context.foregroundColor(Colors.white),
+                iconDisabledColor: context.foregroundColor(Colors.white),
+                icon: Icon(
                   Icons.keyboard_arrow_down_rounded,
-                  color: Colors.white,
+                  color: context.foregroundColor(Colors.white),
                   size: 20,
                 ),
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: const Color(0xFF102633),
+                  fillColor: context.surfaceColor(Color(0xFF102633)),
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 12,
                     vertical: 12,
@@ -258,15 +263,15 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
                   isDense: true,
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(11),
-                    borderSide: const BorderSide(color: _border),
+                    borderSide: BorderSide(color: context.borderColor(_border)),
                   ),
                   disabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(11),
-                    borderSide: const BorderSide(color: _border),
+                    borderSide: BorderSide(color: context.borderColor(_border)),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(11),
-                    borderSide: const BorderSide(color: _accent),
+                    borderSide: BorderSide(color: context.accentColor(_accent)),
                   ),
                 ),
                 items: entries.entries
@@ -276,7 +281,9 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
                         child: Text(
                           e.value,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: Colors.white),
+                          style: TextStyle(
+                            color: context.foregroundColor(Colors.white),
+                          ),
                         ),
                       ),
                     )
@@ -306,11 +313,13 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
                         children: [
                           Row(
                             children: [
-                              const Expanded(
+                              Expanded(
                                 child: Text(
                                   'Filters',
                                   style: TextStyle(
-                                    color: Colors.white,
+                                    color: context.foregroundColor(
+                                      Colors.white,
+                                    ),
                                     fontSize: 24,
                                     fontWeight: FontWeight.w700,
                                     letterSpacing: -0.8,
@@ -321,8 +330,10 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
                                 tooltip: 'Close filters',
                                 onPressed: () => Navigator.pop(context),
                                 style: IconButton.styleFrom(
-                                  foregroundColor: _muted,
-                                  side: const BorderSide(color: _border),
+                                  foregroundColor: context.mutedColor(_muted),
+                                  side: BorderSide(
+                                    color: context.borderColor(_border),
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(11),
                                   ),
@@ -431,8 +442,10 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
                   ),
                   Container(
                     padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
-                    decoration: const BoxDecoration(
-                      border: Border(top: BorderSide(color: _border)),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        top: BorderSide(color: context.borderColor(_border)),
+                      ),
                     ),
                     child: Row(
                       children: [
@@ -446,10 +459,12 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
                             oldest = false;
                           }),
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: _muted,
-                            backgroundColor: _surface,
+                            foregroundColor: context.mutedColor(_muted),
+                            backgroundColor: context.surfaceColor(_surface),
                             minimumSize: const Size(64, 46),
-                            side: const BorderSide(color: _border),
+                            side: BorderSide(
+                              color: context.borderColor(_border),
+                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(11),
                             ),
@@ -461,7 +476,7 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
                           child: FilledButton(
                             onPressed: () => Navigator.pop(context, true),
                             style: FilledButton.styleFrom(
-                              backgroundColor: const Color(0xFFADFF59),
+                              backgroundColor: AppColors.primary,
                               foregroundColor: _background,
                               minimumSize: const Size.fromHeight(46),
                               shape: RoundedRectangleBorder(
@@ -599,23 +614,23 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: _surface,
+        backgroundColor: context.surfaceColor(_surface),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text(
+        title: Text(
           'Delete attachment?',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: context.foregroundColor(Colors.white)),
         ),
-        content: const Text(
+        content: Text(
           'Are you sure you want to delete this attachment? '
           'This action cannot be undone.',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: context.mutedColor(Colors.white70)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text(
+            child: Text(
               'Cancel',
-              style: TextStyle(color: Colors.white70),
+              style: TextStyle(color: context.mutedColor(Colors.white70)),
             ),
           ),
           TextButton(
@@ -701,10 +716,10 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
           builder: (context, refresh) {
             final record = current;
             return Scaffold(
-              backgroundColor: _background,
+              backgroundColor: context.backgroundColor(_background),
               appBar: AppBar(
-                backgroundColor: _background,
-                foregroundColor: Colors.white,
+                backgroundColor: context.backgroundColor(_background),
+                foregroundColor: context.foregroundColor(Colors.white),
                 elevation: 0,
                 title: Text(switch (record.item.type) {
                   EventItemType.photo => 'Photo',
@@ -726,18 +741,22 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
                                   padding: const EdgeInsets.all(12),
                                   child: SelectableText(
                                     record.item.text,
-                                    style: const TextStyle(
-                                      color: Colors.white,
+                                    style: TextStyle(
+                                      color: context.foregroundColor(
+                                        Colors.white,
+                                      ),
                                       fontSize: 16,
                                       height: 1.6,
                                     ),
                                   ),
                                 )
                               : record.file == null
-                              ? const Center(
+                              ? Center(
                                   child: Text(
                                     'This file is no longer available.',
-                                    style: TextStyle(color: _muted),
+                                    style: TextStyle(
+                                      color: context.mutedColor(_muted),
+                                    ),
                                   ),
                                 )
                               : EventAttachmentPreview(
@@ -780,8 +799,8 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
                                       vertical: 6,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.55,
+                                      color: context.surfaceColor(
+                                        Colors.black.withValues(alpha: 0.55),
                                       ),
                                       borderRadius: BorderRadius.circular(30),
                                     ),
@@ -811,9 +830,11 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
                                         // EDIT ICON
                                         IconButton(
                                           tooltip: 'Edit attachment',
-                                          icon: const Icon(
+                                          icon: Icon(
                                             Icons.edit_outlined,
-                                            color: Colors.white,
+                                            color: context.foregroundColor(
+                                              Colors.white,
+                                            ),
                                             size: 23,
                                           ),
                                           onPressed: () async {
@@ -852,7 +873,7 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
 
                   Container(
                     width: double.infinity,
-                    color: _background,
+                    color: context.backgroundColor(_background),
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -901,8 +922,8 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
           width: 95,
           child: Text(
             label,
-            style: const TextStyle(
-              color: _muted,
+            style: TextStyle(
+              color: context.mutedColor(_muted),
               fontSize: 11,
               fontWeight: FontWeight.w500,
             ),
@@ -913,8 +934,8 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
             value.trim().isEmpty ? 'N/A' : value,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: context.foregroundColor(Colors.white),
               fontSize: 11,
               fontWeight: FontWeight.w600,
             ),
@@ -973,6 +994,7 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final whiteTheme = WhiteAppTheme.isEnabled(context);
     final projects =
         _records
             .map((record) => record.projectName)
@@ -1009,7 +1031,7 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
           child: RefreshIndicator(
             onRefresh: _load,
             color: _accent,
-            backgroundColor: _surface,
+            backgroundColor: context.surfaceColor(_surface),
             child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
@@ -1021,11 +1043,11 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
                       children: [
                         Row(
                           children: [
-                            const Expanded(
+                            Expanded(
                               child: Text(
                                 'Records',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: context.foregroundColor(Colors.white),
                                   fontSize: 32,
                                   fontWeight: FontWeight.w700,
                                   letterSpacing: -1.2,
@@ -1266,7 +1288,9 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
                   const SliverFillRemaining(
                     hasScrollBody: false,
                     child: Center(
-                      child: CircularProgressIndicator(color: _accent),
+                      child: CircularProgressIndicator(
+                        color: context.accentColor(_accent),
+                      ),
                     ),
                   )
                 else if (_error != null || groups.isEmpty)
@@ -1284,8 +1308,8 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
                             Expanded(
                               child: Text(
                                 _dayLabel(entry.key),
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                style: TextStyle(
+                                  color: context.foregroundColor(Colors.white),
                                   fontSize: 20,
                                   fontWeight: FontWeight.w600,
                                   letterSpacing: -0.5,
@@ -1298,8 +1322,8 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
                                     ? 'd MMM'
                                     : 'd MMM yyyy',
                               ).format(entry.key),
-                              style: const TextStyle(
-                                color: _muted,
+                              style: TextStyle(
+                                color: context.mutedColor(_muted),
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -1311,12 +1335,16 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
                     SliverPadding(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                       sliver: SliverGrid(
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 3,
-                              mainAxisSpacing: 6,
-                              crossAxisSpacing: 6,
-                            ),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount:
+                              whiteTheme &&
+                                  MediaQuery.sizeOf(context).width < 480
+                              ? 2
+                              : 3,
+                          mainAxisSpacing: whiteTheme ? 12 : 6,
+                          crossAxisSpacing: whiteTheme ? 12 : 6,
+                          childAspectRatio: whiteTheme ? 1.2 : 1,
+                        ),
                         delegate: SliverChildBuilderDelegate(
                           (context, index) => _recordCard(entry.value[index]),
                           childCount: entry.value.length,
@@ -1701,7 +1729,7 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
         Icon(
           _error != null ? Icons.cloud_off_outlined : Icons.folder_open_rounded,
           size: 44,
-          color: _muted,
+          color: context.mutedColor(_muted),
         ),
         const SizedBox(height: 16),
         Text(
@@ -1711,8 +1739,8 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
               ? 'Your records start here'
               : 'No matching records',
           textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: context.foregroundColor(Colors.white),
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -1724,7 +1752,11 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
                   ? 'Capture a photo, note or voice recording during a work session.'
                   : 'Try another project, record type or date filter.'),
           textAlign: TextAlign.center,
-          style: const TextStyle(color: _muted, fontSize: 13, height: 1.5),
+          style: TextStyle(
+            color: context.mutedColor(_muted),
+            fontSize: 13,
+            height: 1.5,
+          ),
         ),
         if (_error != null)
           TextButton(onPressed: _load, child: const Text('Try again')),
@@ -1749,13 +1781,19 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
     final selected = _selectedRecords.contains(record);
     final photo = record.item.type == EventItemType.photo;
     final voice = record.item.type == EventItemType.audio;
+    final cardColor = whiteTheme
+        ? (voice ? AppColors.primarySoft : WhiteAppTheme.surface)
+        : (voice ? const Color(0xFF133D44) : _surface);
+    final iconColor = whiteTheme
+        ? WhiteAppTheme.accent
+        : (voice ? const Color(0xFF9ED4D1) : _muted);
     final time = record.createdAt;
     final label = time == null ? '' : DateFormat('HH:mm').format(time);
     return Semantics(
       button: true,
       label: '${record.item.type.name} ${record.projectName} $label',
       child: Material(
-        color: voice ? const Color(0xFF133D44) : _surface,
+        color: cardColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
           side: BorderSide(
@@ -1782,45 +1820,91 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
               ? Stack(
                   fit: StackFit.expand,
                   children: [
-                    if (record.file != null)
-                      Image.file(
-                        record.file!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => const Icon(
-                          Icons.broken_image_outlined,
-                          color: _muted,
+                    Positioned.fill(
+                      bottom: whiteTheme ? 32 : 0,
+                      child: record.file != null
+                          ? Image.file(
+                              record.file!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) => Icon(
+                                Icons.broken_image_outlined,
+                                color: context.mutedColor(_muted),
+                              ),
+                            )
+                          : Icon(
+                              Icons.image_not_supported_outlined,
+                              color: context.mutedColor(_muted),
+                            ),
+                    ),
+                    if (whiteTheme)
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: ColoredBox(
+                          color: WhiteAppTheme.surface,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 8,
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.photo_outlined,
+                                  size: 14,
+                                  color: iconColor,
+                                ),
+                                const SizedBox(width: 5),
+                                const Expanded(
+                                  child: Text(
+                                    'Photo',
+                                    style: TextStyle(
+                                      color: WhiteAppTheme.foreground,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  label,
+                                  style: const TextStyle(
+                                    color: WhiteAppTheme.muted,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       )
-                    else
-                      const Icon(
-                        Icons.image_not_supported_outlined,
-                        color: _muted,
-                      ),
-                    const DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.center,
-                          end: Alignment.bottomCenter,
-                          colors: [Colors.transparent, Colors.black54],
+                    else ...[
+                      const DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.center,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.transparent, Colors.black54],
+                          ),
                         ),
                       ),
-                    ),
-                    Positioned(
-                      right: 8,
-                      bottom: 8,
-                      child: Text(
-                        label,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
+                      Positioned(
+                        right: 8,
+                        bottom: 8,
+                        child: Text(
+                          label,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                   ],
                 )
               : Padding(
-                  padding: const EdgeInsets.all(9),
+                  padding: EdgeInsets.all(whiteTheme ? 12 : 9),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1832,7 +1916,7 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
                                 : record.item.type == EventItemType.pdf
                                 ? Icons.picture_as_pdf_outlined
                                 : Icons.description_outlined,
-                            color: voice ? const Color(0xFF9ED4D1) : _muted,
+                            color: iconColor,
                             size: 13,
                           ),
                           const SizedBox(width: 4),
@@ -1844,8 +1928,8 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
                                   ? 'PDF'
                                   : 'Note',
                               maxLines: 1,
-                              style: const TextStyle(
-                                color: _muted,
+                              style: TextStyle(
+                                color: context.mutedColor(_muted),
                                 fontSize: 10,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -1856,11 +1940,13 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
                       const SizedBox(height: 8),
                       Expanded(
                         child: voice
-                            ? const Center(
+                            ? Center(
                                 child: Icon(
                                   Icons.graphic_eq_rounded,
                                   size: 40,
-                                  color: Color(0xFF91CECA),
+                                  color: context.accentColor(
+                                    const Color(0xFF91CECA),
+                                  ),
                                 ),
                               )
                             : LayoutBuilder(
@@ -1872,8 +1958,10 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
                                       .floor()
                                       .clamp(1, 4),
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: Colors.white,
+                                  style: TextStyle(
+                                    color: context.foregroundColor(
+                                      Colors.white,
+                                    ),
                                     fontSize: 12,
                                     height: 1.35,
                                     fontWeight: FontWeight.w600,
@@ -1886,8 +1974,8 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
                         alignment: Alignment.bottomRight,
                         child: Text(
                           label,
-                          style: const TextStyle(
-                            color: _muted,
+                          style: TextStyle(
+                            color: context.mutedColor(_muted),
                             fontSize: 10,
                             fontWeight: FontWeight.w500,
                           ),

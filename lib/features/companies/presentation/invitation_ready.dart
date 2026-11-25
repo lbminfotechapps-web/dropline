@@ -1,3 +1,5 @@
+import 'package:dropline/core/theme/appcolors.dart';
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'bloc/pending_invitations_bloc.dart';
 import 'package:dropline/core/di/global_di.dart';
@@ -145,7 +147,7 @@ class _InvitationReadyPageState extends State<InvitationReadyPage> {
         if (!didPop) _goBack();
       },
       child: Scaffold(
-        backgroundColor: _background,
+        backgroundColor: context.backgroundColor(_background),
         body: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
@@ -153,14 +155,14 @@ class _InvitationReadyPageState extends State<InvitationReadyPage> {
               Text label(
                 String value, {
                 double size = 7,
-                Color color = _text,
+                Color? color,
                 bool bold = false,
                 TextAlign? align,
               }) => Text(
                 value,
                 textAlign: align,
                 style: TextStyle(
-                  color: color,
+                  color: color ?? context.foregroundColor(_text),
                   fontSize: size * s,
                   fontWeight: bold ? FontWeight.w500 : FontWeight.w500,
                   height: 1.4,
@@ -187,10 +189,18 @@ class _InvitationReadyPageState extends State<InvitationReadyPage> {
                     ),
                     child: Row(
                       children: [
-                        Icon(icon, size: 15 * s, color: _muted),
+                        Icon(
+                          icon,
+                          size: 15 * s,
+                          color: context.mutedColor(_muted),
+                        ),
                         SizedBox(width: 11 * s),
                         Expanded(child: label(title, size: 8, bold: true)),
-                        Icon(Icons.chevron_right, color: _muted, size: 14 * s),
+                        Icon(
+                          Icons.chevron_right,
+                          color: context.mutedColor(_muted),
+                          size: 14 * s,
+                        ),
                       ],
                     ),
                   ),
@@ -218,14 +228,16 @@ class _InvitationReadyPageState extends State<InvitationReadyPage> {
                                 onPressed: _goBack,
                                 style: OutlinedButton.styleFrom(
                                   padding: EdgeInsets.zero,
-                                  side: const BorderSide(color: _border),
+                                  side: BorderSide(
+                                    color: context.borderColor(_border),
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(5 * s),
                                   ),
                                 ),
                                 child: Icon(
                                   Icons.chevron_left,
-                                  color: _muted,
+                                  color: context.mutedColor(_muted),
                                   size: 12 * s,
                                 ),
                               ),
@@ -243,7 +255,7 @@ class _InvitationReadyPageState extends State<InvitationReadyPage> {
                                   label(
                                     widget.projectName,
                                     size: 6.5,
-                                    color: _muted,
+                                    color: context.mutedColor(_muted),
                                   ),
                                 ],
                               ),
@@ -287,7 +299,10 @@ class _InvitationReadyPageState extends State<InvitationReadyPage> {
                             if (state.error != null) {
                               return Column(
                                 children: [
-                                  label(state.error!, color: _muted),
+                                  label(
+                                    state.error!,
+                                    color: context.mutedColor(_muted),
+                                  ),
                                   TextButton(
                                     onPressed: _loadPending,
                                     child: const Text('Retry'),
@@ -298,7 +313,7 @@ class _InvitationReadyPageState extends State<InvitationReadyPage> {
                             if (state.invitations.isEmpty)
                               return label(
                                 'No pending invitations',
-                                color: _muted,
+                                color: context.mutedColor(_muted),
                               );
                             return Column(
                               children: [
@@ -306,14 +321,14 @@ class _InvitationReadyPageState extends State<InvitationReadyPage> {
                                   Container(
                                     margin: EdgeInsets.only(bottom: 6 * s),
                                     decoration: BoxDecoration(
-                                      color: _surface,
+                                      color: context.surfaceColor(_surface),
                                       border: Border.all(
                                         color:
                                             _selectedAdmin
                                                     ?.fld_subcom_admin_det_id ==
                                                 admin.fld_subcom_admin_det_id
-                                            ? _muted
-                                            : _border,
+                                            ? context.mutedColor(_muted)
+                                            : context.borderColor(_border),
                                       ),
                                       borderRadius: BorderRadius.circular(
                                         5 * s,
@@ -331,7 +346,7 @@ class _InvitationReadyPageState extends State<InvitationReadyPage> {
                                                 admin.fld_subcom_admin_det_id
                                             ? Icons.radio_button_checked
                                             : Icons.radio_button_off,
-                                        color: _muted,
+                                        color: context.mutedColor(_muted),
                                       ),
                                       title: label(
                                         admin.name,
@@ -341,12 +356,12 @@ class _InvitationReadyPageState extends State<InvitationReadyPage> {
                                       subtitle: label(
                                         '${admin.mobile} · ${admin.roleName}',
                                         size: 6.5,
-                                        color: _muted,
+                                        color: context.mutedColor(_muted),
                                       ),
                                       trailing: label(
                                         admin.status,
                                         size: 6,
-                                        color: const Color(0xFFD4DA79),
+                                        color: context.accentColor(AppColors.primary),
                                       ),
                                     ),
                                   ),
@@ -381,11 +396,14 @@ class _InvitationReadyPageState extends State<InvitationReadyPage> {
                         label(
                           'Not on Dropline? The link helps them install and join.',
                           size: 6.5,
-                          color: _muted,
+                          color: context.mutedColor(_muted),
                         ),
                         SizedBox(height: 20 * s),
                         const Spacer(),
-                        Divider(color: _border, height: 16 * s),
+                        Divider(
+                          color: context.borderColor(_border),
+                          height: 16 * s,
+                        ),
                         label(
                           _updating
                               ? 'Updating invitation…'
@@ -393,7 +411,7 @@ class _InvitationReadyPageState extends State<InvitationReadyPage> {
                                     ? _updatedAdmin!.status
                                     : 'Pending until accepted'),
                           size: 6.5,
-                          color: _muted,
+                          color: context.mutedColor(_muted),
                           align: TextAlign.center,
                         ),
                       ],

@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -90,7 +91,9 @@ class EventAttachmentPreview extends StatelessWidget {
               alignment: Alignment.centerRight,
               child: TextButton.icon(
                 onPressed: onEditPdf,
-                style: TextButton.styleFrom(foregroundColor: Colors.white),
+                style: TextButton.styleFrom(
+                  foregroundColor: context.foregroundColor(Colors.white),
+                ),
                 icon: const Icon(Icons.edit),
                 label: const Text('Edit PDF'),
               ),

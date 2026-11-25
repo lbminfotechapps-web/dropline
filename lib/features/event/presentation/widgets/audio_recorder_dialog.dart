@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -187,9 +188,28 @@ class _AudioRecorderDialogState extends State<AudioRecorderDialog>
                 icon: Icon(_recording ? Icons.stop : _path != null ? Icons.check : Icons.mic_none),
               ),
             ),
-            title: const Text('Voice note', style: TextStyle(color: AppColors.textPrimary)),
-            subtitle: Text(_recording ? 'Tap to stop' : _path != null ? 'Tap to attach' : 'Tap to record', style: const TextStyle(color: AppColors.textSecondary)),
-            trailing: Text('${(seconds ~/ 60).toString().padLeft(2, '0')}:${(seconds % 60).toString().padLeft(2, '0')}', style: const TextStyle(color: AppColors.textSecondary)),
+            title: Text(
+              'Voice note',
+              style: TextStyle(
+                color: context.foregroundColor(AppColors.textPrimary),
+              ),
+            ),
+            subtitle: Text(
+              _recording
+                  ? 'Tap to stop'
+                  : _path != null
+                  ? 'Tap to attach'
+                  : 'Tap to record',
+              style: TextStyle(
+                color: context.mutedColor(AppColors.textSecondary),
+              ),
+            ),
+            trailing: Text(
+              '${(seconds ~/ 60).toString().padLeft(2, '0')}:${(seconds % 60).toString().padLeft(2, '0')}',
+              style: TextStyle(
+                color: context.mutedColor(AppColors.textSecondary),
+              ),
+            ),
           ),
           if (_error != null) Text(_error!, style: const TextStyle(color: AppColors.error)),
         ],
@@ -212,7 +232,9 @@ class _AudioRecorderDialogState extends State<AudioRecorderDialog>
             const SizedBox(height: 16),
             Text(
               '${(seconds ~/ 60).toString().padLeft(2, '0')}:${(seconds % 60).toString().padLeft(2, '0')}',
-              style: AppTextStyles.headingLarge.copyWith(color: colour),
+              style: context
+                  .themedText(AppTextStyles.headingLarge)
+                  .copyWith(color: colour),
             ),
             const SizedBox(height: 8),
             Text(
@@ -226,9 +248,9 @@ class _AudioRecorderDialogState extends State<AudioRecorderDialog>
               const SizedBox(height: 12),
               Text(
                 _error!,
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: Theme.of(context).colorScheme.error,
-                ),
+                style: context
+                    .themedText(AppTextStyles.bodySmall)
+                    .copyWith(color: Theme.of(context).colorScheme.error),
               ),
             ],
           ],

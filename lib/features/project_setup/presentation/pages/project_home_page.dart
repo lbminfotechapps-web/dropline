@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -49,11 +50,11 @@ class ProjectHomePage extends StatelessWidget {
         ? 'Personal'
         : 'Business';
     return Scaffold(
-      backgroundColor: _background,
+      backgroundColor: context.backgroundColor(_background),
       appBar: CustomAppBar(
         title: 'Abc',
         subtitle: '$type · Shared project',
-        backgroundColor: _background,
+        backgroundColor: context.backgroundColor(_background),
         onBackPressed:
             onBack ??
             () {
@@ -69,7 +70,7 @@ class ProjectHomePage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Divider(height: 1, color: _border),
+            Divider(height: 1, color: context.borderColor(_border)),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
@@ -78,16 +79,16 @@ class ProjectHomePage extends StatelessWidget {
                   children: [
                     Text(
                       '$companyName · Project owner',
-                      style: const TextStyle(
-                        color: _muted,
+                      style: TextStyle(
+                        color: context.mutedColor(_muted),
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 12),
 
-                  
                     _menuItem(
+                      context,
                       icon: Icons.work_outline_rounded,
                       title: 'Master flow',
                       subtitle: 'Master flows',
@@ -102,6 +103,7 @@ class ProjectHomePage extends StatelessWidget {
                     ),
                              const SizedBox(height: 9),
                     _menuItem(
+                      context,
                       icon: Icons.account_tree_outlined,
                       title: 'Handovers',
                       subtitle: 'See what needs doing',
@@ -117,6 +119,7 @@ class ProjectHomePage extends StatelessWidget {
              
                     const SizedBox(height: 9),
                     _menuItem(
+                      context,
                       icon: Icons.assignment_turned_in_outlined,
                       title: 'My check sheets',
                       subtitle: 'Sheets assigned to your company',
@@ -141,16 +144,17 @@ class ProjectHomePage extends StatelessWidget {
     );
   }
 
-  Widget _menuItem({
+  Widget _menuItem(
+    BuildContext context, {
     required IconData icon,
     required String title,
     required String subtitle,
     VoidCallback? onTap,
   }) => Material(
-    color: _surface,
+    color: context.surfaceColor(_surface),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(11),
-      side: const BorderSide(color: _border),
+      side: BorderSide(color: context.borderColor(_border)),
     ),
     clipBehavior: Clip.antiAlias,
     child: InkWell(
@@ -159,7 +163,7 @@ class ProjectHomePage extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         child: Row(
           children: [
-            Icon(icon, size: 18, color: _muted),
+            Icon(icon, size: 18, color: context.mutedColor(_muted)),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
@@ -167,8 +171,8 @@ class ProjectHomePage extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      color: _text,
+                    style: TextStyle(
+                      color: context.foregroundColor(_text),
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       height: 1.3,
@@ -177,8 +181,8 @@ class ProjectHomePage extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: const TextStyle(
-                      color: _muted,
+                    style: TextStyle(
+                      color: context.mutedColor(_muted),
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                       height: 1.3,
@@ -188,7 +192,11 @@ class ProjectHomePage extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            const Icon(Icons.chevron_right_rounded, size: 20, color: _muted),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 20,
+              color: context.mutedColor(_muted),
+            ),
           ],
         ),
       ),

@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:dropline/features/event/domain/entities/event_draft_scope.dart';
@@ -716,10 +717,14 @@ class _AddEventPageState extends State<AddEventPage> {
     final noteSelected =
         !_cameraOpen && _selectedItem?.type == EventItemType.note;
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light.copyWith(
-        statusBarColor: AppColors.transparent,
-        systemNavigationBarColor: _canvas,
-      ),
+      value:
+          (WhiteAppTheme.isEnabled(context)
+                  ? SystemUiOverlayStyle.dark
+                  : SystemUiOverlayStyle.light)
+              .copyWith(
+                statusBarColor: AppColors.transparent,
+                systemNavigationBarColor: context.backgroundColor(_canvas),
+              ),
       child: PopScope(
         canPop:
             !_noteVoiceOpen &&
@@ -742,7 +747,7 @@ class _AddEventPageState extends State<AddEventPage> {
         },
         child: Scaffold(
           // backgroundColor: _canvas,jy
-          backgroundColor: AppColors.background,
+          backgroundColor: context.backgroundColor(AppColors.background),
           resizeToAvoidBottomInset: true,
           body: SafeArea(
             child: _noteVoiceOpen
@@ -771,7 +776,9 @@ class _AddEventPageState extends State<AddEventPage> {
                                         child: Text(
                                           _punchProjectName ??
                                               widget.projectName,
-                                          style: AppTextStyles.titleSmall,
+                                          style: context.themedText(
+                                            AppTextStyles.titleSmall,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -789,8 +796,10 @@ class _AddEventPageState extends State<AddEventPage> {
                                 ),
                                 child: Container(
                                   clipBehavior: Clip.antiAlias,
-                                  decoration: const BoxDecoration(
-                                    color: AppColors.surface,
+                                  decoration: BoxDecoration(
+                                    color: context.surfaceColor(
+                                      AppColors.surface,
+                                    ),
                                     borderRadius: _actionBorderRadius,
                                   ),
                                   child: _cameraOpen
@@ -833,14 +842,17 @@ class _AddEventPageState extends State<AddEventPage> {
           Row(
             children: [
               IconButton(
-                color: AppColors.textPrimary,
+                color: context.foregroundColor(AppColors.textPrimary),
                 onPressed: _voiceActive
                     ? null
                     : () => setState(() => _noteVoiceOpen = false),
                 icon: const Icon(Icons.arrow_back_ios_new, size: 18),
               ),
-              const Expanded(
-                child: Text('Note & voice', style: AppTextStyles.titleSmall),
+              Expanded(
+                child: Text(
+                  'Note & voice',
+                  style: context.themedText(AppTextStyles.titleSmall),
+                ),
               ),
             ],
           ),
@@ -850,14 +862,17 @@ class _AddEventPageState extends State<AddEventPage> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: context.surfaceColor(AppColors.surface),
                     borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: _line),
+                    border: Border.all(color: context.borderColor(_line)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Write', style: AppTextStyles.bodyMedium),
+                      Text(
+                        'Write',
+                        style: context.themedText(AppTextStyles.bodyMedium),
+                      ),
                       const SizedBox(height: 8),
                       SizedBox(height: 180, child: _buildNoteField()),
                     ],
@@ -867,9 +882,9 @@ class _AddEventPageState extends State<AddEventPage> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: context.surfaceColor(AppColors.surface),
                     borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: _line),
+                    border: Border.all(color: context.borderColor(_line)),
                   ),
                   child: Column(
                     children: [
@@ -948,13 +963,13 @@ class _AddEventPageState extends State<AddEventPage> {
       );
     }
 
-    return const Center(
+    return Center(
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 24),
         child: Text(
           '''What's happening on site?''',
           textAlign: TextAlign.center,
-          style: AppTextStyles.titleLarge,
+          style: context.themedText(AppTextStyles.titleLarge),
         ),
       ),
     );
@@ -994,7 +1009,7 @@ class _AddEventPageState extends State<AddEventPage> {
                 child: IgnorePointer(
                   ignoring: _picking,
                   child: BackButton(
-                    color: _ink,
+                    color: context.foregroundColor(_ink),
                     onPressed: () => context.go(AppRouter.dashboard),
                   ),
                 ),
@@ -1074,10 +1089,10 @@ class _AddEventPageState extends State<AddEventPage> {
                     : null,
                 style: TextButton.styleFrom(
                   backgroundColor: index == _selectedTime ? _green : null,
-                  foregroundColor: _muted,
+                  foregroundColor: context.mutedColor(_muted),
                   disabledForegroundColor: index == _selectedTime
                       ? AppColors.primaryText
-                      : _muted,
+                      : context.mutedColor(_muted),
                   padding: const EdgeInsets.symmetric(horizontal: 2),
                   minimumSize: const Size(0, 30),
                   shape: RoundedRectangleBorder(
@@ -1100,9 +1115,9 @@ class _AddEventPageState extends State<AddEventPage> {
   Widget _buildBottomTools() {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.surfaceColor(AppColors.surface),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _line),
+        border: Border.all(color: context.borderColor(_line)),
       ),
       child: Row(
         children: [
@@ -1127,14 +1142,18 @@ class _AddEventPageState extends State<AddEventPage> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: _canEdit || _cameraOpen ? _ink : _line,
+                    color: _canEdit || _cameraOpen
+                        ? context.foregroundColor(_ink)
+                        : context.borderColor(_line),
                   ),
                 ),
                 alignment: Alignment.center,
                 child: Icon(
                   Icons.circle,
                   size: 55,
-                  color: _canEdit || _cameraOpen ? _ink : _line,
+                  color: _canEdit || _cameraOpen
+                      ? context.foregroundColor(_ink)
+                      : context.borderColor(_line),
                 ),
               ),
               _cameraOpen
@@ -1161,17 +1180,24 @@ class _AddEventPageState extends State<AddEventPage> {
                       });
                     }
                   : null,
-              child: const Padding(
+              child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 12),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.edit_note_outlined, color: _ink, size: 21),
+                    Icon(
+                      Icons.edit_note_outlined,
+                      color: context.foregroundColor(_ink),
+                      size: 21,
+                    ),
                     SizedBox(height: 3),
                     Text(
                       'Note & voice',
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: _ink, fontSize: 11),
+                      style: TextStyle(
+                        color: context.foregroundColor(_ink),
+                        fontSize: 11,
+                      ),
                     ),
                   ],
                 ),
@@ -1192,7 +1218,7 @@ class _AddEventPageState extends State<AddEventPage> {
     final button = TextButton(
       onPressed: onPressed,
       style: TextButton.styleFrom(
-        foregroundColor: _ink,
+        foregroundColor: context.foregroundColor(_ink),
         padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 5),
         textStyle: const TextStyle(fontSize: 11),
       ),
@@ -1240,14 +1266,14 @@ class _AddEventPageState extends State<AddEventPage> {
               width: 82,
               padding: EdgeInsets.all(item.type == EventItemType.photo ? 2 : 7),
               decoration: BoxDecoration(
-                color: AppColors.cardBackground,
+                color: context.surfaceColor(AppColors.cardBackground),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: _attachmentInvalid
                       ? AppColors.error
                       : selected
                       ? _green
-                      : _line,
+                      : context.borderColor(_line),
                   width: _attachmentInvalid
                       ? 2
                       : selected
@@ -1266,15 +1292,22 @@ class _AddEventPageState extends State<AddEventPage> {
                             builder: (context, snapshot) {
                               final file = snapshot.data;
                               if (file == null) {
-                                return Icon(icon, color: _muted, size: 25);
+                                return Icon(
+                                  icon,
+                                  color: context.mutedColor(_muted),
+                                  size: 25,
+                                );
                               }
                               return Image.file(
                                 file,
                                 width: double.infinity,
                                 height: double.infinity,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, _, _) =>
-                                    Icon(icon, color: _muted, size: 25),
+                                errorBuilder: (_, _, _) => Icon(
+                                  icon,
+                                  color: context.mutedColor(_muted),
+                                  size: 25,
+                                ),
                               );
                             },
                           ),
@@ -1286,14 +1319,18 @@ class _AddEventPageState extends State<AddEventPage> {
                             notePreview,
                             maxLines: 3,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: _ink,
+                            style: TextStyle(
+                              color: context.foregroundColor(_ink),
                               fontSize: 12,
                               height: 1.2,
                             ),
                           ),
                         )
-                      : Icon(icon, color: selected ? _green : _muted, size: 25),
+                      : Icon(
+                          icon,
+                          color: selected ? context.accentColor(_green) : context.mutedColor(_muted),
+                          size: 25,
+                        ),
                   Positioned(
                     top: 2,
                     right: 2,
@@ -1311,10 +1348,10 @@ class _AddEventPageState extends State<AddEventPage> {
                             ? Icons.check_circle
                             : Icons.radio_button_unchecked,
                         color: included
-                            ? _green
+                            ? context.accentColor(_green)
                             : _attachmentInvalid
                             ? AppColors.error
-                            : AppColors.textSecondary,
+                            : context.mutedColor(AppColors.textSecondary),
                         size: 23,
                         shadows: const [
                           Shadow(color: Colors.black54, blurRadius: 3),
@@ -1400,17 +1437,17 @@ class _AddEventPageState extends State<AddEventPage> {
     visualDensity: VisualDensity.standard,
     padding: EdgeInsets.zero,
     tapTargetSize: MaterialTapTargetSize.padded,
-    backgroundColor: AppColors.surface,
-    foregroundColor: AppColors.textPrimary,
-    disabledBackgroundColor: _canvas,
-    disabledForegroundColor: _muted,
+    backgroundColor: context.surfaceColor(AppColors.surface),
+    foregroundColor: context.foregroundColor(AppColors.textPrimary),
+    disabledBackgroundColor: context.backgroundColor(_canvas),
+    disabledForegroundColor: context.mutedColor(_muted),
   );
 
   ButtonStyle get _previewButtonStyle => TextButton.styleFrom(
-    backgroundColor: AppColors.surface,
-    foregroundColor: _ink,
-    disabledBackgroundColor: _canvas,
-    disabledForegroundColor: _muted,
+    backgroundColor: context.surfaceColor(AppColors.surface),
+    foregroundColor: context.foregroundColor(_ink),
+    disabledBackgroundColor: context.backgroundColor(_canvas),
+    disabledForegroundColor: context.mutedColor(_muted),
   );
 
   Future<void> _editSelectedTag() async {
@@ -1424,23 +1461,31 @@ class _AddEventPageState extends State<AddEventPage> {
       tag = await showDialog<String>(
         context: context,
         builder: (dialogContext) => AlertDialog(
-          backgroundColor: AppColors.surface,
+          backgroundColor: context.surfaceColor(AppColors.surface),
           surfaceTintColor: AppColors.transparent,
           title: Text(
             item.tag.isEmpty ? 'Add tag' : 'Edit tag',
-            style: const TextStyle(color: AppColors.textPrimary),
+            style: TextStyle(
+              color: context.foregroundColor(AppColors.textPrimary),
+            ),
           ),
           content: TextField(
             controller: controller,
             autofocus: true,
             textInputAction: TextInputAction.done,
             cursorColor: AppColors.primary,
-            style: const TextStyle(color: AppColors.textPrimary),
-            decoration: const InputDecoration(
+            style: TextStyle(
+              color: context.foregroundColor(AppColors.textPrimary),
+            ),
+            decoration: InputDecoration(
               labelText: 'Tag',
               hintText: 'Enter a tag',
-              hintStyle: TextStyle(color: AppColors.hintText),
-              labelStyle: TextStyle(color: AppColors.textSecondary),
+              hintStyle: TextStyle(
+                color: context.mutedColor(AppColors.hintText),
+              ),
+              labelStyle: TextStyle(
+                color: context.mutedColor(AppColors.textSecondary),
+              ),
             ),
             onSubmitted: (value) =>
                 Navigator.of(dialogContext).pop(value.trim()),
@@ -1448,9 +1493,11 @@ class _AddEventPageState extends State<AddEventPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text(
+              child: Text(
                 'Cancel',
-                style: TextStyle(color: AppColors.textSecondary),
+                style: TextStyle(
+                  color: context.mutedColor(AppColors.textSecondary),
+                ),
               ),
             ),
             FilledButton(
@@ -1482,8 +1529,8 @@ class _AddEventPageState extends State<AddEventPage> {
 
     final file = _previewFile;
     if (file == null) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.primary),
+      return Center(
+        child: CircularProgressIndicator(color: context.accentColor(AppColors.primary)),
       );
     }
 
@@ -1510,18 +1557,24 @@ class _AddEventPageState extends State<AddEventPage> {
       keyboardType: TextInputType.multiline,
       textAlignVertical: TextAlignVertical.top,
       cursorColor: _green,
-      style: const TextStyle(color: _ink, fontSize: 14, height: 1.5),
-      decoration: const InputDecoration(
+      style: TextStyle(
+        color: context.foregroundColor(_ink),
+        fontSize: 14,
+        height: 1.5,
+      ),
+      decoration: InputDecoration(
         hintText: 'Start typing...',
-        hintStyle: TextStyle(color: AppColors.hintText),
+        hintStyle: TextStyle(color: context.mutedColor(AppColors.hintText)),
         filled: true,
-        fillColor: AppColors.inputBackground,
+        fillColor: context.surfaceColor(AppColors.inputBackground),
         border: OutlineInputBorder(),
         enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: AppColors.inputBorder),
+          borderSide: BorderSide(
+            color: context.borderColor(AppColors.inputBorder),
+          ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: _green),
+          borderSide: BorderSide(color: context.accentColor(_green)),
         ),
         contentPadding: EdgeInsets.all(8),
       ),

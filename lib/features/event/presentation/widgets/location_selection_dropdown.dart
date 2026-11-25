@@ -1,7 +1,6 @@
-
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:flutter/material.dart';
-
 
 import '../../../../core/theme/app_text_styles.dart';
 import '../../domain/entities/location_node.dart';
@@ -42,7 +41,7 @@ class LocationSelectionDropdown extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: selected != null
-              ? const Color(0xFFACEE70)
+              ? AppColors.primary
               : AppColors.white.withValues(alpha: 0.15),
           width: 1.2,
         ),
@@ -58,31 +57,33 @@ class LocationSelectionDropdown extends StatelessWidget {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: selected != null
-                      ? const Color(0xFFACEE70)
+                      ? AppColors.primary
                       : AppColors.white.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: Text(
                   step.toString().padLeft(2, '0'),
-                  style: AppTextStyles.labelMedium.copyWith(
-                    color: selected != null
-                        ? const Color(0xFF253322)
-                        : AppColors.white,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: context
+                      .themedText(AppTextStyles.labelMedium)
+                      .copyWith(
+                        color: selected != null
+                            ? const Color(0xFF253322)
+                            : context.foregroundColor(AppColors.white),
+                        fontWeight: FontWeight.w500,
+                      ),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   title,
-                  style: AppTextStyles.titleSmall,
+                  style: context.themedText(AppTextStyles.titleSmall),
                 ),
               ),
               if (!isEnabled)
-                const Icon(
+                Icon(
                   Icons.lock_outline_rounded,
-                  color: AppColors.textMuted,
+                  color: context.mutedColor(AppColors.textMuted),
                   size: 18,
                 ),
             ],
@@ -97,16 +98,16 @@ class LocationSelectionDropdown extends StatelessWidget {
             initialValue: selected?.id,
             isExpanded: true,
             dropdownColor: const Color(0xFF354154),
-            icon: const Icon(
+            icon: Icon(
               Icons.keyboard_arrow_down_rounded,
-              color: AppColors.white,
+              color: context.foregroundColor(AppColors.white),
             ),
-            style: AppTextStyles.inputText,
+            style: context.themedText(AppTextStyles.inputText),
             decoration: InputDecoration(
               filled: true,
-              fillColor: const Color(0xFF263246),
+              fillColor: context.surfaceColor(Color(0xFF263246)),
               hintText: hintText,
-              hintStyle: AppTextStyles.inputHint,
+              hintStyle: context.themedText(AppTextStyles.inputHint),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 16,
@@ -125,8 +126,8 @@ class LocationSelectionDropdown extends StatelessWidget {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15),
-                borderSide: const BorderSide(
-                  color: Color(0xFFACEE70),
+                borderSide: BorderSide(
+                  color: context.accentColor(AppColors.primary),
                   width: 1.5,
                 ),
               ),

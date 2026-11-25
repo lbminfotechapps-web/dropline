@@ -1,6 +1,6 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:flutter/material.dart';
-
 
 import '../../../../core/theme/app_text_styles.dart';
 
@@ -36,10 +36,10 @@ class LocationEmptyState extends StatelessWidget {
                 ),
               ),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.add_rounded,
               size: 34,
-              color: AppColors.white,
+              color: context.foregroundColor(AppColors.white),
             ),
           ),
         ),
@@ -49,9 +49,9 @@ class LocationEmptyState extends StatelessWidget {
         Text(
           title,
           textAlign: TextAlign.center,
-          style: AppTextStyles.titleLarge.copyWith(
-            fontWeight: FontWeight.w500,
-          ),
+          style: context
+              .themedText(AppTextStyles.titleLarge)
+              .copyWith(fontWeight: FontWeight.w500),
         ),
 
         const SizedBox(height: 12),
@@ -59,9 +59,9 @@ class LocationEmptyState extends StatelessWidget {
         Text(
           subtitle,
           textAlign: TextAlign.center,
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textSecondary,
-          ),
+          style: context
+              .themedText(AppTextStyles.bodyMedium)
+              .copyWith(color: context.mutedColor(AppColors.textSecondary)),
         ),
       ],
     );

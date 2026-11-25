@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/router/app_router.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:dropline/core/utility/widgets/app_background.dart';
@@ -78,7 +79,7 @@ Future<void> _finishSetup(BuildContext context) async {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-     backgroundColor: AppColors.background,
+      backgroundColor: context.backgroundColor(AppColors.background),
       body: Column(
         children: [
           Expanded(
@@ -88,7 +89,7 @@ Future<void> _finishSetup(BuildContext context) async {
                   slivers: [
                     SliverPadding(
                       padding: const EdgeInsets.fromLTRB(28, 25, 28, 0),
-                      sliver: SliverToBoxAdapter(child: _buildHeader()),
+                      sliver: SliverToBoxAdapter(child: _buildHeader(context)),
                     ),
             
                     SliverPadding(
@@ -96,19 +97,23 @@ Future<void> _finishSetup(BuildContext context) async {
                       sliver: SliverToBoxAdapter(
                         child: Text(
                           'Main Areas',
-                          style: AppTextStyles.titleMedium.copyWith(
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.textSecondary,
-                          ),
+                          style: context
+                              .themedText(AppTextStyles.titleMedium)
+                              .copyWith(
+                                fontWeight: FontWeight.w500,
+                                color: context.mutedColor(
+                                  AppColors.textSecondary,
+                                ),
+                              ),
                         ),
                       ),
                     ),
             
                     if (state.isLoading)
-                      const SliverFillRemaining(
+                      SliverFillRemaining(
                         child: Center(
                           child: CircularProgressIndicator(
-                            color: AppColors.white,
+                            color: context.foregroundColor(AppColors.white),
                           ),
                         ),
                       )
@@ -119,9 +124,9 @@ Future<void> _finishSetup(BuildContext context) async {
                           child: TextButton(
                             onPressed: () =>
                                 context.read<MainAreaCubit>().loadAreas(),
-                            child: const Text(
+                            child: Text(
                               'Unable to load areas. Tap to retry.',
-                              style: TextStyle(color: AppColors.white),
+                              style: TextStyle(color: context.foregroundColor(AppColors.white)),
                             ),
                           ),
                         ),
@@ -172,7 +177,7 @@ Future<void> _finishSetup(BuildContext context) async {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -188,9 +193,9 @@ Future<void> _finishSetup(BuildContext context) async {
                   color: AppColors.white.withValues(alpha: 0.22),
                 ),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.location_on_outlined,
-                color: AppColors.white,
+                color: context.foregroundColor(AppColors.white),
                 size: 26,
               ),
             ),
@@ -200,10 +205,9 @@ Future<void> _finishSetup(BuildContext context) async {
             Expanded(
               child: Text(
                 'Set up areas',
-                style: AppTextStyles.headingLarge.copyWith(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: context
+                    .themedText(AppTextStyles.headingLarge)
+                    .copyWith(fontSize: 28, fontWeight: FontWeight.w500),
               ),
             ),
           ],
@@ -213,9 +217,9 @@ Future<void> _finishSetup(BuildContext context) async {
 
         Text(
           'Create the areas your team will select.',
-          style: AppTextStyles.bodyLarge.copyWith(
-            color: AppColors.textSecondary,
-          ),
+          style: context
+              .themedText(AppTextStyles.bodyLarge)
+              .copyWith(color: context.mutedColor(AppColors.textSecondary)),
         ),
       ],
     );
@@ -263,8 +267,10 @@ Future<void> _finishSetup(BuildContext context) async {
                   //     ? null
                   //     : () => _finishSetup(context),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.white,
-                    disabledForegroundColor: AppColors.textSecondary,
+                    foregroundColor: context.foregroundColor(AppColors.white),
+                    disabledForegroundColor: context.mutedColor(
+                      AppColors.textSecondary,
+                    ),
                     side: BorderSide(
                       color: AppColors.white.withValues(alpha: 0.28),
                     ),

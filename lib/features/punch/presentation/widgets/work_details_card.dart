@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:flutter/material.dart';
 
@@ -95,9 +96,12 @@ class PunchWorkSessionCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(16, 22, 16, 20),
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
+        color: context.surfaceColor(AppColors.cardBackground),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border, width: 1.2),
+        border: Border.all(
+          color: context.borderColor(AppColors.border),
+          width: 1.2,
+        ),
       ),
       child: Column(
         children: [
@@ -113,10 +117,10 @@ class PunchWorkSessionCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 9),
-              const Text(
+              Text(
                 'Clocked in',
                 style: TextStyle(
-                  color: AppColors.textPrimary,
+                  color: context.foregroundColor(AppColors.textPrimary),
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
@@ -126,9 +130,12 @@ class PunchWorkSessionCard extends StatelessWidget {
 
           const SizedBox(height: 22),
 
-          const Text(
+          Text(
             'Time worked',
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 15),
+            style: TextStyle(
+              color: context.mutedColor(AppColors.textSecondary),
+              fontSize: 15,
+            ),
           ),
 
           const SizedBox(height: 7),
@@ -137,8 +144,8 @@ class PunchWorkSessionCard extends StatelessWidget {
             fit: BoxFit.scaleDown,
             child: Text(
               isLoading ? '--:--:--' : workedDuration,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
+              style: TextStyle(
+                color: context.foregroundColor(AppColors.textPrimary),
                 fontSize: 66,
                 fontWeight: FontWeight.w500,
                 letterSpacing: -2,
@@ -150,27 +157,42 @@ class PunchWorkSessionCard extends StatelessWidget {
 
           const SizedBox(height: 2),
 
-          const Text(
+          Text(
             'hours : minutes : seconds',
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+            style: TextStyle(
+              color: context.mutedColor(AppColors.textSecondary),
+              fontSize: 12,
+            ),
           ),
 
           const SizedBox(height: 21),
 
-          const Divider(color: AppColors.border, thickness: 1),
+          Divider(color: context.borderColor(AppColors.border), thickness: 1),
 
           const SizedBox(height: 12),
 
           Row(
             children: [
               Expanded(
-                child: _timeDetail(label: 'Clocked in at', value: clockInTime),
+                child: _timeDetail(
+                  context,
+                  label: 'Clocked in at',
+                  value: clockInTime,
+                ),
               ),
 
-              Container(height: 51, width: 1, color: AppColors.border),
+              Container(
+                height: 51,
+                width: 1,
+                color: context.borderColor(AppColors.border),
+              ),
 
               Expanded(
-                child: _timeDetail(label: 'Current time', value: currentTime),
+                child: _timeDetail(
+                  context,
+                  label: 'Current time',
+                  value: currentTime,
+                ),
               ),
             ],
           ),
@@ -179,18 +201,25 @@ class PunchWorkSessionCard extends StatelessWidget {
     );
   }
 
-  Widget _timeDetail({required String label, required String value}) {
+  Widget _timeDetail(
+    BuildContext context, {
+    required String label,
+    required String value,
+  }) {
     return Column(
       children: [
         Text(
           label,
-          style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+          style: TextStyle(
+            color: context.mutedColor(AppColors.textSecondary),
+            fontSize: 11,
+          ),
         ),
         const SizedBox(height: 5),
         Text(
           value,
-          style: const TextStyle(
-            color: AppColors.textPrimary,
+          style: TextStyle(
+            color: context.foregroundColor(AppColors.textPrimary),
             fontSize: 23,
             fontWeight: FontWeight.w500,
           ),

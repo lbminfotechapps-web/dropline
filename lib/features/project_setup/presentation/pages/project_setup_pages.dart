@@ -1,3 +1,5 @@
+import 'package:dropline/core/theme/appcolors.dart';
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/features/companies/presentation/start_work.dart';
 import 'package:flutter/material.dart';
 import 'package:dropline/core/utility/widgets/appbar.dart';
@@ -36,7 +38,7 @@ class ProjectSetupPage extends StatelessWidget {
   static const _border = Color(0xFF31576B);
   static const _muted = Color(0xFF8EB5C9);
   static const _foreground = Color(0xFFF0F4FC);
-  static const _lime = Color(0xFFB5FF65);
+  static const _primaryAccent = AppColors.primary;
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +51,7 @@ class ProjectSetupPage extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: _background,
+      backgroundColor: context.backgroundColor(_background),
       appBar: CustomAppBar(
         title: 'Project setup',
         subtitle: '$projectName · $companyName',
@@ -70,10 +72,13 @@ class ProjectSetupPage extends StatelessWidget {
               return Padding(
                 padding: EdgeInsets.only(bottom: 7 * scale),
                 child: Material(
-                  color: _surface,
+                  color: context.surfaceColor(_surface),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(9 * scale),
-                    side: const BorderSide(color: _border, width: 0.7),
+                    side: BorderSide(
+                      color: context.borderColor(_border),
+                      width: 0.7,
+                    ),
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: InkWell(
@@ -94,7 +99,9 @@ class ProjectSetupPage extends StatelessWidget {
                                   Text(
                                     title,
                                     style: TextStyle(
-                                      color: _foreground,
+                                      color: context.foregroundColor(
+                                        _foreground,
+                                      ),
                                       fontSize: 10 * scale,
                                       fontWeight: FontWeight.w500,
                                       letterSpacing: 0.15 * scale,
@@ -104,7 +111,7 @@ class ProjectSetupPage extends StatelessWidget {
                                   Text(
                                     subtitle,
                                     style: TextStyle(
-                                      color: _muted,
+                                      color: context.mutedColor(_muted),
                                       fontSize: subtitleFontSize * scale,
                                       height: 1.25,
                                     ),
@@ -115,7 +122,7 @@ class ProjectSetupPage extends StatelessWidget {
                             SizedBox(width: 8 * scale),
                             Icon(
                               Icons.chevron_right,
-                              color: _muted,
+                              color: context.mutedColor(_muted),
                               size: 16 * scale,
                             ),
                           ],
@@ -224,7 +231,7 @@ class ProjectSetupPage extends StatelessWidget {
                   FilledButton(
                     onPressed: goBack,
                     style: FilledButton.styleFrom(
-                      backgroundColor: _lime,
+                      backgroundColor: _primaryAccent,
                       foregroundColor: _background,
                       minimumSize: Size.fromHeight(34 * scale),
                       padding: EdgeInsets.symmetric(vertical: 10 * scale),
