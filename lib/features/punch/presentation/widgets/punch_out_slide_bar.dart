@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:flutter/material.dart';
 
@@ -29,6 +30,12 @@ class _PunchOutSlideBarState extends State<PunchOutSlideBar> {
     const barHeight = 64.0;
     const handleSize = 52.0;
     const padding = 5.0;
+    final whiteTheme = WhiteAppTheme.isEnabled(context);
+    final trackColor = context.accentColor(AppColors.primary);
+    final progressColor = whiteTheme ? Colors.black : AppColors.primary;
+    final labelColor = whiteTheme ? Colors.white : AppColors.primaryText;
+    final handleColor = whiteTheme ? Colors.white : AppColors.primarySoft;
+    final handleInk = whiteTheme ? WhiteAppTheme.accent : AppColors.primaryText;
 
     return SizedBox(
       height: barHeight,
@@ -42,9 +49,12 @@ class _PunchOutSlideBarState extends State<PunchOutSlideBar> {
 
           return Container(
             decoration: BoxDecoration(
-              color: Color(0xFFB1FA70),
+              color: trackColor,
               borderRadius: BorderRadius.circular(40),
-              border: Border.all(color: AppColors.border, width: 1.2),
+              border: Border.all(
+                color: context.borderColor(AppColors.border),
+                width: 1.2,
+              ),
             ),
             child: Stack(
               children: [
@@ -57,7 +67,7 @@ class _PunchOutSlideBarState extends State<PunchOutSlideBar> {
                       .toDouble(),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.16),
+                      color: progressColor.withValues(alpha: 0.16),
                       borderRadius: BorderRadius.circular(40),
                     ),
                   ),
@@ -73,8 +83,8 @@ class _PunchOutSlideBarState extends State<PunchOutSlideBar> {
                           widget.isLoading
                               ? 'PLEASE WAIT...'
                               : 'Slide to clock out',
-                          style: const TextStyle(
-                            color: AppColors.primaryText,
+                          style: TextStyle(
+                            color: labelColor,
                             fontSize: 20,
                             fontWeight: FontWeight.w500,
                           ),
@@ -115,26 +125,26 @@ class _PunchOutSlideBarState extends State<PunchOutSlideBar> {
                       height: handleSize,
                       width: handleSize,
                       decoration: BoxDecoration(
-                        color: Color(0xFFE0FFBF),
+                        color: handleColor,
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: AppColors.primaryText,
+                          color: handleInk,
                           width: 1.4,
                         ),
                       ),
                       alignment: Alignment.center,
                       child: widget.isLoading
-                          ? const SizedBox(
+                          ? SizedBox(
                               width: 23,
                               height: 23,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2.5,
-                                color: AppColors.primaryText,
+                                color: handleInk,
                               ),
                             )
-                          : const Icon(
+                          : Icon(
                               Icons.keyboard_double_arrow_right_rounded,
-                              color: AppColors.primaryText,
+                              color: handleInk,
                               size: 31,
                             ),
                     ),

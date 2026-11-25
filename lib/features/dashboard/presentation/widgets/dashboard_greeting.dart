@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -74,8 +75,8 @@ class DashboardGreeting extends StatelessWidget {
                 '$greeting $firstName!',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
+                style: TextStyle(
+                  color: context.foregroundColor(AppColors.textPrimary),
                   fontSize: 21,
                   fontWeight: FontWeight.w500,
                   letterSpacing: -0.4,
@@ -84,8 +85,8 @@ class DashboardGreeting extends StatelessWidget {
               const SizedBox(height: 5),
               Text(
                 formattedDate,
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
+                style: TextStyle(
+                  color: context.mutedColor(AppColors.textSecondary),
                   fontSize: 10,
                   letterSpacing: 1.2,
                   fontWeight: FontWeight.w500,
@@ -99,7 +100,7 @@ class DashboardGreeting extends StatelessWidget {
 
         PopupMenuButton<String>(
           tooltip: 'Profile options',
-          color: AppColors.surface,
+          color: context.surfaceColor(AppColors.surface),
           onSelected: (value) {
             if (value == 'profile') {
               context.push('/profile');
@@ -109,22 +110,22 @@ class DashboardGreeting extends StatelessWidget {
             }
           },
           itemBuilder: (context) => [
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'profile',
               child: Text(
                 'My Profile',
                 style: TextStyle(
-                  color: AppColors.textPrimary,
+                  color: context.foregroundColor(AppColors.textPrimary),
                 ),
               ),
             ),
             if (onLogout != null)
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'logout',
                 child: Text(
                   'Logout',
                   style: TextStyle(
-                    color: AppColors.textPrimary,
+                    color: context.foregroundColor(AppColors.textPrimary),
                   ),
                 ),
               ),
@@ -137,7 +138,7 @@ class DashboardGreeting extends StatelessWidget {
               color: AppColors.primary,
               shape: BoxShape.circle,
               border: Border.all(
-                color: AppColors.border,
+                color: context.borderColor(AppColors.border),
                 width: 1.5,
               ),
             ),

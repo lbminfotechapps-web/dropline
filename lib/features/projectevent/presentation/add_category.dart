@@ -1,3 +1,5 @@
+import 'package:dropline/core/theme/appcolors.dart';
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -31,7 +33,7 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
   static const _border = Color(0xFF31576B);
   static const _muted = Color(0xFF8EB5C9);
   static const _text = Color(0xFFF0F4FC);
-  static const _lime = Color(0xFFB5FF65);
+  static const _primaryAccent = AppColors.primary;
 
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _name;
@@ -85,7 +87,7 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _background,
+      backgroundColor: context.backgroundColor(_background),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -93,12 +95,12 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
             Text label(
               String value, {
               double size = 7,
-              Color color = _text,
+              Color? color,
               bool bold = false,
             }) => Text(
               value,
               style: TextStyle(
-                color: color,
+                color: color ?? context.foregroundColor(_text),
                 fontSize: size * s,
                 fontWeight: bold ? FontWeight.w500 : FontWeight.w500,
                 letterSpacing: .15 * s,
@@ -111,20 +113,20 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
             InputDecoration decoration() => InputDecoration(
               isDense: true,
               filled: true,
-              fillColor: _surface,
+              fillColor: context.surfaceColor(_surface),
               contentPadding: EdgeInsets.symmetric(
                 horizontal: 7 * s,
                 vertical: 7 * s,
               ),
-              enabledBorder: border(_border),
-              focusedBorder: border(_muted),
+              enabledBorder: border(context.borderColor(_border)),
+              focusedBorder: border(context.mutedColor(_muted)),
               errorBorder: border(Colors.redAccent),
               focusedErrorBorder: border(Colors.redAccent),
             );
             ButtonStyle outline() => OutlinedButton.styleFrom(
               padding: EdgeInsets.zero,
-              backgroundColor: _surface,
-              side: const BorderSide(color: _border),
+              backgroundColor: context.surfaceColor(_surface),
+              side: BorderSide(color: context.borderColor(_border)),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(6 * s),
               ),
@@ -155,7 +157,7 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
                                 style: outline(),
                                 child: Icon(
                                   Icons.chevron_left,
-                                  color: _muted,
+                                  color: context.mutedColor(_muted),
                                   size: 13 * s,
                                 ),
                               ),
@@ -173,18 +175,25 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
                           ],
                         ),
                         SizedBox(height: 10 * s),
-                        label(widget.projectName, size: 6.5, color: _muted),
+                        label(
+                          widget.projectName,
+                          size: 6.5,
+                          color: context.mutedColor(_muted),
+                        ),
                         SizedBox(height: 11 * s),
                         label(
                           'Category name',
                           size: 6.5,
-                          color: _muted,
+                          color: context.mutedColor(_muted),
                           bold: true,
                         ),
                         SizedBox(height: 3 * s),
                         TextFormField(
                           controller: _name,
-                          style: TextStyle(color: _text, fontSize: 7 * s),
+                          style: TextStyle(
+                            color: context.foregroundColor(_text),
+                            fontSize: 7 * s,
+                          ),
                           textCapitalization: TextCapitalization.words,
                           decoration: decoration(),
                           onChanged: (_) => setState(() {}),
@@ -198,7 +207,7 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
                               child: label(
                                 'Events · one per line',
                                 size: 6.5,
-                                color: _muted,
+                                color: context.mutedColor(_muted),
                                 bold: true,
                               ),
                             ),
@@ -214,7 +223,7 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
                           keyboardType: TextInputType.multiline,
                           textCapitalization: TextCapitalization.sentences,
                           style: TextStyle(
-                            color: _text,
+                            color: context.foregroundColor(_text),
                             fontSize: 7 * s,
                             height: 2.6,
                           ),
@@ -229,7 +238,7 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
                         label(
                           '${_name.text.trim().isEmpty ? 0 : 1} category · ${_eventLines.length} ${_eventLines.length == 1 ? 'event' : 'events'}',
                           size: 8,
-                          color: _lime,
+                          color: _primaryAccent,
                           bold: true,
                         ),
                         SizedBox(height: 20 * s),
@@ -248,7 +257,7 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
                             },
                             style: FilledButton.styleFrom(
                               padding: EdgeInsets.zero,
-                              backgroundColor: _lime,
+                              backgroundColor: _primaryAccent,
                               foregroundColor: _background,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(7 * s),

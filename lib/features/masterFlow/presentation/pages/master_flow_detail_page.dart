@@ -1,3 +1,5 @@
+import 'package:dropline/core/theme/appcolors.dart';
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/master_flow_store.dart';
@@ -63,16 +65,15 @@ class _MasterFlowDetailPageState extends State<MasterFlowDetailPage> {
     }
   }
 
-  Widget _card(Widget child, {Color color = const Color(0xFF122C3B)}) =>
-      Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: color,
-          border: Border.all(color: borderColor),
-          borderRadius: BorderRadius.circular(11),
-        ),
-        child: child,
-      );
+  Widget _card(Widget child, {Color? color}) => Container(
+    padding: const EdgeInsets.all(10),
+    decoration: BoxDecoration(
+      color: color ?? context.surfaceColor(const Color(0xFF122C3B)),
+      border: Border.all(color: context.borderColor(borderColor)),
+      borderRadius: BorderRadius.circular(11),
+    ),
+    child: child,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +87,7 @@ class _MasterFlowDetailPageState extends State<MasterFlowDetailPage> {
         .where((a) => a['needsSetup'] == 'true')
         .length;
     return Scaffold(
-      backgroundColor: bgColor,
+      backgroundColor: context.backgroundColor(bgColor),
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -103,9 +104,11 @@ class _MasterFlowDetailPageState extends State<MasterFlowDetailPage> {
                       tooltip: 'Back to master flows',
                       onPressed: () => Navigator.pop(context),
                       style: IconButton.styleFrom(
-                        foregroundColor: mutedColor,
-                        backgroundColor: cardColor,
-                        side: const BorderSide(color: borderColor),
+                        foregroundColor: context.mutedColor(mutedColor),
+                        backgroundColor: context.surfaceColor(cardColor),
+                        side: BorderSide(
+                          color: context.borderColor(borderColor),
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(11),
                         ),
@@ -120,8 +123,8 @@ class _MasterFlowDetailPageState extends State<MasterFlowDetailPage> {
                       children: [
                         Text(
                           _flow.name,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: context.foregroundColor(Colors.white),
                             fontSize: 24,
                             fontWeight: FontWeight.w700,
                             letterSpacing: -0.8,
@@ -131,8 +134,8 @@ class _MasterFlowDetailPageState extends State<MasterFlowDetailPage> {
                         const SizedBox(height: 4),
                         Text(
                           'Master flow${_flow.reference.isEmpty ? '' : ' · Ref ${_flow.reference}'}',
-                          style: const TextStyle(
-                            color: mutedColor,
+                          style: TextStyle(
+                            color: context.mutedColor(mutedColor),
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
                           ),
@@ -144,10 +147,10 @@ class _MasterFlowDetailPageState extends State<MasterFlowDetailPage> {
                   OutlinedButton(
                     onPressed: _edit,
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFFD5FFA1),
+                      foregroundColor: context.accentColor(AppColors.primarySoft),
                       minimumSize: const Size(68, 44),
                       padding: const EdgeInsets.symmetric(horizontal: 8),
-                      side: const BorderSide(color: Color(0xFF627F45)),
+                      side: BorderSide(color: context.accentColor(AppColors.primaryBorder)),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(11),
                       ),
@@ -163,15 +166,15 @@ class _MasterFlowDetailPageState extends State<MasterFlowDetailPage> {
                 ],
               ),
             ),
-            const Divider(height: 1, color: borderColor),
+            Divider(height: 1, color: context.borderColor(borderColor)),
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
                 children: [
-                  const Text(
+                  Text(
                     'The flow numbers each check sheet and sends it to the right company for setup.',
                     style: TextStyle(
-                      color: mutedColor,
+                      color: context.mutedColor(mutedColor),
                       fontSize: 12,
                       height: 1.4,
                     ),
@@ -187,9 +190,9 @@ class _MasterFlowDetailPageState extends State<MasterFlowDetailPage> {
                             color: const Color(0xFF20413E),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.sync_alt,
-                            color: accentColor,
+                            color: context.accentColor(accentColor),
                             size: 18,
                           ),
                         ),
@@ -198,10 +201,10 @@ class _MasterFlowDetailPageState extends State<MasterFlowDetailPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 'FIRST HANDOVER',
                                 style: TextStyle(
-                                  color: mutedColor,
+                                  color: context.mutedColor(mutedColor),
                                   fontSize: 10,
                                   letterSpacing: 1.2,
                                   fontWeight: FontWeight.w700,
@@ -219,15 +222,15 @@ class _MasterFlowDetailPageState extends State<MasterFlowDetailPage> {
                                       text: _flow.startingCompany.isEmpty
                                           ? 'Unassigned company'
                                           : _flow.startingCompany,
-                                      style: const TextStyle(
-                                        color: Color(0xFFD5FFA1),
+                                      style: TextStyle(
+                                        color: context.accentColor(AppColors.primarySoft),
                                         fontWeight: FontWeight.w700,
                                       ),
                                     ),
                                   ],
                                 ),
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                style: TextStyle(
+                                  color: context.foregroundColor(Colors.white),
                                   fontSize: 13,
                                 ),
                               ),
@@ -236,7 +239,7 @@ class _MasterFlowDetailPageState extends State<MasterFlowDetailPage> {
                         ),
                       ],
                     ),
-                    color: cardColor,
+                    color: context.surfaceColor(cardColor),
                   ),
                   const SizedBox(height: 12),
                   for (final entry in _flow.activities.indexed)
@@ -251,13 +254,15 @@ class _MasterFlowDetailPageState extends State<MasterFlowDetailPage> {
                               alignment: Alignment.center,
                               decoration: BoxDecoration(
                                 color: const Color(0xFF1A3849),
-                                border: Border.all(color: borderColor),
+                                border: Border.all(
+                                  color: context.borderColor(borderColor),
+                                ),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
                                 '${entry.$1 + 1}',
-                                style: const TextStyle(
-                                  color: mutedColor,
+                                style: TextStyle(
+                                  color: context.mutedColor(mutedColor),
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -270,8 +275,10 @@ class _MasterFlowDetailPageState extends State<MasterFlowDetailPage> {
                                 children: [
                                   Text(
                                     entry.$2['name'] ?? '',
-                                    style: const TextStyle(
-                                      color: Colors.white,
+                                    style: TextStyle(
+                                      color: context.foregroundColor(
+                                        Colors.white,
+                                      ),
                                       fontSize: 14,
                                       fontWeight: FontWeight.w700,
                                     ),
@@ -279,16 +286,16 @@ class _MasterFlowDetailPageState extends State<MasterFlowDetailPage> {
                                   const SizedBox(height: 2),
                                   Text(
                                     '${entry.$2['reference'] ?? ''} · ${entry.$2['company'] ?? 'Unassigned company'} · Visit ${visitNumbers[entry.$1]}',
-                                    style: const TextStyle(
-                                      color: mutedColor,
+                                    style: TextStyle(
+                                      color: context.mutedColor(mutedColor),
                                       fontSize: 12,
                                     ),
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
                                     'In CS-${(entry.$1 * 2 + 1).toString().padLeft(2, '0')} · Out CS-${(entry.$1 * 2 + 2).toString().padLeft(2, '0')}',
-                                    style: const TextStyle(
-                                      color: Color(0xFFD5FFA1),
+                                    style: TextStyle(
+                                      color: context.accentColor(AppColors.primarySoft),
                                       fontSize: 12,
                                     ),
                                   ),
@@ -303,7 +310,10 @@ class _MasterFlowDetailPageState extends State<MasterFlowDetailPage> {
                     const SizedBox(height: 4),
                     Text(
                       '$setupCount ${setupCount == 1 ? 'sheet needs' : 'sheets need'} setup by the assigned company.',
-                      style: const TextStyle(color: mutedColor, fontSize: 12),
+                      style: TextStyle(
+                        color: context.mutedColor(mutedColor),
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ],
@@ -311,8 +321,10 @@ class _MasterFlowDetailPageState extends State<MasterFlowDetailPage> {
             ),
             Container(
               padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
-              decoration: const BoxDecoration(
-                border: Border(top: BorderSide(color: borderColor)),
+              decoration: BoxDecoration(
+                border: Border(
+                  top: BorderSide(color: context.borderColor(borderColor)),
+                ),
               ),
               child: SafeArea(
                 top: false,
@@ -331,7 +343,7 @@ class _MasterFlowDetailPageState extends State<MasterFlowDetailPage> {
                           ),
                         ),
                   style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFFADFF59),
+                    backgroundColor: AppColors.primary,
                     foregroundColor: bgColor,
                     minimumSize: const Size.fromHeight(46),
                     shape: RoundedRectangleBorder(

@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:dropline/core/utility/widgets/appbar.dart';
 import 'package:flutter/material.dart';
@@ -117,7 +118,7 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
   void _showDocumentBottomSheet() {
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: AppColors.sheetBackground,
+      backgroundColor: context.surfaceColor(AppColors.sheetBackground),
       isScrollControlled: true,
       useSafeArea: true,
       shape: const RoundedRectangleBorder(
@@ -139,10 +140,10 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
 
               const SizedBox(height: 20),
 
-              const Text(
+              Text(
                 'Add document',
                 style: TextStyle(
-                  color: AppColors.textPrimary,
+                  color: context.foregroundColor(AppColors.textPrimary),
                   fontSize: 22,
                   fontWeight: FontWeight.w500,
                 ),
@@ -189,10 +190,10 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
               Center(
                 child: TextButton(
                   onPressed: () => Navigator.pop(sheetContext),
-                  child: const Text(
+                  child: Text(
                     'Cancel',
                     style: TextStyle(
-                      color: AppColors.textSecondary,
+                      color: context.mutedColor(AppColors.textSecondary),
                       fontSize: 14,
                     ),
                   ),
@@ -212,7 +213,7 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
     required VoidCallback onTap,
   }) {
     return Material(
-      color: AppColors.surface,
+      color: context.surfaceColor(AppColors.surface),
       borderRadius: BorderRadius.circular(13),
       child: InkWell(
         onTap: onTap,
@@ -221,11 +222,15 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(13),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: context.borderColor(AppColors.border)),
           ),
           child: Row(
             children: [
-              Icon(icon, size: 26, color: AppColors.iconColor),
+              Icon(
+                icon,
+                size: 26,
+                color: context.linkColor(AppColors.iconColor),
+              ),
 
               const SizedBox(width: 14),
 
@@ -235,8 +240,8 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
+                      style: TextStyle(
+                        color: context.foregroundColor(AppColors.textPrimary),
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
                       ),
@@ -244,8 +249,8 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
+                      style: TextStyle(
+                        color: context.mutedColor(AppColors.textSecondary),
                         fontSize: 12,
                       ),
                     ),
@@ -253,9 +258,9 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
                 ),
               ),
 
-              const Icon(
+              Icon(
                 Icons.chevron_right_rounded,
-                color: AppColors.iconColor,
+                color: context.linkColor(AppColors.iconColor),
                 size: 20,
               ),
             ],
@@ -284,7 +289,7 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      backgroundColor: AppColors.sheetBackground,
+      backgroundColor: context.surfaceColor(AppColors.sheetBackground),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -306,12 +311,12 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
 
                   const SizedBox(height: 16),
 
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.symmetric(horizontal: 12),
                     child: Text(
                       'Select expiry date',
                       style: TextStyle(
-                        color: AppColors.textPrimary,
+                        color: context.foregroundColor(AppColors.textPrimary),
                         fontSize: 21,
                         fontWeight: FontWeight.w500,
                       ),
@@ -322,25 +327,37 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
 
                   Theme(
                     data: Theme.of(context).copyWith(
-                      colorScheme: const ColorScheme.dark(
+                      colorScheme: ColorScheme.dark(
                         primary: AppColors.primary,
                         onPrimary: AppColors.primaryText,
-                        surface: AppColors.sheetBackground,
-                        onSurface: AppColors.textPrimary,
+                        surface: context.surfaceColor(
+                          AppColors.sheetBackground,
+                        ),
+                        onSurface: context.foregroundColor(
+                          AppColors.textPrimary,
+                        ),
                       ),
-                      datePickerTheme: const DatePickerThemeData(
-                        backgroundColor: AppColors.sheetBackground,
-                        headerForegroundColor: AppColors.textPrimary,
+                      datePickerTheme: DatePickerThemeData(
+                        backgroundColor: context.surfaceColor(
+                          AppColors.sheetBackground,
+                        ),
+                        headerForegroundColor: context.foregroundColor(
+                          AppColors.textPrimary,
+                        ),
                         weekdayStyle: TextStyle(
-                          color: AppColors.textSecondary,
+                          color: context.mutedColor(AppColors.textSecondary),
                           fontWeight: FontWeight.w500,
                         ),
-                        dayStyle: TextStyle(color: AppColors.textPrimary),
-                        yearStyle: TextStyle(color: AppColors.textPrimary),
+                        dayStyle: TextStyle(
+                          color: context.foregroundColor(AppColors.textPrimary),
+                        ),
+                        yearStyle: TextStyle(
+                          color: context.foregroundColor(AppColors.textPrimary),
+                        ),
                         todayForegroundColor: WidgetStatePropertyAll(
                           AppColors.primary,
                         ),
-                        todayBorder: BorderSide(color: AppColors.primary),
+                        todayBorder: BorderSide(color: context.accentColor(AppColors.primary)),
                       ),
                     ),
                     child: CalendarDatePicker(
@@ -402,7 +419,7 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
         width: 48,
         height: 5,
         decoration: BoxDecoration(
-          color: AppColors.sheetHandle,
+          color: context.mutedColor(AppColors.sheetHandle),
           borderRadius: BorderRadius.circular(10),
         ),
       ),
@@ -458,8 +475,8 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
       padding: const EdgeInsets.only(bottom: 9),
       child: Text(
         label,
-        style: const TextStyle(
-          color: AppColors.textPrimary,
+        style: TextStyle(
+          color: context.foregroundColor(AppColors.textPrimary),
           fontSize: 13,
           fontWeight: FontWeight.w500,
         ),
@@ -474,13 +491,18 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
   }) {
     return TextFormField(
       controller: controller,
-      style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+      style: TextStyle(
+        color: context.foregroundColor(AppColors.textPrimary),
+        fontSize: 14,
+      ),
       cursorColor: AppColors.primary,
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(color: AppColors.textSecondary),
+        hintStyle: TextStyle(
+          color: context.mutedColor(AppColors.textSecondary),
+        ),
         filled: true,
-        fillColor: AppColors.surface,
+        fillColor: context.surfaceColor(AppColors.surface),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 14,
           vertical: 16,
@@ -522,9 +544,9 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
         width: double.infinity,
         padding: const EdgeInsets.all(15),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.surfaceColor(AppColors.surface),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: context.borderColor(AppColors.border)),
         ),
         child: Row(
           children: [
@@ -533,7 +555,7 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
                   ? Icons.description_outlined
                   : Icons.file_upload_outlined,
               size: 28,
-              color: AppColors.iconColor,
+              color: context.linkColor(AppColors.iconColor),
             ),
 
             const SizedBox(width: 14),
@@ -546,8 +568,8 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
                     hasDocument ? _documentName! : 'Add document',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
+                    style: TextStyle(
+                      color: context.foregroundColor(AppColors.textPrimary),
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
@@ -557,8 +579,8 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
                     hasDocument
                         ? 'Tap to change document'
                         : 'PDF, photo or camera',
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
+                    style: TextStyle(
+                      color: context.mutedColor(AppColors.textSecondary),
                       fontSize: 12,
                     ),
                   ),
@@ -567,9 +589,9 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
             ),
 
             if (hasDocument)
-              const Icon(
+              Icon(
                 Icons.check_circle_rounded,
-                color: AppColors.primary,
+                color: context.accentColor(AppColors.primary),
                 size: 22,
               ),
           ],
@@ -590,9 +612,9 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
         height: 52,
         padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.surfaceColor(AppColors.surface),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: context.borderColor(AppColors.border)),
         ),
         child: Row(
           children: [
@@ -605,15 +627,15 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
                     : DateFormat('dd MMM yyyy').format(_expiryDate!),
                 style: TextStyle(
                   color: _expiryDate != null && !_noExpiry
-                      ? AppColors.textPrimary
-                      : AppColors.textSecondary,
+                      ? context.foregroundColor(AppColors.textPrimary)
+                      : context.mutedColor(AppColors.textSecondary),
                   fontSize: 14,
                 ),
               ),
             ),
-            const Icon(
+            Icon(
               Icons.calendar_month_outlined,
-              color: AppColors.iconColor,
+              color: context.linkColor(AppColors.iconColor),
               size: 21,
             ),
           ],
@@ -631,17 +653,17 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
       height: 52,
       padding: const EdgeInsets.symmetric(horizontal: 14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.surfaceColor(AppColors.surface),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.borderColor(AppColors.border)),
       ),
       child: Row(
         children: [
-          const Expanded(
+          Expanded(
             child: Text(
               'No expiry',
               style: TextStyle(
-                color: AppColors.textPrimary,
+                color: context.foregroundColor(AppColors.textPrimary),
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
@@ -650,9 +672,9 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
           Switch(
             value: _noExpiry,
             activeThumbColor: AppColors.primary,
-            activeTrackColor: AppColors.border,
-            inactiveThumbColor: AppColors.textSecondary,
-            inactiveTrackColor: AppColors.disabledButton,
+            activeTrackColor: context.borderColor(AppColors.border),
+            inactiveThumbColor: context.mutedColor(AppColors.textSecondary),
+            inactiveTrackColor: context.borderColor(AppColors.disabledButton),
             onChanged: (value) {
               setState(() {
                 _noExpiry = value;
@@ -682,8 +704,10 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.primaryText,
-          disabledBackgroundColor: AppColors.disabledButton,
-          disabledForegroundColor: AppColors.disabledText,
+          disabledBackgroundColor: context.borderColor(
+            AppColors.disabledButton,
+          ),
+          disabledForegroundColor: context.mutedColor(AppColors.disabledText),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
@@ -699,7 +723,7 @@ class _AddCertificateScreenState extends State<AddCertificateScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.backgroundColor(AppColors.background),
       resizeToAvoidBottomInset: true,
       appBar: const CustomAppBar(title: 'Add certificate'),
       body: SafeArea(

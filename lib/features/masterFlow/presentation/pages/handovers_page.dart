@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'dart:convert';
 
 import 'package:dropline/core/theme/appcolors.dart';
@@ -36,7 +37,7 @@ class _HandoversPageState extends State<HandoversPage> {
   static const _surface = Color(0xFF122C3B);
   static const _border = Color(0xFF2E4D5E);
   static const _muted = Color(0xFF9FBFD1);
-  static const _lime = Color(0xFFB5FF65);
+  static const _primaryAccent = AppColors.primary;
   List<Map<String, String>> _handovers = [
     {
       'area': 'Building A › Level 03 › Apartment 305',
@@ -119,8 +120,8 @@ class _HandoversPageState extends State<HandoversPage> {
     final created = await showDialog<Map<String, String>>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: _surface,
-        title: const Text('Choose area', style: TextStyle(color: Colors.white)),
+        backgroundColor: context.surfaceColor(_surface),
+        title: Text('Choose area', style: TextStyle(color: context.foregroundColor(Colors.white))),
         content: SingleChildScrollView(
           child: Form(
             key: form,
@@ -129,12 +130,14 @@ class _HandoversPageState extends State<HandoversPage> {
               children: [
                 TextFormField(
                   autofocus: true,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(
+                  style: TextStyle(
+                    color: context.foregroundColor(Colors.white),
+                  ),
+                  decoration: InputDecoration(
                     labelText: 'Area',
                     hintText: 'Building › Level › Apartment',
-                    hintStyle: TextStyle(color: _muted),
-                    labelStyle: TextStyle(color: _muted),
+                    hintStyle: TextStyle(color: context.mutedColor(_muted)),
+                    labelStyle: TextStyle(color: context.mutedColor(_muted)),
                   ),
                   onChanged: (value) => area = value.trim(),
                   validator: (value) => value == null || value.trim().isEmpty
@@ -144,8 +147,8 @@ class _HandoversPageState extends State<HandoversPage> {
                 const SizedBox(height: 16),
                 Text(
                   activity,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: context.foregroundColor(Colors.white),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -160,7 +163,7 @@ class _HandoversPageState extends State<HandoversPage> {
           ),
           FilledButton(
             style: FilledButton.styleFrom(
-              backgroundColor: _lime,
+              backgroundColor: _primaryAccent,
               foregroundColor: _background,
             ),
             onPressed: () {
@@ -257,12 +260,12 @@ class _HandoversPageState extends State<HandoversPage> {
     final visible = _allAreas ? _handovers : pendingHandovers;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.backgroundColor(AppColors.background),
 
       appBar: CustomAppBar(
         title: 'Handovers',
         subtitle: '${widget.projectName} · ${widget.companyName}',
-        backgroundColor: AppColors.background,
+        backgroundColor: context.backgroundColor(AppColors.background),
         onBackPressed: () {
           if (context.canPop()) {
             context.pop();
@@ -277,7 +280,7 @@ class _HandoversPageState extends State<HandoversPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Divider(height: 1, color: _border),
+            Divider(height: 1, color: context.borderColor(_border)),
 
             const SizedBox(height: 13),
 
@@ -290,7 +293,7 @@ class _HandoversPageState extends State<HandoversPage> {
                 decoration: BoxDecoration(
                   color: const Color(0xFF0C2535),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: _border),
+                  border: Border.all(color: context.borderColor(_border)),
                 ),
                 child: Row(
                   children: [
@@ -329,7 +332,7 @@ class _HandoversPageState extends State<HandoversPage> {
 
             Expanded(
               child: _loading
-                  ? const Center(child: CircularProgressIndicator(color: _lime))
+                  ? Center(child: CircularProgressIndicator(color: context.accentColor(_primaryAccent)))
                   : _error != null
                   ? Center(
                       child: TextButton(onPressed: _load, child: Text(_error!)),
@@ -343,8 +346,8 @@ class _HandoversPageState extends State<HandoversPage> {
                           children: [
                             Text(
                               _allAreas ? 'All areas' : 'To check',
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: context.foregroundColor(Colors.white),
                                 fontSize: 16,
                                 fontWeight: FontWeight.w800,
                               ),
@@ -354,8 +357,8 @@ class _HandoversPageState extends State<HandoversPage> {
 
                             Text(
                               '${visible.length}',
-                              style: const TextStyle(
-                                color: _muted,
+                              style: TextStyle(
+                                color: context.mutedColor(_muted),
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -370,9 +373,9 @@ class _HandoversPageState extends State<HandoversPage> {
                             padding: const EdgeInsets.symmetric(vertical: 35),
                             child: Column(
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.assignment_turned_in_outlined,
-                                  color: _muted,
+                                  color: context.mutedColor(_muted),
                                   size: 38,
                                 ),
                                 const SizedBox(height: 12),
@@ -381,8 +384,8 @@ class _HandoversPageState extends State<HandoversPage> {
                                       ? 'No handovers available'
                                       : 'No handovers to check',
                                   textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    color: _muted,
+                                  style: TextStyle(
+                                    color: context.mutedColor(_muted),
                                     fontSize: 13,
                                   ),
                                 ),
@@ -417,7 +420,7 @@ class _HandoversPageState extends State<HandoversPage> {
       child: Container(
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: isSelected ? _lime : Colors.transparent,
+          color: isSelected ? _primaryAccent : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -426,7 +429,7 @@ class _HandoversPageState extends State<HandoversPage> {
             Text(
               title,
               style: TextStyle(
-                color: isSelected ? const Color(0xFF092537) : Colors.white,
+                color: isSelected ? const Color(0xFF092537) : context.foregroundColor(Colors.white),
                 fontSize: 13,
                 fontWeight: FontWeight.w800,
               ),
@@ -439,14 +442,14 @@ class _HandoversPageState extends State<HandoversPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? const Color(0xFF94DB56)
+                      ? AppColors.primary
                       : const Color(0xFF244354),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   '$count',
                   style: TextStyle(
-                    color: isSelected ? const Color(0xFF092537) : Colors.white,
+                    color: isSelected ? const Color(0xFF092537) : context.foregroundColor(Colors.white),
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
                   ),
@@ -470,11 +473,13 @@ class _HandoversPageState extends State<HandoversPage> {
     final String trade = item['trade'] ?? 'First handover';
 
     return Material(
-      color: _surface,
+      color: context.surfaceColor(_surface),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
         side: BorderSide(
-          color: isPending ? const Color(0xFF70AE3E) : _border,
+          color: isPending
+              ? context.accentColor(AppColors.primaryBorder)
+              : context.borderColor(_border),
           width: 1,
         ),
       ),
@@ -493,8 +498,8 @@ class _HandoversPageState extends State<HandoversPage> {
                   Expanded(
                     child: Text(
                       area,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: context.foregroundColor(Colors.white),
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
                         height: 1.35,
@@ -515,13 +520,17 @@ class _HandoversPageState extends State<HandoversPage> {
                             : const Color(0xFF244354),
                         borderRadius: BorderRadius.circular(7),
                         border: Border.all(
-                          color: isPending ? const Color(0xFF4C8447) : _border,
+                          color: isPending
+                              ? const Color(0xFF4C8447)
+                              : context.borderColor(_border),
                         ),
                       ),
                       child: Text(
                         isPending ? 'To check' : 'Completed',
                         style: TextStyle(
-                          color: isPending ? const Color(0xFFD2FF9D) : _muted,
+                          color: isPending
+                              ? context.accentColor(AppColors.primarySoft)
+                              : context.mutedColor(_muted),
                           fontSize: 9,
                           fontWeight: FontWeight.w700,
                         ),
@@ -536,8 +545,8 @@ class _HandoversPageState extends State<HandoversPage> {
               // Activity
               Text(
                 activity,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: context.foregroundColor(Colors.white),
                   fontSize: 14,
                   fontWeight: FontWeight.w800,
                 ),
@@ -557,7 +566,11 @@ class _HandoversPageState extends State<HandoversPage> {
 
               const SizedBox(height: 12),
 
-              const Divider(height: 1, thickness: 0.7, color: _border),
+              Divider(
+                height: 1,
+                thickness: 0.7,
+                color: context.borderColor(_border),
+              ),
 
               // Bottom action
               InkWell(
@@ -571,8 +584,8 @@ class _HandoversPageState extends State<HandoversPage> {
                           isPending ? 'Check handover' : 'View handover',
                           style: TextStyle(
                             color: isPending
-                                ? const Color(0xFFB5FF65)
-                                : Colors.white,
+                                ? context.accentColor(AppColors.primary)
+                                : context.foregroundColor(Colors.white),
                             fontSize: 12,
                             fontWeight: FontWeight.w800,
                           ),
@@ -581,7 +594,9 @@ class _HandoversPageState extends State<HandoversPage> {
 
                       Icon(
                         Icons.chevron_right_rounded,
-                        color: isPending ? const Color(0xFFB5FF65) : _muted,
+                        color: isPending
+                            ? context.accentColor(AppColors.primary)
+                            : context.mutedColor(_muted),
                         size: 21,
                       ),
                     ],

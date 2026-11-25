@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:dropline/core/utility/widgets/appbar.dart';
 import 'package:flutter/material.dart';
@@ -122,7 +123,7 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.backgroundColor(AppColors.background),
 
       appBar: CustomAppBar(
         title: 'Certificates',
@@ -132,8 +133,8 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
             onPressed: _toggleSelectionMode,
             child: Text(
               _selectionMode ? 'Cancel' : 'Select',
-              style: const TextStyle(
-                color: AppColors.certificatePrimary,
+              style: TextStyle(
+                color: context.accentColor(AppColors.certificatePrimary),
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
               ),
@@ -179,33 +180,35 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
     return Container(
       height: 48,
       decoration: BoxDecoration(
-        color: AppColors.certificateSurface,
+        color: context.surfaceColor(AppColors.certificateSurface),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.certificateBorder),
+        border: Border.all(
+          color: context.borderColor(AppColors.certificateBorder),
+        ),
       ),
       child: TextField(
         controller: _searchController,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 14,
-          color: AppColors.certificateTextPrimary,
+          color: context.foregroundColor(AppColors.certificateTextPrimary),
         ),
         cursorColor: AppColors.certificatePrimary,
         decoration: InputDecoration(
           hintText: 'Search certificates',
-          hintStyle: const TextStyle(
-            color: AppColors.certificateTextSecondary,
+          hintStyle: TextStyle(
+            color: context.mutedColor(AppColors.certificateTextSecondary),
             fontSize: 14,
           ),
-          prefixIcon: const Icon(
+          prefixIcon: Icon(
             Icons.search_rounded,
             size: 23,
-            color: AppColors.certificateIcon,
+            color: context.linkColor(AppColors.certificateIcon),
           ),
           suffixIcon: _searchText.isNotEmpty
               ? IconButton(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.close_rounded,
-                    color: AppColors.certificateIcon,
+                    color: context.linkColor(AppColors.certificateIcon),
                     size: 19,
                   ),
                   onPressed: _searchController.clear,
@@ -268,12 +271,12 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
           decoration: BoxDecoration(
             color: selected
                 ? AppColors.certificatePrimary
-                : AppColors.certificateSurface,
+                : context.surfaceColor(AppColors.certificateSurface),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: selected
                   ? AppColors.certificatePrimary
-                  : AppColors.certificateBorder,
+                  : context.borderColor(AppColors.certificateBorder),
             ),
           ),
           child: Text(
@@ -285,7 +288,7 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
               fontWeight: selected ? FontWeight.w500 : FontWeight.w500,
               color: selected
                   ? AppColors.certificateButtonText
-                  : AppColors.certificateTextPrimary,
+                  : context.foregroundColor(AppColors.certificateTextPrimary),
             ),
           ),
         ),
@@ -320,9 +323,9 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.description_outlined,
-              color: AppColors.certificateIcon,
+              color: context.linkColor(AppColors.certificateIcon),
               size: 48,
             ),
 
@@ -331,8 +334,10 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: AppColors.certificateTextPrimary,
+              style: TextStyle(
+                color: context.foregroundColor(
+                  AppColors.certificateTextPrimary,
+                ),
                 fontSize: 19,
                 fontWeight: FontWeight.w500,
               ),
@@ -343,8 +348,8 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
             Text(
               subtitle,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: AppColors.certificateTextSecondary,
+              style: TextStyle(
+                color: context.mutedColor(AppColors.certificateTextSecondary),
                 fontSize: 13,
               ),
             ),
@@ -386,16 +391,18 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
           child: Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: AppColors.certificateSurface,
+              color: context.surfaceColor(AppColors.certificateSurface),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.certificateBorder),
+              border: Border.all(
+                color: context.borderColor(AppColors.certificateBorder),
+              ),
             ),
             child: Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.picture_as_pdf_outlined,
                   size: 28,
-                  color: AppColors.certificateIcon,
+                  color: context.linkColor(AppColors.certificateIcon),
                 ),
 
                 const SizedBox(width: 12),
@@ -408,8 +415,10 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
                         item.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: AppColors.certificateTextPrimary,
+                        style: TextStyle(
+                          color: context.foregroundColor(
+                            AppColors.certificateTextPrimary,
+                          ),
                           fontWeight: FontWeight.w500,
                           fontSize: 14,
                         ),
@@ -417,8 +426,10 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
                       const SizedBox(height: 4),
                       Text(
                         'ID: ${item.id}',
-                        style: const TextStyle(
-                          color: AppColors.certificateTextSecondary,
+                        style: TextStyle(
+                          color: context.mutedColor(
+                            AppColors.certificateTextSecondary,
+                          ),
                           fontSize: 11,
                         ),
                       ),
@@ -432,13 +443,13 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
                         ? Icons.check_circle_rounded
                         : Icons.radio_button_unchecked_rounded,
                     color: isSelected
-                        ? AppColors.certificatePrimary
-                        : AppColors.certificateIcon,
+                        ? context.accentColor(AppColors.certificatePrimary)
+                        : context.linkColor(AppColors.certificateIcon),
                   )
                 else
-                  const Icon(
+                  Icon(
                     Icons.chevron_right_rounded,
-                    color: AppColors.certificateIcon,
+                    color: context.linkColor(AppColors.certificateIcon),
                   ),
               ],
             ),

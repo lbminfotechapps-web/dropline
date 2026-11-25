@@ -1,3 +1,5 @@
+import 'package:dropline/core/theme/appcolors.dart';
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import '../../data/master_flow_store.dart';
 import 'master_flow_detail_page.dart';
@@ -9,7 +11,7 @@ const bgColor = Color(0xFF102633);
 const cardColor = Color(0xFF142F3E);
 const borderColor = Color(0xFF345464);
 const mutedColor = Color(0xFFA5C3D3);
-const accentColor = Color(0xFFB5FF65);
+const accentColor = AppColors.primary;
 
 class MasterFlowsScreen extends StatefulWidget {
   const MasterFlowsScreen({
@@ -100,7 +102,7 @@ class _MasterFlowsScreenState extends State<MasterFlowsScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    backgroundColor: bgColor,
+    backgroundColor: context.backgroundColor(bgColor),
     body: SafeArea(
       bottom: false,
       child: Column(
@@ -117,9 +119,9 @@ class _MasterFlowsScreenState extends State<MasterFlowsScreen> {
                     tooltip: 'Back to project',
                     onPressed: () => Navigator.maybePop(context),
                     style: IconButton.styleFrom(
-                      foregroundColor: mutedColor,
-                      backgroundColor: cardColor,
-                      side: const BorderSide(color: borderColor),
+                      foregroundColor: context.mutedColor(mutedColor),
+                      backgroundColor: context.surfaceColor(cardColor),
+                      side: BorderSide(color: context.borderColor(borderColor)),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(11),
                       ),
@@ -132,10 +134,10 @@ class _MasterFlowsScreenState extends State<MasterFlowsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Master flows',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: context.foregroundColor(Colors.white),
                           fontSize: 25,
                           fontWeight: FontWeight.w700,
                           letterSpacing: -0.8,
@@ -145,8 +147,8 @@ class _MasterFlowsScreenState extends State<MasterFlowsScreen> {
                       const SizedBox(height: 4),
                       Text(
                         widget.projectName,
-                        style: const TextStyle(
-                          color: mutedColor,
+                        style: TextStyle(
+                          color: context.mutedColor(mutedColor),
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
                         ),
@@ -157,7 +159,7 @@ class _MasterFlowsScreenState extends State<MasterFlowsScreen> {
               ],
             ),
           ),
-          const Divider(height: 1, color: borderColor),
+          Divider(height: 1, color: context.borderColor(borderColor)),
           Expanded(
             child: RefreshIndicator(
               onRefresh: _loadFlows,
@@ -165,31 +167,34 @@ class _MasterFlowsScreenState extends State<MasterFlowsScreen> {
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
                 children: [
-                  const Text(
+                  Text(
                     'Set the trade order once. Use it whenever an area is ready.',
                     style: TextStyle(
-                      color: mutedColor,
+                      color: context.mutedColor(mutedColor),
                       fontSize: 12,
                       height: 1.4,
                     ),
                   ),
                   const SizedBox(height: 14),
                   if (_loadingFlows)
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.all(24),
                       child: Center(
-                        child: CircularProgressIndicator(color: accentColor),
+                        child: CircularProgressIndicator(color: context.accentColor(accentColor)),
                       ),
                     )
                   else if (_loadError != null)
                     TextButton(onPressed: _loadFlows, child: Text(_loadError!))
                   else if (flows.isEmpty)
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.symmetric(vertical: 24),
                       child: Text(
                         'No saved flows yet. Create your first master flow below.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: mutedColor, fontSize: 13),
+                        style: TextStyle(
+                          color: context.mutedColor(mutedColor),
+                          fontSize: 13,
+                        ),
                       ),
                     )
                   else
@@ -200,7 +205,9 @@ class _MasterFlowsScreenState extends State<MasterFlowsScreen> {
                           color: const Color(0xFF102734),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(11),
-                            side: const BorderSide(color: borderColor),
+                            side: BorderSide(
+                              color: context.borderColor(borderColor),
+                            ),
                           ),
                           clipBehavior: Clip.antiAlias,
                           child: InkWell(
@@ -212,10 +219,10 @@ class _MasterFlowsScreenState extends State<MasterFlowsScreen> {
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(
+                                  Icon(
                                     Icons.account_tree_outlined,
                                     size: 18,
-                                    color: mutedColor,
+                                    color: context.mutedColor(mutedColor),
                                   ),
                                   const SizedBox(width: 10),
                                   Expanded(
@@ -225,8 +232,10 @@ class _MasterFlowsScreenState extends State<MasterFlowsScreen> {
                                       children: [
                                         Text(
                                           flow.name,
-                                          style: const TextStyle(
-                                            color: Colors.white,
+                                          style: TextStyle(
+                                            color: context.foregroundColor(
+                                              Colors.white,
+                                            ),
                                             fontSize: 15,
                                             fontWeight: FontWeight.w600,
                                           ),
@@ -234,8 +243,10 @@ class _MasterFlowsScreenState extends State<MasterFlowsScreen> {
                                         const SizedBox(height: 3),
                                         Text(
                                           '${flow.startingCompany.isEmpty ? 'Unassigned company' : '${flow.startingCompany} starts'} · ${flow.activities.length} ${flow.activities.length == 1 ? 'activity' : 'activities'}',
-                                          style: const TextStyle(
-                                            color: mutedColor,
+                                          style: TextStyle(
+                                            color: context.mutedColor(
+                                              mutedColor,
+                                            ),
                                             fontSize: 12,
                                             fontWeight: FontWeight.w500,
                                           ),
@@ -244,10 +255,10 @@ class _MasterFlowsScreenState extends State<MasterFlowsScreen> {
                                     ),
                                   ),
                                   const SizedBox(width: 8),
-                                  const Icon(
+                                  Icon(
                                     Icons.chevron_right_rounded,
                                     size: 20,
-                                    color: mutedColor,
+                                    color: context.mutedColor(mutedColor),
                                   ),
                                 ],
                               ),
@@ -261,8 +272,10 @@ class _MasterFlowsScreenState extends State<MasterFlowsScreen> {
           ),
           Container(
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
-            decoration: const BoxDecoration(
-              border: Border(top: BorderSide(color: borderColor)),
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(color: context.borderColor(borderColor)),
+              ),
             ),
             child: SafeArea(
               top: false,
@@ -516,7 +529,7 @@ class _CreateMasterFlowScreenState extends State<CreateMasterFlowScreen> {
   Widget build(BuildContext context) => PopScope(
     canPop: !_saving,
     child: Scaffold(
-      backgroundColor: bgColor,
+      backgroundColor: context.backgroundColor(bgColor),
       body: SafeArea(
         bottom: false,
         child: Form(
@@ -537,9 +550,11 @@ class _CreateMasterFlowScreenState extends State<CreateMasterFlowScreen> {
                             ? null
                             : () => Navigator.maybePop(context),
                         style: IconButton.styleFrom(
-                          foregroundColor: mutedColor,
-                          backgroundColor: cardColor,
-                          side: const BorderSide(color: borderColor),
+                          foregroundColor: context.mutedColor(mutedColor),
+                          backgroundColor: context.surfaceColor(cardColor),
+                          side: BorderSide(
+                            color: context.borderColor(borderColor),
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(11),
                           ),
@@ -557,7 +572,7 @@ class _CreateMasterFlowScreenState extends State<CreateMasterFlowScreen> {
                                 ? 'New master flow'
                                 : 'Edit master flow',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: context.foregroundColor(Colors.white),
                               fontSize: 24,
                               fontWeight: FontWeight.w700,
                               letterSpacing: -0.8,
@@ -567,8 +582,8 @@ class _CreateMasterFlowScreenState extends State<CreateMasterFlowScreen> {
                           const SizedBox(height: 4),
                           Text(
                             widget.projectName,
-                            style: const TextStyle(
-                              color: mutedColor,
+                            style: TextStyle(
+                              color: context.mutedColor(mutedColor),
                               fontSize: 11,
                               fontWeight: FontWeight.w500,
                             ),
@@ -579,7 +594,7 @@ class _CreateMasterFlowScreenState extends State<CreateMasterFlowScreen> {
                   ],
                 ),
               ),
-              const Divider(height: 1, color: borderColor),
+              Divider(height: 1, color: context.borderColor(borderColor)),
               Expanded(
                 child: Scrollbar(
                   controller: _scroll,
@@ -588,10 +603,10 @@ class _CreateMasterFlowScreenState extends State<CreateMasterFlowScreen> {
                     controller: _scroll,
                     padding: const EdgeInsets.fromLTRB(16, 14, 24, 20),
                     children: [
-                      const Text(
+                      Text(
                         'Add the activities and companies. The flow creates the numbered check sheets when you save.',
                         style: TextStyle(
-                          color: mutedColor,
+                          color: context.mutedColor(mutedColor),
                           fontSize: 12,
                           height: 1.4,
                         ),
@@ -625,9 +640,11 @@ class _CreateMasterFlowScreenState extends State<CreateMasterFlowScreen> {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: cardColor,
+                          color: context.surfaceColor(cardColor),
                           borderRadius: BorderRadius.circular(11),
-                          border: Border.all(color: borderColor),
+                          border: Border.all(
+                            color: context.borderColor(borderColor),
+                          ),
                         ),
                         child: Row(
                           children: [
@@ -637,10 +654,10 @@ class _CreateMasterFlowScreenState extends State<CreateMasterFlowScreen> {
                                 color: accentColor.withValues(alpha: 0.08),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: const Icon(
+                              child: Icon(
                                 Icons.sync_alt_rounded,
                                 size: 18,
-                                color: accentColor,
+                                color: context.accentColor(accentColor),
                               ),
                             ),
                             const SizedBox(width: 10),
@@ -648,10 +665,10 @@ class _CreateMasterFlowScreenState extends State<CreateMasterFlowScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'FIRST HANDOVER',
                                     style: TextStyle(
-                                      color: mutedColor,
+                                      color: context.mutedColor(mutedColor),
                                       fontSize: 10,
                                       fontWeight: FontWeight.w700,
                                       letterSpacing: 1.2,
@@ -664,17 +681,19 @@ class _CreateMasterFlowScreenState extends State<CreateMasterFlowScreen> {
                                         TextSpan(
                                           text: '${widget.companyName} → ',
                                         ),
-                                        const TextSpan(
+                                        TextSpan(
                                           text: 'First trade',
                                           style: TextStyle(
-                                            color: Color(0xFFD5F69A),
+                                            color: context.accentColor(AppColors.primarySoft),
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
                                       ],
                                     ),
-                                    style: const TextStyle(
-                                      color: Colors.white,
+                                    style: TextStyle(
+                                      color: context.foregroundColor(
+                                        Colors.white,
+                                      ),
                                       fontSize: 12,
                                     ),
                                   ),
@@ -685,10 +704,10 @@ class _CreateMasterFlowScreenState extends State<CreateMasterFlowScreen> {
                         ),
                       ),
                       const SizedBox(height: 18),
-                      const Text(
+                      Text(
                         'Trade activities',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: context.foregroundColor(Colors.white),
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
@@ -696,15 +715,15 @@ class _CreateMasterFlowScreenState extends State<CreateMasterFlowScreen> {
                       const SizedBox(height: 6),
                       Text(
                         'After ${widget.companyName} sends the first handover, each trade passes the area directly to the next.',
-                        style: const TextStyle(
-                          color: mutedColor,
+                        style: TextStyle(
+                          color: context.mutedColor(mutedColor),
                           fontSize: 12,
                           height: 1.4,
                         ),
                       ),
                       const SizedBox(height: 10),
                       if (_loadingCompanies)
-                        const LinearProgressIndicator(color: accentColor),
+                        LinearProgressIndicator(color: context.accentColor(accentColor)),
                       if (_companyError != null)
                         TextButton(
                           onPressed: _loadCompanies,
@@ -713,11 +732,14 @@ class _CreateMasterFlowScreenState extends State<CreateMasterFlowScreen> {
                       if (!_loadingCompanies &&
                           _companyError == null &&
                           _companies.isEmpty)
-                        const Padding(
+                        Padding(
                           padding: EdgeInsets.only(bottom: 10),
                           child: Text(
                             'Add trade companies in Companies & people before saving a flow.',
-                            style: TextStyle(color: mutedColor, fontSize: 12),
+                            style: TextStyle(
+                              color: context.mutedColor(mutedColor),
+                              fontSize: 12,
+                            ),
                           ),
                         ),
                       for (var index = 0; index < activities.length; index++)
@@ -727,7 +749,7 @@ class _CreateMasterFlowScreenState extends State<CreateMasterFlowScreen> {
                         child: TextButton.icon(
                           onPressed: _saving ? null : _addActivity,
                           style: TextButton.styleFrom(
-                            foregroundColor: accentColor,
+                            foregroundColor: context.accentColor(accentColor),
                             padding: EdgeInsets.zero,
                           ),
                           icon: const Icon(Icons.add, size: 18),
@@ -746,8 +768,10 @@ class _CreateMasterFlowScreenState extends State<CreateMasterFlowScreen> {
               ),
               Container(
                 padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
-                decoration: const BoxDecoration(
-                  border: Border(top: BorderSide(color: borderColor)),
+                decoration: BoxDecoration(
+                  border: Border(
+                    top: BorderSide(color: context.borderColor(borderColor)),
+                  ),
                 ),
                 child: SafeArea(
                   top: false,
@@ -786,8 +810,8 @@ class _CreateMasterFlowScreenState extends State<CreateMasterFlowScreen> {
     children: [
       Text(
         label,
-        style: const TextStyle(
-          color: mutedColor,
+        style: TextStyle(
+          color: context.mutedColor(mutedColor),
           fontSize: 12,
           fontWeight: FontWeight.w600,
         ),
@@ -804,8 +828,11 @@ class _CreateMasterFlowScreenState extends State<CreateMasterFlowScreen> {
   }) => TextFormField(
     controller: controller,
     enabled: !_saving,
-    style: const TextStyle(color: Colors.white, fontSize: 14),
-    decoration: _decoration(hint),
+    style: TextStyle(
+      color: context.foregroundColor(Colors.white),
+      fontSize: 14,
+    ),
+    decoration: _decoration(context, hint),
     onChanged: (_) => setState(() {}),
     validator: requiredField
         ? (value) => value == null || value.trim().isEmpty ? 'Required' : null
@@ -819,9 +846,9 @@ class _CreateMasterFlowScreenState extends State<CreateMasterFlowScreen> {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: cardColor,
+        color: context.surfaceColor(cardColor),
         borderRadius: BorderRadius.circular(11),
-        border: Border.all(color: borderColor),
+        border: Border.all(color: context.borderColor(borderColor)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -834,12 +861,12 @@ class _CreateMasterFlowScreenState extends State<CreateMasterFlowScreen> {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: borderColor),
+                  border: Border.all(color: context.borderColor(borderColor)),
                 ),
                 child: Text(
                   '${index + 1}',
-                  style: const TextStyle(
-                    color: mutedColor,
+                  style: TextStyle(
+                    color: context.mutedColor(mutedColor),
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                   ),
@@ -849,8 +876,8 @@ class _CreateMasterFlowScreenState extends State<CreateMasterFlowScreen> {
               Expanded(
                 child: Text(
                   'Activity ${index + 1}',
-                  style: const TextStyle(
-                    color: mutedColor,
+                  style: TextStyle(
+                    color: context.mutedColor(mutedColor),
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
@@ -907,14 +934,17 @@ class _CreateMasterFlowScreenState extends State<CreateMasterFlowScreen> {
               ),
               initialValue: activity.company,
               isExpanded: true,
-              dropdownColor: cardColor,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
-              icon: const Icon(
+              dropdownColor: context.surfaceColor(cardColor),
+              style: TextStyle(
+                color: context.foregroundColor(Colors.white),
+                fontSize: 13,
+              ),
+              icon: Icon(
                 Icons.keyboard_arrow_down_rounded,
-                color: mutedColor,
+                color: context.mutedColor(mutedColor),
                 size: 20,
               ),
-              decoration: _decoration('Select trade company'),
+              decoration: _decoration(context, 'Select trade company'),
               items: _companies
                   .map(
                     (company) => DropdownMenuItem(
@@ -946,26 +976,26 @@ class _CreateMasterFlowScreenState extends State<CreateMasterFlowScreen> {
         constraints: const BoxConstraints(minWidth: 32, minHeight: 36),
         padding: const EdgeInsets.all(4),
         icon: Icon(icon, size: 18),
-        color: mutedColor,
-        disabledColor: mutedColor.withValues(alpha: 0.3),
+        color: context.mutedColor(mutedColor),
+        disabledColor: context.mutedColor(mutedColor).withValues(alpha: 0.3),
         visualDensity: VisualDensity.compact,
       );
 }
 
-InputDecoration _decoration(String hint) {
+InputDecoration _decoration(BuildContext context, String hint) {
   return InputDecoration(
     hintText: hint,
-    labelStyle: TextStyle(color: Colors.white),
-    hintStyle: const TextStyle(color: mutedColor, fontSize: 12),
+    labelStyle: TextStyle(color: context.foregroundColor(Colors.white)),
+    hintStyle: TextStyle(color: context.mutedColor(mutedColor), fontSize: 12),
     isDense: true,
     contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(7),
-      borderSide: const BorderSide(color: borderColor),
+      borderSide: BorderSide(color: context.borderColor(borderColor)),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(7),
-      borderSide: const BorderSide(color: accentColor),
+      borderSide: BorderSide(color: context.accentColor(accentColor)),
     ),
     errorBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(7),

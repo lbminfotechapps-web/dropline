@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:dropline/core/utility/widgets/appbar.dart';
 import 'package:dropline/features/masterFlow/presentation/pages/handover_action_pages.dart';
@@ -26,7 +27,7 @@ class _HandoverDetailsPageState extends State<HandoverDetailsPage> {
   static const Color _surface = AppColors.surface;
   static const Color _border = AppColors.border;
   static const Color _muted = AppColors.textSecondary;
-  static const Color _lime = Color(0xFFB5FF65);
+  static const Color _primaryAccent = AppColors.primary;
   static const Color _blue = Color(0xFFA7D3FF);
 
   bool showDetails = true;
@@ -177,12 +178,12 @@ class _HandoverDetailsPageState extends State<HandoverDetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: context.backgroundColor(_bg),
 
       appBar: CustomAppBar(
         title: apartment,
         subtitle: building,
-        backgroundColor: _bg,
+        backgroundColor: context.backgroundColor(_bg),
         onBackPressed: () => Navigator.pop(context),
       ),
 
@@ -195,8 +196,8 @@ class _HandoverDetailsPageState extends State<HandoverDetailsPage> {
                 // Company handover heading
                 Text(
                   '$startingCompany  →  $receivingCompany',
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: context.foregroundColor(Colors.white),
                     fontSize: 17,
                     fontWeight: FontWeight.w800,
                   ),
@@ -214,7 +215,7 @@ class _HandoverDetailsPageState extends State<HandoverDetailsPage> {
 
                 const SizedBox(height: 14),
 
-                const Divider(height: 1, color: _border),
+                Divider(height: 1, color: context.borderColor(_border)),
 
                 const SizedBox(height: 13),
 
@@ -227,16 +228,19 @@ class _HandoverDetailsPageState extends State<HandoverDetailsPage> {
                   },
                   child: Row(
                     children: [
-                      const Text(
+                      Text(
                         'View details',
-                        style: TextStyle(color: _blue, fontSize: 12),
+                        style: TextStyle(
+                          color: context.linkColor(_blue),
+                          fontSize: 12,
+                        ),
                       ),
                       const SizedBox(width: 7),
                       Icon(
                         showDetails
                             ? Icons.keyboard_arrow_up
                             : Icons.keyboard_arrow_down,
-                        color: _blue,
+                        color: context.linkColor(_blue),
                         size: 18,
                       ),
                     ],
@@ -246,9 +250,12 @@ class _HandoverDetailsPageState extends State<HandoverDetailsPage> {
                 if (showDetails) ...[
                   const SizedBox(height: 13),
 
-                  const Text(
+                  Text(
                     'Apartment finishes · Laxmi Gauri · Ref AF-003',
-                    style: TextStyle(color: _blue, fontSize: 11),
+                    style: TextStyle(
+                      color: context.linkColor(_blue),
+                      fontSize: 11,
+                    ),
                   ),
 
                   const SizedBox(height: 13),
@@ -257,17 +264,17 @@ class _HandoverDetailsPageState extends State<HandoverDetailsPage> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(13),
                     decoration: BoxDecoration(
-                      color: _surface,
+                      color: context.surfaceColor(_surface),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: _border),
+                      border: Border.all(color: context.borderColor(_border)),
                     ),
-                    child: const Column(
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'What they sent',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: context.foregroundColor(Colors.white),
                             fontSize: 14,
                             fontWeight: FontWeight.w800,
                           ),
@@ -275,7 +282,7 @@ class _HandoverDetailsPageState extends State<HandoverDetailsPage> {
                         SizedBox(height: 9),
                         Text(
                           'Apartment 305 is ready for plastering.',
-                          style: TextStyle(color: Colors.white, fontSize: 13),
+                          style: TextStyle(color: context.foregroundColor(Colors.white), fontSize: 13),
                         ),
                       ],
                     ),
@@ -313,11 +320,11 @@ class _HandoverDetailsPageState extends State<HandoverDetailsPage> {
                           ),
                         );
                       },
-                      child: const Expanded(
+                      child: Expanded(
                         child: Text(
                           'Work route',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: context.foregroundColor(Colors.white),
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
                           ),
@@ -326,7 +333,10 @@ class _HandoverDetailsPageState extends State<HandoverDetailsPage> {
                     ),
                     Text(
                       '0/4 activities finished',
-                      style: const TextStyle(color: _blue, fontSize: 11),
+                      style: TextStyle(
+                        color: context.linkColor(_blue),
+                        fontSize: 11,
+                      ),
                     ),
                   ],
                 ),
@@ -340,15 +350,22 @@ class _HandoverDetailsPageState extends State<HandoverDetailsPage> {
                 ),
 
                 // Finish area
-                const Padding(
+                Padding(
                   padding: EdgeInsets.fromLTRB(22, 12, 0, 20),
                   child: Row(
                     children: [
-                      Icon(Icons.flag_outlined, color: _muted, size: 17),
+                      Icon(
+                        Icons.flag_outlined,
+                        color: context.mutedColor(_muted),
+                        size: 17,
+                      ),
                       SizedBox(width: 9),
                       Text(
                         'Finish the area',
-                        style: TextStyle(color: _blue, fontSize: 12),
+                        style: TextStyle(
+                          color: context.linkColor(_blue),
+                          fontSize: 12,
+                        ),
                       ),
                     ],
                   ),
@@ -376,10 +393,14 @@ class _HandoverDetailsPageState extends State<HandoverDetailsPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: isCurrent ? const Color(0xFF153B40) : _surface,
+        color: isCurrent
+            ? const Color(0xFF153B40)
+            : context.surfaceColor(_surface),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isCurrent ? const Color(0xFF77AE49) : _border,
+          color: isCurrent
+              ? AppColors.primaryBorder
+              : context.borderColor(_border),
           width: 1,
           style: isHold ? BorderStyle.solid : BorderStyle.solid,
         ),
@@ -400,12 +421,12 @@ class _HandoverDetailsPageState extends State<HandoverDetailsPage> {
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: isCurrent && isActivity
-                          ? _lime
+                          ? _primaryAccent
                           : const Color(0xFF1C4254),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: isCurrent && isActivity
-                            ? _lime
+                            ? _primaryAccent
                             : const Color(0xFF456477),
                       ),
                     ),
@@ -415,7 +436,7 @@ class _HandoverDetailsPageState extends State<HandoverDetailsPage> {
                             style: TextStyle(
                               color: isCurrent
                                   ? const Color(0xFF092537)
-                                  : _blue,
+                                  : context.linkColor(_blue),
                               fontSize: 12,
                               fontWeight: FontWeight.w800,
                             ),
@@ -423,7 +444,7 @@ class _HandoverDetailsPageState extends State<HandoverDetailsPage> {
                         : Icon(
                             Icons.sync_alt,
                             size: 18,
-                            color: isCurrent ? _lime : _blue,
+                            color: isCurrent ? context.accentColor(_primaryAccent) : context.linkColor(_blue),
                           ),
                   ),
 
@@ -437,7 +458,7 @@ class _HandoverDetailsPageState extends State<HandoverDetailsPage> {
                         Text(
                           item.title,
                           style: TextStyle(
-                            color: Colors.white,
+                            color: context.foregroundColor(Colors.white),
                             fontSize: 13,
                             fontWeight: isHold
                                 ? FontWeight.w600
@@ -449,7 +470,10 @@ class _HandoverDetailsPageState extends State<HandoverDetailsPage> {
                           item.subtitle,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: _blue, fontSize: 10),
+                          style: TextStyle(
+                            color: context.linkColor(_blue),
+                            fontSize: 10,
+                          ),
                         ),
                       ],
                     ),
@@ -465,7 +489,7 @@ class _HandoverDetailsPageState extends State<HandoverDetailsPage> {
                       isExpanded
                           ? Icons.keyboard_arrow_up
                           : Icons.keyboard_arrow_down,
-                      color: _muted,
+                      color: context.mutedColor(_muted),
                       size: 17,
                     ),
                   ],
@@ -476,14 +500,17 @@ class _HandoverDetailsPageState extends State<HandoverDetailsPage> {
 
           // Expanded handover information
           if (isExpanded && item.detail != null) ...[
-            const Divider(height: 1, color: _border),
+            Divider(height: 1, color: context.borderColor(_border)),
             Padding(
               padding: const EdgeInsets.fromLTRB(10, 12, 10, 14),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
                   item.detail!,
-                  style: const TextStyle(color: _blue, fontSize: 11),
+                  style: TextStyle(
+                    color: context.linkColor(_blue),
+                    fontSize: 11,
+                  ),
                 ),
               ),
             ),
@@ -501,14 +528,14 @@ class _HandoverDetailsPageState extends State<HandoverDetailsPage> {
         borderRadius: BorderRadius.circular(6),
         border: Border.all(
           color: highlighted
-              ? const Color(0xFF568047)
+              ? AppColors.primaryBorder
               : const Color(0xFF386078),
         ),
       ),
       child: Text(
         title,
         style: TextStyle(
-          color: highlighted ? _lime : _blue,
+          color: highlighted ? context.accentColor(_primaryAccent) : context.linkColor(_blue),
           fontSize: 10,
           fontWeight: FontWeight.w700,
         ),
@@ -520,9 +547,9 @@ class _HandoverDetailsPageState extends State<HandoverDetailsPage> {
     return Container(
       margin: const EdgeInsets.fromLTRB(4, 0, 4, 0),
       decoration: BoxDecoration(
-        color: _surface,
+        color: context.surfaceColor(_surface),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _border),
+        border: Border.all(color: context.borderColor(_border)),
       ),
       child: Column(
         children: [
@@ -536,18 +563,21 @@ class _HandoverDetailsPageState extends State<HandoverDetailsPage> {
               padding: const EdgeInsets.all(12),
               child: Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.access_time_outlined,
-                    color: _blue,
+                    color: context.linkColor(_blue),
                     size: 16,
                   ),
 
                   const SizedBox(width: 8),
 
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       'Work updates',
-                      style: TextStyle(color: _blue, fontSize: 12),
+                      style: TextStyle(
+                        color: context.linkColor(_blue),
+                        fontSize: 12,
+                      ),
                     ),
                   ),
 
@@ -555,7 +585,7 @@ class _HandoverDetailsPageState extends State<HandoverDetailsPage> {
                     showUpdates
                         ? Icons.keyboard_arrow_up
                         : Icons.keyboard_arrow_down,
-                    color: _blue,
+                    color: context.linkColor(_blue),
                     size: 18,
                   ),
                 ],
@@ -564,14 +594,17 @@ class _HandoverDetailsPageState extends State<HandoverDetailsPage> {
           ),
 
           if (showUpdates)
-            const Padding(
+            Padding(
               padding: EdgeInsets.fromLTRB(18, 4, 14, 15),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
                     padding: EdgeInsets.only(top: 6),
-                    child: CircleAvatar(radius: 4, backgroundColor: _blue),
+                    child: CircleAvatar(
+                      radius: 4,
+                      backgroundColor: context.linkColor(_blue),
+                    ),
                   ),
 
                   SizedBox(width: 7),
@@ -583,7 +616,7 @@ class _HandoverDetailsPageState extends State<HandoverDetailsPage> {
                         Text(
                           'Flow started',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: context.foregroundColor(Colors.white),
                             fontSize: 12,
                             fontWeight: FontWeight.w800,
                           ),
@@ -591,12 +624,15 @@ class _HandoverDetailsPageState extends State<HandoverDetailsPage> {
                         SizedBox(height: 4),
                         Text(
                           'Apex Build · 15 Nov · 08:30',
-                          style: TextStyle(color: _blue, fontSize: 10),
+                          style: TextStyle(
+                            color: context.linkColor(_blue),
+                            fontSize: 10,
+                          ),
                         ),
                         SizedBox(height: 6),
                         Text(
                           'With Apex Build for the first handover to PlasterCo.',
-                          style: TextStyle(color: Colors.white, fontSize: 12),
+                          style: TextStyle(color: context.foregroundColor(Colors.white), fontSize: 12),
                         ),
                       ],
                     ),
@@ -612,9 +648,11 @@ class _HandoverDetailsPageState extends State<HandoverDetailsPage> {
   Widget _buildBottomActions() {
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 9, 12, 8),
-      decoration: const BoxDecoration(
-        color: _bg,
-        border: Border(top: BorderSide(color: _border, width: 0.7)),
+      decoration: BoxDecoration(
+        color: context.backgroundColor(_bg),
+        border: Border(
+          top: BorderSide(color: context.borderColor(_border), width: 0.7),
+        ),
       ),
       child: SafeArea(
         top: false,
@@ -654,7 +692,7 @@ class _HandoverDetailsPageState extends State<HandoverDetailsPage> {
                   icon: const Icon(Icons.check, size: 17),
                   label: const Text('Accept area'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _lime,
+                    backgroundColor: _primaryAccent,
                     foregroundColor: const Color(0xFF092537),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
@@ -716,7 +754,7 @@ class AcceptAreaFlowPage extends StatefulWidget {
 }
 
 class _AcceptAreaFlowPageState extends State<AcceptAreaFlowPage> {
-  static const Color _lime = Color(0xFFB5FF65);
+  static const Color _primaryAccent = AppColors.primary;
   static const Color _blue = Color(0xFFA7D3FF);
 
   final TextEditingController noteController = TextEditingController();
@@ -789,7 +827,7 @@ class _AcceptAreaFlowPageState extends State<AcceptAreaFlowPage> {
   Future<void> openAttachmentSheet() async {
     await showModalBottomSheet<void>(
       context: context,
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.surfaceColor(AppColors.surface),
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
@@ -804,11 +842,11 @@ class _AcceptAreaFlowPageState extends State<AcceptAreaFlowPage> {
               children: [
                 Row(
                   children: [
-                    const Expanded(
+                    Expanded(
                       child: Text(
                         'Add to handover',
                         style: TextStyle(
-                          color: AppColors.textPrimary,
+                          color: context.foregroundColor(AppColors.textPrimary),
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
                         ),
@@ -817,9 +855,9 @@ class _AcceptAreaFlowPageState extends State<AcceptAreaFlowPage> {
 
                     IconButton(
                       onPressed: () => Navigator.pop(sheetContext),
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.close,
-                        color: AppColors.textPrimary,
+                        color: context.foregroundColor(AppColors.textPrimary),
                       ),
                     ),
                   ],
@@ -871,25 +909,32 @@ class _AcceptAreaFlowPageState extends State<AcceptAreaFlowPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 7),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.surfaceColor(AppColors.surface),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.borderColor(AppColors.border)),
       ),
       child: ListTile(
         onTap: onTap,
-        leading: Icon(icon, color: _blue, size: 20),
+        leading: Icon(icon, color: context.linkColor(_blue), size: 20),
         title: Text(
           title,
-          style: const TextStyle(
-            color: AppColors.textPrimary,
+          style: TextStyle(
+            color: context.foregroundColor(AppColors.textPrimary),
             fontSize: 13,
             fontWeight: FontWeight.w700,
           ),
         ),
         subtitle: subtitle != null
-            ? Text(subtitle, style: const TextStyle(color: _blue, fontSize: 10))
+            ? Text(
+                subtitle,
+                style: TextStyle(color: context.linkColor(_blue), fontSize: 10),
+              )
             : null,
-        trailing: const Icon(Icons.chevron_right, color: _blue, size: 20),
+        trailing: Icon(
+          Icons.chevron_right,
+          color: context.linkColor(_blue),
+          size: 20,
+        ),
       ),
     );
   }
@@ -990,7 +1035,7 @@ class _AcceptAreaFlowPageState extends State<AcceptAreaFlowPage> {
     //         onPressed: () =>
     //             Navigator.pop(dialogContext, true),
     //         style: ElevatedButton.styleFrom(
-    //           backgroundColor: _lime,
+    //           backgroundColor: _primaryAccent,
     //           foregroundColor:
     //               const Color(0xFF092537),
     //         ),
@@ -1028,13 +1073,13 @@ class _AcceptAreaFlowPageState extends State<AcceptAreaFlowPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.backgroundColor(AppColors.background),
       resizeToAvoidBottomInset: true,
 
       appBar: CustomAppBar(
         title: 'Accept area',
         subtitle: projectName,
-        backgroundColor: AppColors.background,
+        backgroundColor: context.backgroundColor(AppColors.background),
         onBackPressed: () => Navigator.pop(context),
       ),
 
@@ -1050,13 +1095,15 @@ class _AcceptAreaFlowPageState extends State<AcceptAreaFlowPage> {
                 height: 36,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: context.surfaceColor(AppColors.surface),
                   borderRadius: BorderRadius.circular(9),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(
+                    color: context.borderColor(AppColors.border),
+                  ),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.location_on_outlined,
-                  color: _blue,
+                  color: context.linkColor(_blue),
                   size: 19,
                 ),
               ),
@@ -1069,8 +1116,8 @@ class _AcceptAreaFlowPageState extends State<AcceptAreaFlowPage> {
                   children: [
                     Text(
                       area,
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
+                      style: TextStyle(
+                        color: context.foregroundColor(AppColors.textPrimary),
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
                         height: 1.3,
@@ -1081,7 +1128,10 @@ class _AcceptAreaFlowPageState extends State<AcceptAreaFlowPage> {
 
                     Text(
                       '$activityCode · $activityName  ·  Visit $visitNumber',
-                      style: const TextStyle(color: _blue, fontSize: 11),
+                      style: TextStyle(
+                        color: context.linkColor(_blue),
+                        fontSize: 11,
+                      ),
                     ),
                   ],
                 ),
@@ -1096,23 +1146,26 @@ class _AcceptAreaFlowPageState extends State<AcceptAreaFlowPage> {
             height: 42,
             padding: const EdgeInsets.symmetric(horizontal: 11),
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: context.surfaceColor(AppColors.surface),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: context.borderColor(AppColors.border)),
             ),
             child: Row(
               children: [
-                const Text(
+                Text(
                   'Taking over from',
-                  style: TextStyle(color: _blue, fontSize: 12),
+                  style: TextStyle(
+                    color: context.linkColor(_blue),
+                    fontSize: 12,
+                  ),
                 ),
 
                 const Spacer(),
 
                 Text(
                   startingCompany,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
+                  style: TextStyle(
+                    color: context.foregroundColor(AppColors.textPrimary),
                     fontSize: 13,
                     fontWeight: FontWeight.w800,
                   ),
@@ -1124,10 +1177,10 @@ class _AcceptAreaFlowPageState extends State<AcceptAreaFlowPage> {
           const SizedBox(height: 15),
 
           // Taking over check sheet
-          const Text(
+          Text(
             'Taking over check sheet',
             style: TextStyle(
-              color: AppColors.textPrimary,
+              color: context.foregroundColor(AppColors.textPrimary),
               fontSize: 12,
               fontWeight: FontWeight.w700,
             ),
@@ -1141,12 +1194,12 @@ class _AcceptAreaFlowPageState extends State<AcceptAreaFlowPage> {
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: context.surfaceColor(AppColors.surface),
                 borderRadius: BorderRadius.circular(11),
                 border: Border.all(
                   color: answersSaved
-                      ? const Color(0xFF77AE49)
-                      : AppColors.border,
+                      ? AppColors.primaryBorder
+                      : context.borderColor(AppColors.border),
                 ),
               ),
               child: Row(
@@ -1159,9 +1212,9 @@ class _AcceptAreaFlowPageState extends State<AcceptAreaFlowPage> {
                       color: const Color(0xFF244A39),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.assignment_turned_in_outlined,
-                      color: _lime,
+                      color: context.accentColor(_primaryAccent),
                       size: 20,
                     ),
                   ),
@@ -1172,10 +1225,12 @@ class _AcceptAreaFlowPageState extends State<AcceptAreaFlowPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'CS-01 · Plastering area check',
                           style: TextStyle(
-                            color: AppColors.textPrimary,
+                            color: context.foregroundColor(
+                              AppColors.textPrimary,
+                            ),
                             fontSize: 13,
                             fontWeight: FontWeight.w800,
                           ),
@@ -1188,7 +1243,9 @@ class _AcceptAreaFlowPageState extends State<AcceptAreaFlowPage> {
                               ? 'Answers saved'
                               : 'Tap to answer · Required',
                           style: TextStyle(
-                            color: answersSaved ? _lime : _blue,
+                            color: answersSaved
+                                ? context.accentColor(_primaryAccent)
+                                : context.linkColor(_blue),
                             fontSize: 11,
                           ),
                         ),
@@ -1198,7 +1255,7 @@ class _AcceptAreaFlowPageState extends State<AcceptAreaFlowPage> {
 
                   Icon(
                     answersSaved ? Icons.check : Icons.chevron_right,
-                    color: answersSaved ? _lime : _blue,
+                    color: answersSaved ? context.accentColor(_primaryAccent) : context.linkColor(_blue),
                     size: 20,
                   ),
                 ],
@@ -1209,10 +1266,10 @@ class _AcceptAreaFlowPageState extends State<AcceptAreaFlowPage> {
           const SizedBox(height: 17),
 
           // Optional note
-          const Text(
+          Text(
             'Note (optional)',
             style: TextStyle(
-              color: AppColors.textPrimary,
+              color: context.foregroundColor(AppColors.textPrimary),
               fontSize: 12,
               fontWeight: FontWeight.w700,
             ),
@@ -1224,20 +1281,28 @@ class _AcceptAreaFlowPageState extends State<AcceptAreaFlowPage> {
             controller: noteController,
             minLines: 3,
             maxLines: 3,
-            style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+            style: TextStyle(
+              color: context.foregroundColor(AppColors.textPrimary),
+              fontSize: 14,
+            ),
             decoration: InputDecoration(
               hintText: 'Add a note if needed.',
-              hintStyle: const TextStyle(color: _blue, fontSize: 14),
+              hintStyle: TextStyle(
+                color: context.linkColor(_blue),
+                fontSize: 14,
+              ),
               filled: true,
-              fillColor: AppColors.background,
+              fillColor: context.backgroundColor(AppColors.background),
               contentPadding: const EdgeInsets.all(12),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: AppColors.border),
+                borderSide: BorderSide(
+                  color: context.borderColor(AppColors.border),
+                ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: _lime, width: 1.5),
+                borderSide: BorderSide(color: context.accentColor(_primaryAccent), width: 1.5),
               ),
             ),
           ),
@@ -1248,17 +1313,17 @@ class _AcceptAreaFlowPageState extends State<AcceptAreaFlowPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: context.surfaceColor(AppColors.surface),
               borderRadius: BorderRadius.circular(11),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: context.borderColor(AppColors.border)),
             ),
             child: Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
                     'Photos and files',
                     style: TextStyle(
-                      color: AppColors.textPrimary,
+                      color: context.foregroundColor(AppColors.textPrimary),
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
                     ),
@@ -1272,8 +1337,10 @@ class _AcceptAreaFlowPageState extends State<AcceptAreaFlowPage> {
                     icon: const Icon(Icons.add, size: 18),
                     label: const Text('Add'),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: _blue,
-                      side: const BorderSide(color: AppColors.border),
+                      foregroundColor: context.linkColor(_blue),
+                      side: BorderSide(
+                        color: context.borderColor(AppColors.border),
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -1298,13 +1365,19 @@ class _AcceptAreaFlowPageState extends State<AcceptAreaFlowPage> {
                   vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: context.surfaceColor(AppColors.surface),
                   borderRadius: BorderRadius.circular(9),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(
+                    color: context.borderColor(AppColors.border),
+                  ),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.attach_file, color: _blue, size: 18),
+                    Icon(
+                      Icons.attach_file,
+                      color: context.linkColor(_blue),
+                      size: 18,
+                    ),
 
                     const SizedBox(width: 8),
 
@@ -1313,8 +1386,8 @@ class _AcceptAreaFlowPageState extends State<AcceptAreaFlowPage> {
                         fileName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
+                        style: TextStyle(
+                          color: context.foregroundColor(AppColors.textPrimary),
                           fontSize: 12,
                         ),
                       ),
@@ -1343,7 +1416,7 @@ class _AcceptAreaFlowPageState extends State<AcceptAreaFlowPage> {
           // Information text
           Text(
             'The area moves to ${widget.companyName} when you confirm.',
-            style: const TextStyle(color: _blue, fontSize: 12),
+            style: TextStyle(color: context.linkColor(_blue), fontSize: 12),
           ),
         ],
       ),
@@ -1351,9 +1424,14 @@ class _AcceptAreaFlowPageState extends State<AcceptAreaFlowPage> {
       // Fixed bottom button
       bottomNavigationBar: Container(
         padding: const EdgeInsets.fromLTRB(7, 10, 7, 8),
-        decoration: const BoxDecoration(
-          color: AppColors.background,
-          border: Border(top: BorderSide(color: AppColors.border, width: 0.7)),
+        decoration: BoxDecoration(
+          color: context.backgroundColor(AppColors.background),
+          border: Border(
+            top: BorderSide(
+              color: context.borderColor(AppColors.border),
+              width: 0.7,
+            ),
+          ),
         ),
         child: SafeArea(
           top: false,
@@ -1372,10 +1450,10 @@ class _AcceptAreaFlowPageState extends State<AcceptAreaFlowPage> {
               ),
 
               style: ElevatedButton.styleFrom(
-                backgroundColor: _lime,
+                backgroundColor: _primaryAccent,
                 foregroundColor: const Color(0xFF092537),
                 disabledBackgroundColor: const Color(0xFF284853),
-                disabledForegroundColor: _blue,
+                disabledForegroundColor: context.linkColor(_blue),
                 elevation: 0,
                 textStyle: const TextStyle(
                   fontSize: 13,
@@ -1406,7 +1484,7 @@ class AreaAcceptedPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.backgroundColor(AppColors.background),
       appBar: CustomAppBar(title: 'Handover saved', subtitle: companyName),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(12, 40, 12, 20),
@@ -1418,21 +1496,21 @@ class AreaAcceptedPage extends StatelessWidget {
               decoration: BoxDecoration(
                 color: const Color(0xFF214536),
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFF548D45)),
+                border: Border.all(color: AppColors.primaryBorder),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.check,
-                color: Color(0xFFB5FF65),
+                color: context.accentColor(AppColors.primary),
                 size: 28,
               ),
             ),
           ),
           const SizedBox(height: 17),
-          const Text(
+          Text(
             'Area accepted',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: AppColors.textPrimary,
+              color: context.foregroundColor(AppColors.textPrimary),
               fontSize: 24,
               fontWeight: FontWeight.w800,
             ),
@@ -1446,8 +1524,8 @@ class AreaAcceptedPage extends StatelessWidget {
           const SizedBox(height: 30),
           Text(
             handover['area'] ?? '',
-            style: const TextStyle(
-              color: AppColors.textPrimary,
+            style: TextStyle(
+              color: context.foregroundColor(AppColors.textPrimary),
               fontSize: 18,
               fontWeight: FontWeight.w800,
             ),
@@ -1475,7 +1553,7 @@ class AreaAcceptedPage extends StatelessWidget {
             child: ElevatedButton(
               onPressed: () => Navigator.pop(context, 'accepted'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFB5FF65),
+                backgroundColor: AppColors.primary,
                 foregroundColor: const Color(0xFF092537),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(11),

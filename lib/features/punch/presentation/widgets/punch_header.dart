@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:flutter/material.dart';
 
@@ -27,13 +28,13 @@ class PunchHeader extends StatelessWidget {
             width: 43,
             height: 43,
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: context.surfaceColor(AppColors.surface),
               borderRadius: BorderRadius.circular(13),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: context.borderColor(AppColors.border)),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.arrow_back_rounded,
-              color: AppColors.textPrimary,
+              color: context.foregroundColor(AppColors.textPrimary),
               size: 23,
             ),
           ),
@@ -49,8 +50,8 @@ class PunchHeader extends StatelessWidget {
                 title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
+                style: TextStyle(
+                  color: context.foregroundColor(AppColors.textPrimary),
                   fontSize: 19,
                   fontWeight: FontWeight.w500,
                 ),
@@ -64,24 +65,26 @@ class PunchHeader extends StatelessWidget {
                   vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: context.surfaceColor(AppColors.surface),
                   borderRadius: BorderRadius.circular(9),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(
+                    color: context.borderColor(AppColors.border),
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.work_outline_rounded,
                       size: 14,
-                      color: AppColors.iconColor,
+                      color: context.linkColor(AppColors.iconColor),
                     ),
                     const SizedBox(width: 6),
                     Text(
                       workspace,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: AppColors.textSecondary,
+                        color: context.mutedColor(AppColors.textSecondary),
                       ),
                     ),
                   ],

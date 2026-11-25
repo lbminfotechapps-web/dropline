@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'dart:io';
 
 import 'package:country_code_picker/country_code_picker.dart';
@@ -136,7 +137,7 @@ class _PersonalDetailsPageState extends State<PersonalDetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.backgroundColor(AppColors.background),
       resizeToAvoidBottomInset: true,
       appBar: const CustomAppBar(title: 'Personal details'),
       body: ConstrainedBox(
@@ -176,29 +177,35 @@ class _PersonalDetailsPageState extends State<PersonalDetailsPage> {
                           showDropDownButton: true,
                           flagWidth: 22,
                           padding: const EdgeInsets.only(left: 8),
-                          textStyle: const TextStyle(
-                            color: AppColors.textPrimary,
+                          textStyle: TextStyle(
+                            color: context.foregroundColor(
+                              AppColors.textPrimary,
+                            ),
                             fontSize: 14,
                           ),
-                          dialogBackgroundColor: AppColors.surface,
-                          dialogTextStyle: const TextStyle(
-                            color: Colors.white,
+                          dialogBackgroundColor: context.surfaceColor(
+                            AppColors.surface,
+                          ),
+                          dialogTextStyle: TextStyle(
+                            color: context.foregroundColor(Colors.white),
                             fontSize: 14,
                           ),
-                          searchStyle: const TextStyle(color: Colors.white),
-                          headerTextStyle: const TextStyle(
-                            color: Colors.white,
+                          searchStyle: TextStyle(
+                            color: context.foregroundColor(Colors.white),
+                          ),
+                          headerTextStyle: TextStyle(
+                            color: context.foregroundColor(Colors.white),
                             fontSize: 18,
                             fontWeight: FontWeight.w500,
                           ),
-                          closeIcon: const Icon(
+                          closeIcon: Icon(
                             Icons.close,
-                            color: Colors.white,
+                            color: context.foregroundColor(Colors.white),
                           ),
-                          searchDecoration: const InputDecoration(
+                          searchDecoration: InputDecoration(
                             hintText: 'Search country or code',
-                            hintStyle: TextStyle(color: Colors.white70),
-                            prefixIcon: Icon(Icons.search, color: Colors.white),
+                            hintStyle: TextStyle(color: context.mutedColor(Colors.white70)),
+                            prefixIcon: Icon(Icons.search, color: context.foregroundColor(Colors.white)),
                           ),
                           onChanged: (country) {
                             final code = country.code;
@@ -277,31 +284,34 @@ class _PersonalDetailsPageState extends State<PersonalDetailsPage> {
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.surface,
-              border: Border.all(color: AppColors.border, width: 1.5),
+              color: context.surfaceColor(AppColors.surface),
+              border: Border.all(
+                color: context.borderColor(AppColors.border),
+                width: 1.5,
+              ),
             ),
             child: _photoPath != null
                 ? Image.file(
                     File(_photoPath!),
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const Icon(
+                    errorBuilder: (_, __, ___) => Icon(
                       Icons.person_outline_rounded,
-                      color: AppColors.iconColor,
+                      color: context.linkColor(AppColors.iconColor),
                       size: 38,
                     ),
                   )
-                : const Icon(
+                : Icon(
                     Icons.person_outline_rounded,
-                    color: AppColors.iconColor,
+                    color: context.linkColor(AppColors.iconColor),
                     size: 38,
                   ),
           ),
           const SizedBox(width: 16),
-          const Expanded(
+          Expanded(
             child: Text(
               'Add photo (optional)',
               style: TextStyle(
-                color: AppColors.textPrimary,
+                color: context.foregroundColor(AppColors.textPrimary),
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
@@ -334,8 +344,8 @@ class _PersonalDetailsPageState extends State<PersonalDetailsPage> {
         children: [
           Text(
             label,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
+            style: TextStyle(
+              color: context.foregroundColor(AppColors.textPrimary),
               fontSize: 13,
               fontWeight: FontWeight.w500,
             ),
@@ -350,7 +360,10 @@ class _PersonalDetailsPageState extends State<PersonalDetailsPage> {
                 : TextCapitalization.none,
             onChanged: (_) => _markChanged(),
             cursorColor: AppColors.primary,
-            style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+            style: TextStyle(
+              color: context.foregroundColor(AppColors.textPrimary),
+              fontSize: 14,
+            ),
             validator: (value) {
               final text = (value ?? '').trim();
 
@@ -371,12 +384,12 @@ class _PersonalDetailsPageState extends State<PersonalDetailsPage> {
             decoration: InputDecoration(
               hintText: hint,
               prefixIcon: prefixIcon,
-              hintStyle: const TextStyle(
-                color: AppColors.hintText,
+              hintStyle: TextStyle(
+                color: context.mutedColor(AppColors.hintText),
                 fontSize: 13,
               ),
               filled: true,
-              fillColor: AppColors.inputBackground,
+              fillColor: context.surfaceColor(AppColors.inputBackground),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 14,
                 vertical: 14,
@@ -386,12 +399,14 @@ class _PersonalDetailsPageState extends State<PersonalDetailsPage> {
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(13),
-                borderSide: const BorderSide(color: AppColors.border),
+                borderSide: BorderSide(
+                  color: context.borderColor(AppColors.border),
+                ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(13),
-                borderSide: const BorderSide(
-                  color: AppColors.primary,
+                borderSide: BorderSide(
+                  color: context.accentColor(AppColors.primary),
                   width: 1.5,
                 ),
               ),
@@ -428,8 +443,8 @@ class _PersonalDetailsPageState extends State<PersonalDetailsPage> {
         children: [
           Text(
             label,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
+            style: TextStyle(
+              color: context.foregroundColor(AppColors.textPrimary),
               fontSize: 13,
               fontWeight: FontWeight.w500,
             ),
@@ -438,15 +453,21 @@ class _PersonalDetailsPageState extends State<PersonalDetailsPage> {
           DropdownButtonFormField<String>(
             value: value.isEmpty || !options.contains(value) ? null : value,
             isExpanded: true,
-            dropdownColor: AppColors.surface,
-            icon: const Icon(
+            dropdownColor: context.surfaceColor(AppColors.surface),
+            icon: Icon(
               Icons.keyboard_arrow_down_rounded,
-              color: AppColors.textSecondary,
+              color: context.mutedColor(AppColors.textSecondary),
             ),
-            style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+            style: TextStyle(
+              color: context.foregroundColor(AppColors.textPrimary),
+              fontSize: 14,
+            ),
             hint: Text(
               hint,
-              style: const TextStyle(color: AppColors.hintText, fontSize: 13),
+              style: TextStyle(
+                color: context.mutedColor(AppColors.hintText),
+                fontSize: 13,
+              ),
             ),
             items: options.map((option) {
               return DropdownMenuItem<String>(
@@ -459,18 +480,20 @@ class _PersonalDetailsPageState extends State<PersonalDetailsPage> {
             },
             decoration: InputDecoration(
               filled: true,
-              fillColor: AppColors.inputBackground,
+              fillColor: context.surfaceColor(AppColors.inputBackground),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 14,
                 vertical: 13,
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(13),
-                borderSide: const BorderSide(color: AppColors.border),
+                borderSide: BorderSide(
+                  color: context.borderColor(AppColors.border),
+                ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(13),
-                borderSide: const BorderSide(color: AppColors.primary),
+                borderSide: BorderSide(color: context.accentColor(AppColors.primary)),
               ),
             ),
           ),
@@ -486,9 +509,9 @@ class _PersonalDetailsPageState extends State<PersonalDetailsPage> {
   Widget _buildAddressSection() {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
+        color: context.surfaceColor(AppColors.cardBackground),
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.borderColor(AppColors.border)),
       ),
       child: Column(
         children: [
@@ -503,11 +526,11 @@ class _PersonalDetailsPageState extends State<PersonalDetailsPage> {
               padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 16),
               child: Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       'Address',
                       style: TextStyle(
-                        color: AppColors.textPrimary,
+                        color: context.foregroundColor(AppColors.textPrimary),
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
                       ),
@@ -516,9 +539,9 @@ class _PersonalDetailsPageState extends State<PersonalDetailsPage> {
                   AnimatedRotation(
                     duration: const Duration(milliseconds: 200),
                     turns: _addressExpanded ? 0.5 : 0,
-                    child: const Icon(
+                    child: Icon(
                       Icons.keyboard_arrow_down_rounded,
-                      color: AppColors.textPrimary,
+                      color: context.foregroundColor(AppColors.textPrimary),
                     ),
                   ),
                 ],
@@ -527,7 +550,7 @@ class _PersonalDetailsPageState extends State<PersonalDetailsPage> {
           ),
 
           if (_addressExpanded) ...[
-            const Divider(height: 1, color: AppColors.border),
+            Divider(height: 1, color: context.borderColor(AppColors.border)),
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 18, 14, 4),
               child: Column(
@@ -571,11 +594,11 @@ class _PersonalDetailsPageState extends State<PersonalDetailsPage> {
                       });
                     },
                   ),
-                  const Text(
+                  Text(
                     'Your address country can differ '
                     'from your country of work.',
                     style: TextStyle(
-                      color: AppColors.textSecondary,
+                      color: context.mutedColor(AppColors.textSecondary),
                       fontSize: 11,
                       height: 1.5,
                     ),
@@ -598,9 +621,11 @@ class _PersonalDetailsPageState extends State<PersonalDetailsPage> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(18, 12, 18, 14),
-      decoration: const BoxDecoration(
-        color: AppColors.background,
-        border: Border(top: BorderSide(color: AppColors.border)),
+      decoration: BoxDecoration(
+        color: context.backgroundColor(AppColors.background),
+        border: Border(
+          top: BorderSide(color: context.borderColor(AppColors.border)),
+        ),
       ),
       child: SizedBox(
         height: 51,
@@ -609,8 +634,10 @@ class _PersonalDetailsPageState extends State<PersonalDetailsPage> {
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
             foregroundColor: AppColors.primaryText,
-            disabledBackgroundColor: AppColors.disabledButton,
-            disabledForegroundColor: AppColors.disabledText,
+            disabledBackgroundColor: context.borderColor(
+              AppColors.disabledButton,
+            ),
+            disabledForegroundColor: context.mutedColor(AppColors.disabledText),
             elevation: 0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(13),

@@ -1,3 +1,5 @@
+import 'package:dropline/core/theme/appcolors.dart';
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -48,7 +50,7 @@ class _HomeShellState extends State<HomeShell> {
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFF0C2938),
+        backgroundColor: context.backgroundColor(Color(0xFF0C2938)),
         body: widget.navigationShell,
         bottomNavigationBar: SafeArea(
           top: false,
@@ -59,8 +61,8 @@ class _HomeShellState extends State<HomeShell> {
                 final item = _items[index];
                 final selected = index == currentIndex;
                 final color = selected
-                    ? const Color(0xFFB5FF65)
-                    : const Color(0xFFADC6D9);
+                    ? context.accentColor(AppColors.primary)
+                    : context.mutedColor(const Color(0xFFADC6D9));
                 return Expanded(
                   child: InkWell(
                     onTap: () => _onTabTapped(index),
@@ -74,7 +76,7 @@ class _HomeShellState extends State<HomeShell> {
                       padding: const EdgeInsets.symmetric(vertical: 6),
                       decoration: BoxDecoration(
                         color: selected
-                            ? const Color(0xFF173D47)
+                            ? context.selectedColor(const Color(0xFF173D47))
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: selected

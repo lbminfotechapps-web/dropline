@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/router/app_router.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:dropline/core/utility/widgets/app_background.dart';
@@ -119,19 +120,23 @@ class LocationListPage extends StatelessWidget {
                           sliver: SliverToBoxAdapter(
                             child: Text(
                               'Add locations inside ${subArea.name}.',
-                              style: AppTextStyles.bodyLarge.copyWith(
-                                color: AppColors.textSecondary,
-                              ),
+                              style: context
+                                  .themedText(AppTextStyles.bodyLarge)
+                                  .copyWith(
+                                    color: context.mutedColor(
+                                      AppColors.textSecondary,
+                                    ),
+                                  ),
                             ),
                           ),
                         ),
 
                         // Loading
                         if (state.isLoading)
-                          const SliverFillRemaining(
+                          SliverFillRemaining(
                             child: Center(
                               child: CircularProgressIndicator(
-                                color: AppColors.white,
+                                color: context.foregroundColor(AppColors.white),
                               ),
                             ),
                           )
@@ -146,7 +151,9 @@ class LocationListPage extends StatelessWidget {
                                     .loadLocations(),
                                 child: Text(
                                   'Unable to load locations. Retry',
-                                  style: AppTextStyles.bodyMedium,
+                                  style: context.themedText(
+                                    AppTextStyles.bodyMedium,
+                                  ),
                                 ),
                               ),
                             ),
@@ -224,9 +231,9 @@ class LocationListPage extends StatelessWidget {
                   color: AppColors.white.withValues(alpha: 0.20),
                 ),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.arrow_back_rounded,
-                color: AppColors.white,
+                color: context.foregroundColor(AppColors.white),
                 size: 24,
               ),
             ),
@@ -238,10 +245,9 @@ class LocationListPage extends StatelessWidget {
         Expanded(
           child: Text(
             'Locations',
-            style: AppTextStyles.headingLarge.copyWith(
-              fontSize: 28,
-              fontWeight: FontWeight.w500,
-            ),
+            style: context
+                .themedText(AppTextStyles.headingLarge)
+                .copyWith(fontSize: 28, fontWeight: FontWeight.w500),
           ),
         ),
       ],
@@ -294,8 +300,10 @@ class LocationListPage extends StatelessWidget {
                   //     ? null
                   //     : () => _finishSetup(context),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.white,
-                    disabledForegroundColor: AppColors.textSecondary,
+                    foregroundColor: context.foregroundColor(AppColors.white),
+                    disabledForegroundColor: context.mutedColor(
+                      AppColors.textSecondary,
+                    ),
                     side: BorderSide(
                       color: AppColors.white.withValues(alpha: 0.28),
                     ),

@@ -1,4 +1,4 @@
-
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/theme/app_text_styles.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:dropline/core/utility/widgets/appbar.dart';
@@ -12,7 +12,6 @@ import 'package:flutter/material.dart';
 // AppTextStyles
 // CheckSheetModel
 // SetupCheckSheetPage
-
 
 class SavedCheckSheetPage extends StatefulWidget {
   const SavedCheckSheetPage({
@@ -71,12 +70,12 @@ class _SavedCheckSheetPageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.backgroundColor(AppColors.background),
 
       appBar: CustomAppBar(
         title: '${currentSheet.code} · Saved',
         subtitle: widget.companyName,
-        backgroundColor: AppColors.background,
+        backgroundColor: context.backgroundColor(AppColors.background),
         onBackPressed: goBack,
       ),
 
@@ -92,14 +91,13 @@ class _SavedCheckSheetPageState
           //     fontWeight: FontWeight.w600,
           //   ),
           // ),
-
           const SizedBox(height: 6),
 
           // Check sheet title
           Text(
             currentSheet.title,
             style: AppTextStyles.custom(
-              color: AppColors.textPrimary,
+              color: context.foregroundColor(AppColors.textPrimary),
               fontSize: 21,
               fontWeight: FontWeight.w800,
             ),
@@ -114,7 +112,7 @@ class _SavedCheckSheetPageState
                 child: Text(
                   'No checklist points available',
                   style: AppTextStyles.custom(
-                    color: AppColors.textSecondary,
+                    color: context.mutedColor(AppColors.textSecondary),
                     fontSize: 13,
                   ),
                 ),
@@ -133,11 +131,11 @@ class _SavedCheckSheetPageState
 
       bottomNavigationBar: Container(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-        decoration: const BoxDecoration(
-          color: AppColors.background,
+        decoration: BoxDecoration(
+          color: context.backgroundColor(AppColors.background),
           border: Border(
             top: BorderSide(
-              color: AppColors.border,
+              color: context.borderColor(AppColors.border),
               width: 0.7,
             ),
           ),
@@ -155,7 +153,7 @@ class _SavedCheckSheetPageState
               ),
               label: const Text('Edit check sheet'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFB5FF60),
+                backgroundColor: AppColors.primary,
                 foregroundColor: const Color(0xFF092537),
                 elevation: 0,
                 textStyle: const TextStyle(
@@ -187,11 +185,9 @@ class _SavedCheckSheetPageState
         minHeight: 49,
       ),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.surfaceColor(AppColors.surface),
         borderRadius: BorderRadius.circular(11),
-        border: Border.all(
-          color: AppColors.border,
-        ),
+        border: Border.all(color: context.borderColor(AppColors.border)),
       ),
       child: Row(
         children: [
@@ -202,14 +198,12 @@ class _SavedCheckSheetPageState
             decoration: BoxDecoration(
               color: const Color(0xFF1D4256),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: AppColors.border,
-              ),
+              border: Border.all(color: context.borderColor(AppColors.border)),
             ),
             child: Text(
               '${index + 1}',
               style: AppTextStyles.custom(
-                color: AppColors.textPrimary,
+                color: context.foregroundColor(AppColors.textPrimary),
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
               ),
@@ -222,7 +216,7 @@ class _SavedCheckSheetPageState
             child: Text(
               question,
               style: AppTextStyles.custom(
-                color: AppColors.textPrimary,
+                color: context.foregroundColor(AppColors.textPrimary),
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
               ),
@@ -233,4 +227,3 @@ class _SavedCheckSheetPageState
     );
   }
 }
-

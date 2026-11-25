@@ -1,3 +1,5 @@
+import 'package:dropline/core/theme/appcolors.dart';
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -80,7 +82,7 @@ class _SelectFlowPageState extends State<SelectFlowPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    backgroundColor: _background,
+    backgroundColor: context.backgroundColor(_background),
     body: SafeArea(
       bottom: false,
       child: Column(
@@ -97,9 +99,11 @@ class _SelectFlowPageState extends State<SelectFlowPage> {
                     tooltip: 'Back to handovers',
                     onPressed: () => Navigator.pop(context),
                     style: IconButton.styleFrom(
-                      foregroundColor: _muted,
-                      backgroundColor: const Color(0xFF153142),
-                      side: const BorderSide(color: _border),
+                      foregroundColor: context.mutedColor(_muted),
+                      backgroundColor: context.backgroundColor(
+                        Color(0xFF153142),
+                      ),
+                      side: BorderSide(color: context.borderColor(_border)),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(11),
                       ),
@@ -112,10 +116,10 @@ class _SelectFlowPageState extends State<SelectFlowPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Select flow',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: context.foregroundColor(Colors.white),
                           fontSize: 25,
                           fontWeight: FontWeight.w700,
                           height: 1.2,
@@ -125,8 +129,8 @@ class _SelectFlowPageState extends State<SelectFlowPage> {
                       const SizedBox(height: 4),
                       Text(
                         widget.projectName,
-                        style: const TextStyle(
-                          color: _muted,
+                        style: TextStyle(
+                          color: context.mutedColor(_muted),
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
                         ),
@@ -137,7 +141,7 @@ class _SelectFlowPageState extends State<SelectFlowPage> {
               ],
             ),
           ),
-          const Divider(height: 1, color: _border),
+          Divider(height: 1, color: context.borderColor(_border)),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
@@ -152,47 +156,47 @@ class _SelectFlowPageState extends State<SelectFlowPage> {
                           vertical: 5,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF233F36),
+                          color: context.selectedColor(const Color(0xFF233F36)),
                           borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: const Color(0xFF5E8249)),
+                          border: Border.all(color: AppColors.primaryBorder),
                         ),
-                        child: const Text(
+                        child: Text(
                           '1. Flow',
                           style: TextStyle(
-                            color: Color(0xFFD2F4AD),
+                            color: context.accentColor(AppColors.primarySoft),
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
-                      const Padding(
+                      Padding(
                         padding: EdgeInsets.symmetric(horizontal: 9),
                         child: Icon(
                           Icons.chevron_right_rounded,
                           size: 16,
-                          color: _muted,
+                          color: context.mutedColor(_muted),
                         ),
                       ),
-                      const Text(
+                      Text(
                         '2. Area',
                         style: TextStyle(
-                          color: _muted,
+                          color: context.mutedColor(_muted),
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const Padding(
+                      Padding(
                         padding: EdgeInsets.symmetric(horizontal: 9),
                         child: Icon(
                           Icons.chevron_right_rounded,
                           size: 16,
-                          color: _muted,
+                          color: context.mutedColor(_muted),
                         ),
                       ),
-                      const Text(
+                      Text(
                         '3. Send',
                         style: TextStyle(
-                          color: _muted,
+                          color: context.mutedColor(_muted),
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                         ),
@@ -201,9 +205,12 @@ class _SelectFlowPageState extends State<SelectFlowPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'Which saved flow do you want to start?',
-                  style: TextStyle(color: _muted, fontSize: 12),
+                  style: TextStyle(
+                    color: context.mutedColor(_muted),
+                    fontSize: 12,
+                  ),
                 ),
                 const SizedBox(height: 14),
                 if (_loading)
@@ -214,11 +221,11 @@ class _SelectFlowPageState extends State<SelectFlowPage> {
                 else if (_error != null)
                   TextButton(onPressed: _load, child: Text(_error!))
                 else if (_flows.isEmpty) ...[
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.symmetric(vertical: 24),
                     child: Text(
                       'No saved flows yet.',
-                      style: TextStyle(color: _muted),
+                      style: TextStyle(color: context.mutedColor(_muted)),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -235,7 +242,7 @@ class _SelectFlowPageState extends State<SelectFlowPage> {
                         color: const Color(0xFF102734),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(11),
-                          side: const BorderSide(color: _border),
+                          side: BorderSide(color: context.borderColor(_border)),
                         ),
                         clipBehavior: Clip.antiAlias,
                         child: InkWell(
@@ -247,10 +254,10 @@ class _SelectFlowPageState extends State<SelectFlowPage> {
                             ),
                             child: Row(
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.account_tree_outlined,
                                   size: 18,
-                                  color: _muted,
+                                  color: context.mutedColor(_muted),
                                 ),
                                 const SizedBox(width: 10),
                                 Expanded(
@@ -260,8 +267,10 @@ class _SelectFlowPageState extends State<SelectFlowPage> {
                                     children: [
                                       Text(
                                         flow.name,
-                                        style: const TextStyle(
-                                          color: Colors.white,
+                                        style: TextStyle(
+                                          color: context.foregroundColor(
+                                            Colors.white,
+                                          ),
                                           fontSize: 15,
                                           fontWeight: FontWeight.w600,
                                         ),
@@ -269,8 +278,8 @@ class _SelectFlowPageState extends State<SelectFlowPage> {
                                       const SizedBox(height: 3),
                                       Text(
                                         '${flow.startingCompany.isEmpty ? 'Unassigned company' : '${flow.startingCompany} starts'} · ${flow.activities.length} ${flow.activities.length == 1 ? 'activity' : 'activities'}',
-                                        style: const TextStyle(
-                                          color: _muted,
+                                        style: TextStyle(
+                                          color: context.mutedColor(_muted),
                                           fontSize: 12,
                                           fontWeight: FontWeight.w500,
                                         ),
@@ -279,10 +288,10 @@ class _SelectFlowPageState extends State<SelectFlowPage> {
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-                                const Icon(
+                                Icon(
                                   Icons.chevron_right_rounded,
                                   size: 20,
-                                  color: _muted,
+                                  color: context.mutedColor(_muted),
                                 ),
                               ],
                             ),

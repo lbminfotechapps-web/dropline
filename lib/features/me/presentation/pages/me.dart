@@ -1,3 +1,5 @@
+import 'package:dropline/core/theme/appcolors.dart';
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/features/project_setup/presentation/pages/project_setup_pages.dart';
 
 import '../../domain/entities/project_entity.dart';
@@ -38,7 +40,7 @@ class _MePageState extends State<MePage> {
   static const _surface = Color(0xFF0D3042);
   static const _border = Color(0xFF31576B);
   static const _muted = Color(0xFF8EB5C9);
-  static const _lime = Color(0xFFB5FF65);
+  static const _primaryAccent = AppColors.primary;
   String _category = 'All';
   String _query = '';
   String _language = 'English';
@@ -66,26 +68,28 @@ class _MePageState extends State<MePage> {
     } else {
       project = await showModalBottomSheet<ProjectEntity>(
         context: context,
-        backgroundColor: _surface,
+        backgroundColor: context.surfaceColor(_surface),
         builder: (context) => SafeArea(
           child: ListView(
             shrinkWrap: true,
             children: [
-              const ListTile(
+              ListTile(
                 title: Text(
                   'Select project',
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: context.foregroundColor(Colors.white)),
                 ),
               ),
               for (final project in state.projects)
                 ListTile(
                   title: Text(
                     project.projectName,
-                    style: const TextStyle(color: Colors.white),
+                    style: TextStyle(
+                      color: context.foregroundColor(Colors.white),
+                    ),
                   ),
                   subtitle: Text(
                     project.companyName,
-                    style: const TextStyle(color: _muted),
+                    style: TextStyle(color: context.mutedColor(_muted)),
                   ),
                   onTap: () => Navigator.of(context).pop(project),
                 ),
@@ -121,16 +125,16 @@ class _MePageState extends State<MePage> {
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
           fontSize: size * 0.9,
-          color: color ?? const Color(0xFFF0F4FC),
+          color: color ?? context.foregroundColor(const Color(0xFFF0F4FC)),
           fontWeight: bold ? FontWeight.w500 : FontWeight.w500,
         ),
       );
 
   Widget _panel({required Widget child, VoidCallback? onTap}) => Material(
-    color: _surface,
+    color: context.surfaceColor(_surface),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(12),
-      side: const BorderSide(color: _border, width: .7),
+      side: BorderSide(color: context.borderColor(_border), width: .7),
     ),
     clipBehavior: Clip.antiAlias,
     child: InkWell(onTap: onTap, child: child),
@@ -147,10 +151,15 @@ class _MePageState extends State<MePage> {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       child: Row(
         children: [
-          Icon(icon, color: _muted, size: 22),
+          Icon(icon, color: context.mutedColor(_muted), size: 22),
           const SizedBox(width: 10),
           Expanded(child: _text(label, 14, bold: true)),
-          if (chevron) const Icon(Icons.chevron_right, color: _muted, size: 18),
+          if (chevron)
+            Icon(
+              Icons.chevron_right,
+              color: context.mutedColor(_muted),
+              size: 18,
+            ),
         ],
       ),
     ),
@@ -162,7 +171,7 @@ class _MePageState extends State<MePage> {
       PopupMenuButton<String>(
         tooltip: 'Choose language',
         initialValue: _language,
-        color: _surface,
+        color: context.surfaceColor(_surface),
         onSelected: (value) => setState(() => _language = value),
         itemBuilder: (_) => [
           for (final language in ['English', 'Hindi'])
@@ -180,11 +189,15 @@ class _MePageState extends State<MePage> {
               _text(
                 _language == 'English' ? 'EN' : 'HI',
                 15,
-                color: _muted,
+                color: context.mutedColor(_muted),
                 bold: true,
               ),
               const SizedBox(width: 3),
-              const Icon(Icons.expand_more, color: _muted, size: 20),
+              Icon(
+                Icons.expand_more,
+                color: context.mutedColor(_muted),
+                size: 20,
+              ),
             ],
           ),
         ),
@@ -194,8 +207,8 @@ class _MePageState extends State<MePage> {
         tooltip: 'Profile',
         onPressed: () => context.push(AppRouter.profile),
         style: IconButton.styleFrom(
-          side: const BorderSide(color: _muted),
-          foregroundColor: _muted,
+          side: BorderSide(color: context.mutedColor(_muted)),
+          foregroundColor: context.mutedColor(_muted),
         ),
         icon: const Icon(Icons.person_outline, size: 26),
       ),
@@ -205,18 +218,21 @@ class _MePageState extends State<MePage> {
   void _showInvitations() {
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: _background,
+      backgroundColor: context.backgroundColor(_background),
       builder: (sheetContext) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.send_outlined, color: _muted),
+              leading: Icon(
+                Icons.send_outlined,
+                color: context.mutedColor(_muted),
+              ),
               title: _text('Sent invitations', 16),
               trailing: _text(
                 '${widget.sentInvitationCount}',
                 16,
-                color: _lime,
+                color: _primaryAccent,
               ),
               onTap: () {
                 Navigator.pop(sheetContext);
@@ -224,15 +240,15 @@ class _MePageState extends State<MePage> {
               },
             ),
             ListTile(
-              leading: const Icon(
+              leading: Icon(
                 Icons.mark_email_unread_outlined,
-                color: _muted,
+                color: context.mutedColor(_muted),
               ),
               title: _text('Received invitations', 16),
               trailing: _text(
                 '${widget.receivedInvitationCount}',
                 16,
-                color: _lime,
+                color: _primaryAccent,
               ),
             ),
           ],
@@ -261,7 +277,7 @@ class _MePageState extends State<MePage> {
       if (state is ProjectError) {
         return Column(
           children: [
-            _text(state.message, 14, color: _muted),
+            _text(state.message, 14, color: context.mutedColor(_muted)),
             TextButton(
               onPressed: () => _projectBloc.add(const FetchProjectsEvent()),
               child: const Text('Retry'),
@@ -284,7 +300,13 @@ class _MePageState extends State<MePage> {
       if (projects.isEmpty) {
         return Padding(
           padding: const EdgeInsets.all(24),
-          child: Center(child: _text('No projects found', 14, color: _muted)),
+          child: Center(
+            child: _text(
+              'No projects found',
+              14,
+              color: context.mutedColor(_muted),
+            ),
+          ),
         );
       }
       return Column(
@@ -338,7 +360,7 @@ class _MePageState extends State<MePage> {
                                   child: _text(
                                     project.companyName,
                                     14,
-                                    color: _muted,
+                                    color: context.mutedColor(_muted),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
@@ -348,13 +370,15 @@ class _MePageState extends State<MePage> {
                                     vertical: 2,
                                   ),
                                   decoration: BoxDecoration(
-                                    border: Border.all(color: _border),
+                                    border: Border.all(
+                                      color: context.borderColor(_border),
+                                    ),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: _text(
                                     project.projectType,
                                     11,
-                                    color: _muted,
+                                    color: context.mutedColor(_muted),
                                   ),
                                 ),
                               ],
@@ -363,7 +387,11 @@ class _MePageState extends State<MePage> {
                         ),
                       ),
                       const SizedBox(width: 10),
-                      const Icon(Icons.chevron_right, color: _muted, size: 24),
+                      Icon(
+                        Icons.chevron_right,
+                        color: context.mutedColor(_muted),
+                        size: 24,
+                      ),
                     ],
                   ),
                 ),
@@ -376,7 +404,7 @@ class _MePageState extends State<MePage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    backgroundColor: _background,
+    backgroundColor: context.backgroundColor(_background),
     appBar: CustomAppBar(
       title: 'Dropline · Site',
       height: 56,
@@ -398,7 +426,7 @@ class _MePageState extends State<MePage> {
                   icon: const Icon(Icons.mail_outline, size: 23),
                   label: const Text('Invites'),
                   style: TextButton.styleFrom(
-                    foregroundColor: _muted,
+                    foregroundColor: context.mutedColor(_muted),
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                   ),
                 ),
@@ -419,7 +447,11 @@ class _MePageState extends State<MePage> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.work_outline, size: 26, color: _muted),
+                    Icon(
+                      Icons.work_outline,
+                      size: 26,
+                      color: context.mutedColor(_muted),
+                    ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: Column(
@@ -427,11 +459,18 @@ class _MePageState extends State<MePage> {
                         children: [
                           _text('My work, My Money', 18, bold: true),
                           const SizedBox(height: 3),
-                          _text('Shifts, rates & payments', 14, color: _muted),
+                          _text(
+                            'Shifts, rates & payments',
+                            14,
+                            color: context.mutedColor(_muted),
+                          ),
                         ],
                       ),
                     ),
-                    const Icon(Icons.chevron_right, color: _muted),
+                    Icon(
+                      Icons.chevron_right,
+                      color: context.mutedColor(_muted),
+                    ),
                   ],
                 ),
               ),
@@ -453,9 +492,12 @@ class _MePageState extends State<MePage> {
                         ),
                       ),
                     ),
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.symmetric(vertical: 12),
-                      child: VerticalDivider(width: 1, color: _border),
+                      child: VerticalDivider(
+                        width: 1,
+                        color: context.borderColor(_border),
+                      ),
                     ),
                     Expanded(
                       child: _shortcut(
@@ -492,7 +534,7 @@ class _MePageState extends State<MePage> {
                 PopupMenuButton<String>(
                   tooltip: 'Filter projects',
                   initialValue: _category,
-                  color: _surface,
+                  color: context.surfaceColor(_surface),
                   onSelected: (value) => setState(() => _category = value),
                   itemBuilder: (_) => [
                     for (final category in ['All', 'Business', 'Personal'])
@@ -509,8 +551,12 @@ class _MePageState extends State<MePage> {
                     ),
                     child: Row(
                       children: [
-                        _text(_category, 14, color: _muted),
-                        const Icon(Icons.expand_more, size: 18, color: _muted),
+                        _text(_category, 14, color: context.mutedColor(_muted)),
+                        Icon(
+                          Icons.expand_more,
+                          size: 18,
+                          color: context.mutedColor(_muted),
+                        ),
                       ],
                     ),
                   ),
@@ -523,8 +569,8 @@ class _MePageState extends State<MePage> {
                   }),
                   icon: Icon(_showSearch ? Icons.close : Icons.search),
                   style: IconButton.styleFrom(
-                    foregroundColor: _muted,
-                    side: const BorderSide(color: _muted),
+                    foregroundColor: context.mutedColor(_muted),
+                    side: BorderSide(color: context.mutedColor(_muted)),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -534,7 +580,7 @@ class _MePageState extends State<MePage> {
                 FilledButton(
                   onPressed: _newProject,
                   style: FilledButton.styleFrom(
-                    backgroundColor: _lime,
+                    backgroundColor: _primaryAccent,
                     foregroundColor: _background,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     minimumSize: const Size(0, 40),
@@ -554,16 +600,19 @@ class _MePageState extends State<MePage> {
               TextField(
                 autofocus: true,
                 onChanged: (value) => setState(() => _query = value),
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: context.foregroundColor(Colors.white)),
                 decoration: InputDecoration(
                   hintText: 'Search projects',
-                  hintStyle: const TextStyle(color: _muted),
-                  prefixIcon: const Icon(Icons.search, color: _muted),
+                  hintStyle: TextStyle(color: context.mutedColor(_muted)),
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: context.mutedColor(_muted),
+                  ),
                   filled: true,
-                  fillColor: _surface,
+                  fillColor: context.surfaceColor(_surface),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: _border),
+                    borderSide: BorderSide(color: context.borderColor(_border)),
                   ),
                 ),
               ),

@@ -1,4 +1,4 @@
-
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:dropline/core/utility/widgets/appbar.dart';
 import 'package:dropline/features/masterFlow/presentation/pages/handover_action_pages.dart';
@@ -12,14 +12,13 @@ import 'package:file_picker/file_picker.dart';
 // HandoverAreaData
 // HandoverCheckSheetPage
 
-const Color _lime = Color(0xFFB5FF65);
+const Color _primaryAccent = AppColors.primary;
 const Color _blue = Color(0xFFA7D3FF);
 const Color _darkText = Color(0xFF092537);
 
 // ------------------------------------
 // HAND OVER AREA PAGE
 // ------------------------------------
-
 
 class HandOverAreaPage extends StatefulWidget {
   const HandOverAreaPage({
@@ -35,7 +34,7 @@ class HandOverAreaPage extends StatefulWidget {
 }
 
 class _HandOverAreaPageState extends State<HandOverAreaPage> {
-  static const Color _lime = Color(0xFFB5FF65);
+  static const Color _primaryAccent = AppColors.primary;
   static const Color _blue = Color(0xFFA7D3FF);
 
   final TextEditingController noteController =
@@ -200,7 +199,7 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.backgroundColor(AppColors.background),
       resizeToAvoidBottomInset: true,
 
       appBar: CustomAppBar(
@@ -208,7 +207,7 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
             ? 'Save progress'
             : 'Hand over area',
         subtitle: widget.data.projectName,
-        backgroundColor: AppColors.background,
+        backgroundColor: context.backgroundColor(AppColors.background),
       ),
 
       body: ListView(
@@ -224,7 +223,6 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
           // --------------------------------
           // UNCHECKED - HAND OVER AREA UI
           // --------------------------------
-
           if (!workNotReady) ...[
             // Sending to
             Container(
@@ -233,18 +231,18 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
                 horizontal: 11,
               ),
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: context.surfaceColor(AppColors.surface),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: AppColors.border,
+                  color: context.borderColor(AppColors.border),
                 ),
               ),
               child: Row(
                 children: [
-                  const Text(
+                  Text(
                     'Sending to',
                     style: TextStyle(
-                      color: _blue,
+                      color: context.linkColor(_blue),
                       fontSize: 12,
                     ),
                   ),
@@ -253,8 +251,8 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
 
                   Text(
                     widget.data.receivingCompany,
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
+                    style: TextStyle(
+                      color: context.foregroundColor(AppColors.textPrimary),
                       fontSize: 13,
                       fontWeight: FontWeight.w800,
                     ),
@@ -265,10 +263,10 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
 
             const SizedBox(height: 16),
 
-            const Text(
+            Text(
               'Handing on check sheet',
               style: TextStyle(
-                color: AppColors.textPrimary,
+                color: context.foregroundColor(AppColors.textPrimary),
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
               ),
@@ -283,12 +281,12 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
               child: Container(
                 padding: const EdgeInsets.all(11),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: context.surfaceColor(AppColors.surface),
                   borderRadius: BorderRadius.circular(11),
                   border: Border.all(
                     color: answersSaved
-                        ? const Color(0xFF77AE49)
-                        : AppColors.border,
+                        ? AppColors.primaryBorder
+                        : context.borderColor(AppColors.border),
                   ),
                 ),
                 child: Row(
@@ -301,9 +299,9 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
                         color: const Color(0xFF214637),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.assignment_turned_in_outlined,
-                        color: _lime,
+                        color: context.accentColor(_primaryAccent),
                         size: 20,
                       ),
                     ),
@@ -318,8 +316,10 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
                           Text(
                             '${widget.data.checkSheetCode} · '
                             '${widget.data.checkSheetTitle}',
-                            style: const TextStyle(
-                              color: AppColors.textPrimary,
+                            style: TextStyle(
+                              color: context.foregroundColor(
+                                AppColors.textPrimary,
+                              ),
                               fontSize: 13,
                               fontWeight: FontWeight.w800,
                             ),
@@ -333,8 +333,8 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
                                 : 'Tap to answer · Required',
                             style: TextStyle(
                               color: answersSaved
-                                  ? _lime
-                                  : _blue,
+                                  ? context.accentColor(_primaryAccent)
+                                  : context.linkColor(_blue),
                               fontSize: 11,
                             ),
                           ),
@@ -346,7 +346,7 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
                       answersSaved
                           ? Icons.check
                           : Icons.chevron_right,
-                      color: answersSaved ? _lime : _blue,
+                      color: answersSaved ? context.accentColor(_primaryAccent) : context.linkColor(_blue),
                       size: 20,
                     ),
                   ],
@@ -356,10 +356,10 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
 
             const SizedBox(height: 17),
 
-            const Text(
+            Text(
               'Note (optional)',
               style: TextStyle(
-                color: AppColors.textPrimary,
+                color: context.foregroundColor(AppColors.textPrimary),
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
               ),
@@ -371,8 +371,8 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
               controller: noteController,
               minLines: 3,
               maxLines: 3,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
+              style: TextStyle(
+                color: context.foregroundColor(AppColors.textPrimary),
                 fontSize: 14,
               ),
               decoration: handoverTextDecoration(
@@ -386,14 +386,13 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
           // --------------------------------
           // CHECKED - SAVE PROGRESS UI
           // --------------------------------
-
           if (workNotReady) ...[
             const SizedBox(height: 2),
 
-            const Text(
+            Text(
               "What's left?",
               style: TextStyle(
-                color: AppColors.textPrimary,
+                color: context.foregroundColor(AppColors.textPrimary),
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
               ),
@@ -408,8 +407,8 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
               onChanged: (_) {
                 setState(() {});
               },
-              style: const TextStyle(
-                color: AppColors.textPrimary,
+              style: TextStyle(
+                color: context.foregroundColor(AppColors.textPrimary),
                 fontSize: 14,
               ),
               decoration: handoverTextDecoration(
@@ -423,7 +422,6 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
           // --------------------------------
           // COMMON PHOTOS AND FILES
           // --------------------------------
-
           HandoverAttachmentPicker(
             onChanged: (files) {
               attachments = files;
@@ -435,7 +433,6 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
           // --------------------------------
           // WORK NOT READY CHECKBOX
           // --------------------------------
-
           InkWell(
             onTap: () {
               toggleWorkNotReady(!workNotReady);
@@ -447,10 +444,10 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
                   height: 34,
                   child: Checkbox(
                     value: workNotReady,
-                    activeColor: _lime,
+                    activeColor: _primaryAccent,
                     checkColor: const Color(0xFF092537),
-                    side: const BorderSide(
-                      color: AppColors.textSecondary,
+                    side: BorderSide(
+                      color: context.mutedColor(AppColors.textSecondary),
                     ),
                     onChanged: toggleWorkNotReady,
                   ),
@@ -458,10 +455,10 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
 
                 const SizedBox(width: 5),
 
-                const Text(
+                Text(
                   'Work is not ready yet',
                   style: TextStyle(
-                    color: AppColors.textPrimary,
+                    color: context.foregroundColor(AppColors.textPrimary),
                     fontSize: 12,
                   ),
                 ),
@@ -477,9 +474,9 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
                 ? 'Only your progress is saved. '
                   'The area stays with ${widget.data.companyName}.'
                 : 'The area stays with ${widget.data.companyName} '
-                  'until ${widget.data.receivingCompany} accepts.',
-            style: const TextStyle(
-              color: _blue,
+                      'until ${widget.data.receivingCompany} accepts.',
+            style: TextStyle(
+              color: context.linkColor(_blue),
               fontSize: 12,
               height: 1.5,
             ),
@@ -490,7 +487,6 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
       // --------------------------------
       // DYNAMIC BOTTOM BUTTON
       // --------------------------------
-
       bottomNavigationBar: HandoverBottomAction(
         label: isSubmitting
             ? (workNotReady
@@ -512,7 +508,6 @@ class _HandOverAreaPageState extends State<HandOverAreaPage> {
   }
 }
 
-
 // ------------------------------------
 // COMMON AREA HEADER
 // ------------------------------------
@@ -533,13 +528,13 @@ class HandoverAreaHeader extends StatelessWidget {
           height: 36,
           width: 36,
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: context.surfaceColor(AppColors.surface),
             borderRadius: BorderRadius.circular(9),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: context.borderColor(AppColors.border)),
           ),
-          child: const Icon(
+          child: Icon(
             Icons.location_on_outlined,
-            color: _blue,
+            color: context.linkColor(_blue),
             size: 19,
           ),
         ),
@@ -552,8 +547,8 @@ class HandoverAreaHeader extends StatelessWidget {
             children: [
               Text(
                 data.area,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
+                style: TextStyle(
+                  color: context.foregroundColor(AppColors.textPrimary),
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
                   height: 1.3,
@@ -565,10 +560,7 @@ class HandoverAreaHeader extends StatelessWidget {
               Text(
                 '${data.activityCode} · ${data.activityName}'
                 '  ·  Visit ${data.visitNumber}',
-                style: const TextStyle(
-                  color: _blue,
-                  fontSize: 11,
-                ),
+                style: TextStyle(color: context.linkColor(_blue), fontSize: 11),
               ),
             ],
           ),
@@ -601,7 +593,7 @@ InputDecoration handoverTextDecoration(String hint) {
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(10),
       borderSide: const BorderSide(
-        color: _lime,
+        color: _primaryAccent,
         width: 1.5,
       ),
     ),
@@ -628,11 +620,11 @@ class HandoverBottomAction extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(9, 10, 9, 8),
-      decoration: const BoxDecoration(
-        color: AppColors.background,
+      decoration: BoxDecoration(
+        color: context.backgroundColor(AppColors.background),
         border: Border(
           top: BorderSide(
-            color: AppColors.border,
+            color: context.borderColor(AppColors.border),
             width: 0.7,
           ),
         ),
@@ -645,11 +637,11 @@ class HandoverBottomAction extends StatelessWidget {
           child: ElevatedButton(
             onPressed: enabled ? onPressed : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: _lime,
+              backgroundColor: _primaryAccent,
               foregroundColor: _darkText,
               disabledBackgroundColor:
                   const Color(0xFF284853),
-              disabledForegroundColor: _blue,
+              disabledForegroundColor: context.linkColor(_blue),
               elevation: 0,
               textStyle: const TextStyle(
                 fontSize: 13,
@@ -775,7 +767,7 @@ class _HandoverAttachmentPickerState
   Future<void> openOptions() async {
     await showModalBottomSheet<void>(
       context: context,
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.surfaceColor(AppColors.surface),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(18),
@@ -792,18 +784,18 @@ class _HandoverAttachmentPickerState
             margin: const EdgeInsets.only(bottom: 7),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: context.borderColor(AppColors.border)),
             ),
             child: ListTile(
               onTap: () {
                 Navigator.pop(sheetContext);
                 onTap();
               },
-              leading: Icon(icon, color: _blue, size: 20),
+              leading: Icon(icon, color: context.linkColor(_blue), size: 20),
               title: Text(
                 title,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
+                style: TextStyle(
+                  color: context.foregroundColor(AppColors.textPrimary),
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                 ),
@@ -812,14 +804,14 @@ class _HandoverAttachmentPickerState
                   ? null
                   : Text(
                       subtitle,
-                      style: const TextStyle(
-                        color: _blue,
+                      style: TextStyle(
+                        color: context.linkColor(_blue),
                         fontSize: 10,
                       ),
                     ),
-              trailing: const Icon(
+              trailing: Icon(
                 Icons.chevron_right,
-                color: _blue,
+                color: context.linkColor(_blue),
               ),
             ),
           );
@@ -836,11 +828,11 @@ class _HandoverAttachmentPickerState
               children: [
                 Row(
                   children: [
-                    const Expanded(
+                    Expanded(
                       child: Text(
                         'Add to handover',
                         style: TextStyle(
-                          color: AppColors.textPrimary,
+                          color: context.foregroundColor(AppColors.textPrimary),
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
                         ),
@@ -849,9 +841,9 @@ class _HandoverAttachmentPickerState
                     IconButton(
                       onPressed: () =>
                           Navigator.pop(sheetContext),
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.close,
-                        color: AppColors.textPrimary,
+                        color: context.foregroundColor(AppColors.textPrimary),
                       ),
                     ),
                   ],
@@ -895,17 +887,17 @@ class _HandoverAttachmentPickerState
             vertical: 8,
           ),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: context.surfaceColor(AppColors.surface),
             borderRadius: BorderRadius.circular(11),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: context.borderColor(AppColors.border)),
           ),
           child: Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
                   'Photos and files',
                   style: TextStyle(
-                    color: AppColors.textPrimary,
+                    color: context.foregroundColor(AppColors.textPrimary),
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                   ),
@@ -919,9 +911,9 @@ class _HandoverAttachmentPickerState
                   icon: const Icon(Icons.add, size: 18),
                   label: const Text('Add'),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: _blue,
-                    side: const BorderSide(
-                      color: AppColors.border,
+                    foregroundColor: context.linkColor(_blue),
+                    side: BorderSide(
+                      color: context.borderColor(AppColors.border),
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -945,15 +937,17 @@ class _HandoverAttachmentPickerState
                 horizontal: 10,
               ),
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: context.surfaceColor(AppColors.surface),
                 borderRadius: BorderRadius.circular(9),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(
+                  color: context.borderColor(AppColors.border),
+                ),
               ),
               child: Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.attach_file,
-                    color: _blue,
+                    color: context.linkColor(_blue),
                     size: 17,
                   ),
 
@@ -964,8 +958,8 @@ class _HandoverAttachmentPickerState
                       name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
+                      style: TextStyle(
+                        color: context.foregroundColor(AppColors.textPrimary),
                         fontSize: 12,
                       ),
                     ),
