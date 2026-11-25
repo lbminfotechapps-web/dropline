@@ -1,3 +1,5 @@
+import 'package:dropline/core/theme/appcolors.dart';
+import 'package:dropline/core/theme/app_theme.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -28,12 +30,12 @@ class _EventCategory {
 }
 
 class _ProjectEventPageState extends State<ProjectEventPage> {
-  static const bg = Color(0xFF092A3B),
-      surface = Color(0xFF123449),
-      border = Color(0xFF31576B),
-      muted = Color(0xFF9FC1D7),
-      white = Color(0xFFF0F4FC),
-      lime = Color(0xFFB5FF65);
+  Color get bg => context.backgroundColor(const Color(0xFF092A3B));
+  Color get surface => context.surfaceColor(const Color(0xFF123449));
+  Color get border => context.borderColor(const Color(0xFF31576B));
+  Color get muted => context.mutedColor(const Color(0xFF9FC1D7));
+  Color get white => context.foregroundColor(const Color(0xFFF0F4FC));
+  static const primaryAccent = AppColors.primary;
   final categories = <_EventCategory>[];
   final addText = TextEditingController(),
       editText = TextEditingController(),
@@ -240,21 +242,21 @@ class _ProjectEventPageState extends State<ProjectEventPage> {
 
   InputDecoration field(String hint) => InputDecoration(
     hintText: hint,
-    hintStyle: const TextStyle(color: muted),
+    hintStyle: TextStyle(color: muted),
     filled: true,
     fillColor: surface,
     contentPadding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(11),
-      borderSide: const BorderSide(color: border),
+      borderSide: BorderSide(color: border),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(11),
-      borderSide: const BorderSide(color: border),
+      borderSide: BorderSide(color: border),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(11),
-      borderSide: const BorderSide(color: lime, width: 1.7),
+      borderSide: BorderSide(color: context.accentColor(primaryAccent), width: 1.7),
     ),
   );
   Widget action(String text, VoidCallback? press, {double height = 78}) =>
@@ -264,7 +266,7 @@ class _ProjectEventPageState extends State<ProjectEventPage> {
         child: FilledButton(
           onPressed: press,
           style: FilledButton.styleFrom(
-            backgroundColor: lime,
+            backgroundColor: primaryAccent,
             foregroundColor: bg,
             padding: EdgeInsets.zero,
             shape: RoundedRectangleBorder(
@@ -277,12 +279,12 @@ class _ProjectEventPageState extends State<ProjectEventPage> {
 
   @override
   Widget build(BuildContext context) {
-    const section = TextStyle(
+    final section = TextStyle(
       fontSize: 15,
       color: white,
       fontWeight: FontWeight.w600,
     );
-    const help = TextStyle(fontSize: 12, color: muted);
+    final help = TextStyle(fontSize: 12, color: muted);
     final c = current;
     return Scaffold(
       backgroundColor: bg,
@@ -297,7 +299,7 @@ class _ProjectEventPageState extends State<ProjectEventPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Events',
                           style: TextStyle(
                             fontSize: 23,
@@ -313,8 +315,8 @@ class _ProjectEventPageState extends State<ProjectEventPage> {
                     onPressed: (loading || closing || loadFailed) ? null : done,
                     child: Text(
                       closing ? 'Saving...' : 'Done',
-                      style: const TextStyle(
-                        color: lime,
+                      style: TextStyle(
+                        color: context.accentColor(primaryAccent),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -322,10 +324,10 @@ class _ProjectEventPageState extends State<ProjectEventPage> {
                 ],
               ),
             ),
-            const Divider(color: border, height: 1),
+            Divider(color: border, height: 1),
             Expanded(
               child: loading
-                  ? const Center(child: CircularProgressIndicator(color: lime))
+                  ? Center(child: CircularProgressIndicator(color: context.accentColor(primaryAccent)))
                   : loadFailed
                   ? Center(
                       child: TextButton(
@@ -346,7 +348,7 @@ class _ProjectEventPageState extends State<ProjectEventPage> {
                         children: [
                           Row(
                             children: [
-                              const Text('Category', style: help),
+                              Text('Category', style: help),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Container(
@@ -360,7 +362,7 @@ class _ProjectEventPageState extends State<ProjectEventPage> {
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: categories.isEmpty
-                                      ? const Align(
+                                      ? Align(
                                           alignment: Alignment.centerLeft,
                                           child: Text(
                                             'No categories',
@@ -372,7 +374,7 @@ class _ProjectEventPageState extends State<ProjectEventPage> {
                                             isExpanded: true,
                                             dropdownColor: surface,
                                             value: selected,
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               color: white,
                                               fontSize: 15,
                                             ),
@@ -408,16 +410,16 @@ class _ProjectEventPageState extends State<ProjectEventPage> {
                               TextButton(
                                 onPressed: () =>
                                     setState(() => newCategory = !newCategory),
-                                child: const Text(
+                                child: Text(
                                   '+ New',
-                                  style: TextStyle(color: lime),
+                                  style: TextStyle(color: context.accentColor(primaryAccent)),
                                 ),
                               ),
                             ],
                           ),
                           if (newCategory) ...[
                             const SizedBox(height: 19),
-                            const Text('New category', style: section),
+                            Text('New category', style: section),
                             const SizedBox(height: 9),
                             Row(
                               children: [
@@ -427,7 +429,7 @@ class _ProjectEventPageState extends State<ProjectEventPage> {
                                     autofocus: true,
                                     textCapitalization:
                                         TextCapitalization.words,
-                                    style: const TextStyle(color: white),
+                                    style: TextStyle(color: white),
                                     decoration: field('Category name'),
                                   ),
                                 ),
@@ -440,7 +442,7 @@ class _ProjectEventPageState extends State<ProjectEventPage> {
                                 newCategory = false;
                                 categoryText.clear();
                               }),
-                              child: const Text('Cancel', style: help),
+                              child: Text('Cancel', style: help),
                             ),
                           ],
                           const SizedBox(height: 25),
@@ -448,13 +450,13 @@ class _ProjectEventPageState extends State<ProjectEventPage> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text('Edit event', style: section),
+                                Text('Edit event', style: section),
                                 TextButton(
                                   onPressed: () => setState(() {
                                     editing = null;
                                     editText.clear();
                                   }),
-                                  child: const Text('Cancel edit', style: help),
+                                  child: Text('Cancel edit', style: help),
                                 ),
                               ],
                             ),
@@ -468,7 +470,7 @@ class _ProjectEventPageState extends State<ProjectEventPage> {
                                     minLines: 2,
                                     maxLines: 3,
                                     autofocus: true,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: white,
                                       fontSize: 16,
                                     ),
@@ -480,9 +482,9 @@ class _ProjectEventPageState extends State<ProjectEventPage> {
                               ],
                             ),
                             const SizedBox(height: 8),
-                            const Text('One event per line.', style: help),
+                            Text('One event per line.', style: help),
                           ] else ...[
-                            const Text('Add events', style: section),
+                            Text('Add events', style: section),
                             const SizedBox(height: 12),
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -492,7 +494,7 @@ class _ProjectEventPageState extends State<ProjectEventPage> {
                                     controller: addText,
                                     minLines: 2,
                                     maxLines: 5,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: white,
                                       fontSize: 16,
                                     ),
@@ -506,7 +508,7 @@ class _ProjectEventPageState extends State<ProjectEventPage> {
                               ],
                             ),
                             const SizedBox(height: 8),
-                            const Text('One event per line.', style: help),
+                            Text('One event per line.', style: help),
                           ],
                           const SizedBox(height: 35),
                           Row(
@@ -521,7 +523,7 @@ class _ProjectEventPageState extends State<ProjectEventPage> {
                             ],
                           ),
                           const SizedBox(height: 10),
-                          const Text(
+                          Text(
                             'Drag a grip to reorder. Tap it for up / down.',
                             style: help,
                           ),
@@ -542,7 +544,7 @@ class _ProjectEventPageState extends State<ProjectEventPage> {
                               itemBuilder: (context, index) => Container(
                                 key: ValueKey('${selected}_${c.events[index]}'),
                                 height: 59,
-                                decoration: const BoxDecoration(
+                                decoration: BoxDecoration(
                                   border: Border(
                                     bottom: BorderSide(color: border),
                                   ),
@@ -557,13 +559,13 @@ class _ProjectEventPageState extends State<ProjectEventPage> {
                                             child: PopupMenuButton<String>(
                                               tooltip: 'Move event',
                                               color: surface,
-                                              icon: const Icon(
+                                              icon: Icon(
                                                 Icons.drag_indicator,
                                                 color: muted,
                                               ),
                                               itemBuilder: (_) => [
                                                 if (index > 0)
-                                                  const PopupMenuItem(
+                                                  PopupMenuItem(
                                                     value: 'up',
                                                     child: Text(
                                                       'Move up',
@@ -573,7 +575,7 @@ class _ProjectEventPageState extends State<ProjectEventPage> {
                                                     ),
                                                   ),
                                                 if (index < c.events.length - 1)
-                                                  const PopupMenuItem(
+                                                  PopupMenuItem(
                                                     value: 'down',
                                                     child: Text(
                                                       'Move down',
@@ -596,7 +598,7 @@ class _ProjectEventPageState extends State<ProjectEventPage> {
                                     Expanded(
                                       child: Text(
                                         c.events[index],
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           color: white,
                                           fontSize: 14,
                                         ),
@@ -604,7 +606,7 @@ class _ProjectEventPageState extends State<ProjectEventPage> {
                                     ),
                                     TextButton(
                                       onPressed: () => startEdit(index),
-                                      child: const Text(
+                                      child: Text(
                                         'Edit',
                                         style: TextStyle(
                                           color: muted,

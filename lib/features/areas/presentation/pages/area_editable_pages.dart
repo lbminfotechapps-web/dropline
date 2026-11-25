@@ -1,3 +1,5 @@
+import 'package:dropline/core/theme/appcolors.dart';
+import 'package:dropline/core/theme/app_theme.dart';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -51,7 +53,7 @@ class _AreaEditablePageState extends State<AreaEditablePage> {
   static const _border = Color(0xFF31576B);
   static const _muted = Color(0xFF9FC1D5);
   static const _white = Color(0xFFF0F4FC);
-  static const _lime = Color(0xFFB5FF65);
+  static const _primaryAccent = AppColors.primary;
 
   final List<_AreaNode> _roots = [];
   final List<_AreaNode?> _selected = List<_AreaNode?>.filled(4, null);
@@ -261,22 +263,22 @@ class _AreaEditablePageState extends State<AreaEditablePage> {
     final newName = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: _surface,
-        title: const Text('Rename', style: TextStyle(color: _white)),
+        backgroundColor: context.surfaceColor(_surface),
+        title: Text('Rename', style: TextStyle(color: context.foregroundColor(_white))),
         content: TextField(
           controller: controller,
           autofocus: true,
-          style: const TextStyle(color: _white),
-          decoration: const InputDecoration(
+          style: TextStyle(color: context.foregroundColor(_white)),
+          decoration: InputDecoration(
             labelText: 'Name',
-            labelStyle: TextStyle(color: _muted),
+            labelStyle: TextStyle(color: context.mutedColor(_muted)),
           ),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, controller.text.trim()),
-            child: const Text('Save', style: TextStyle(color: _lime)),
+            child: Text('Save', style: TextStyle(color: context.accentColor(_primaryAccent))),
           ),
         ],
       ),
@@ -297,11 +299,11 @@ class _AreaEditablePageState extends State<AreaEditablePage> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: _surface,
-        title: const Text('Delete area?', style: TextStyle(color: _white)),
+        backgroundColor: context.surfaceColor(_surface),
+        title: Text('Delete area?', style: TextStyle(color: context.foregroundColor(_white))),
         content: Text(
           'Delete "${node.name}" and all its nested areas?',
-          style: const TextStyle(color: _muted),
+          style: TextStyle(color: context.mutedColor(_muted)),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel')),
@@ -367,16 +369,16 @@ class _AreaEditablePageState extends State<AreaEditablePage> {
 
   InputDecoration _decoration(String hint) => InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(color: _muted, fontSize: 15),
+        hintStyle: TextStyle(color: context.mutedColor(_muted), fontSize: 15),
         filled: true,
-        fillColor: _surface,
+        fillColor: context.surfaceColor(_surface),
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         enabledBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: _border),
+          borderSide: BorderSide(color: context.borderColor(_border)),
           borderRadius: BorderRadius.circular(12),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: _lime, width: 1.5),
+          borderSide: BorderSide(color: context.accentColor(_primaryAccent), width: 1.5),
           borderRadius: BorderRadius.circular(12),
         ),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -389,7 +391,7 @@ class _AreaEditablePageState extends State<AreaEditablePage> {
         child: FilledButton(
           onPressed: callback,
           style: FilledButton.styleFrom(
-            backgroundColor: _lime,
+            backgroundColor: _primaryAccent,
             foregroundColor: _bg,
             padding: EdgeInsets.zero,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -409,9 +411,9 @@ class _AreaEditablePageState extends State<AreaEditablePage> {
                 children: [
                   Expanded(
                     child: Text('Add numbered ${_labels[_step].toLowerCase()}s',
-                        style: const TextStyle(color: _muted, fontSize: 13)),
+                        style: TextStyle(color: context.mutedColor(_muted), fontSize: 13)),
                   ),
-                  Icon(_numberedOpen ? Icons.remove : Icons.add, color: _lime, size: 19),
+                  Icon(_numberedOpen ? Icons.remove : Icons.add, color: context.accentColor(_primaryAccent), size: 19),
                 ],
               ),
             ),
@@ -429,7 +431,7 @@ class _AreaEditablePageState extends State<AreaEditablePage> {
             ),
             const SizedBox(height: 14),
           ],
-          const Divider(color: _border, height: 1),
+          Divider(color: context.borderColor(_border), height: 1),
         ],
       );
 
@@ -437,12 +439,12 @@ class _AreaEditablePageState extends State<AreaEditablePage> {
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(color: _muted, fontSize: 12)),
+          Text(label, style: TextStyle(color: context.mutedColor(_muted), fontSize: 12)),
           const SizedBox(height: 5),
           TextField(
             controller: controller,
             keyboardType: TextInputType.number,
-            style: const TextStyle(color: _white),
+            style: TextStyle(color: context.foregroundColor(_white)),
             decoration: _decoration(hint).copyWith(
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(horizontal: 9, vertical: 12),
@@ -460,15 +462,15 @@ class _AreaEditablePageState extends State<AreaEditablePage> {
           alignment: _step == 1 ? Alignment.center : Alignment.centerLeft,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           decoration: BoxDecoration(
-            color: _surface,
-            border: Border.all(color: _border),
+            color: context.surfaceColor(_surface),
+            border: Border.all(color: context.borderColor(_border)),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
             node.name,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(color: _white, fontSize: 14),
+            style: TextStyle(color: context.foregroundColor(_white), fontSize: 14),
           ),
         ),
       );
@@ -476,14 +478,14 @@ class _AreaEditablePageState extends State<AreaEditablePage> {
   void _showItemActions(_AreaNode node) {
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: _surface,
+      backgroundColor: context.surfaceColor(_surface),
       builder: (sheetContext) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.edit, color: _white),
-              title: const Text('Rename', style: TextStyle(color: _white)),
+              leading: Icon(Icons.edit, color: context.foregroundColor(_white)),
+              title: Text('Rename', style: TextStyle(color: context.foregroundColor(_white))),
               onTap: () { Navigator.pop(sheetContext); _editItem(node); },
             ),
             ListTile(
@@ -499,10 +501,10 @@ class _AreaEditablePageState extends State<AreaEditablePage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        backgroundColor: _bg,
+        backgroundColor: context.backgroundColor(_bg),
         body: SafeArea(
           child: _loading
-              ? const Center(child: CircularProgressIndicator(color: _lime))
+              ? Center(child: CircularProgressIndicator(color: context.accentColor(_primaryAccent)))
               : Column(
                   children: [
                     Padding(
@@ -512,7 +514,7 @@ class _AreaEditablePageState extends State<AreaEditablePage> {
                           if (_step > 0)
                             IconButton(
                               onPressed: _goBack,
-                              icon: const Icon(Icons.chevron_left, color: _white, size: 30),
+                              icon: Icon(Icons.chevron_left, color: context.foregroundColor(_white), size: 30),
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(minWidth: 34),
                             ),
@@ -520,34 +522,34 @@ class _AreaEditablePageState extends State<AreaEditablePage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(_title, style: const TextStyle(
-                                  color: _white, fontWeight: FontWeight.w600, fontSize: 23)),
+                                Text(_title, style: TextStyle(
+                                  color: context.foregroundColor(_white), fontWeight: FontWeight.w600, fontSize: 23)),
                                 const SizedBox(height: 3),
                                 Text(
                                   [widget.projectName, ..._selected.take(_step).whereType<_AreaNode>().map((e) => e.name)].join(' · '),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(color: _muted, fontSize: 12),
+                                  style: TextStyle(color: context.mutedColor(_muted), fontSize: 12),
                                 ),
                               ],
                             ),
                           ),
                           TextButton(
                             onPressed: _finish,
-                            child: const Text('Save & Exit', style: TextStyle(
-                              color: _lime, fontSize: 15, fontWeight: FontWeight.w600)),
+                            child: Text('Save & Exit', style: TextStyle(
+                              color: context.accentColor(_primaryAccent), fontSize: 15, fontWeight: FontWeight.w600)),
                           ),
                         ],
                       ),
                     ),
-                    const Divider(color: _border, height: 1),
+                    Divider(color: context.borderColor(_border), height: 1),
                     Expanded(
                       child: ListView(
                         controller: _scroll,
                         padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
                         children: [
-                          Text(_fieldTitle, style: const TextStyle(
-                              color: _white, fontSize: 14, fontWeight: FontWeight.w600)),
+                          Text(_fieldTitle, style: TextStyle(
+                              color: context.foregroundColor(_white), fontSize: 14, fontWeight: FontWeight.w600)),
                           const SizedBox(height: 9),
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -558,7 +560,7 @@ class _AreaEditablePageState extends State<AreaEditablePage> {
                                   minLines: 3,
                                   maxLines: 4,
                                   textCapitalization: TextCapitalization.words,
-                                  style: const TextStyle(color: _white),
+                                  style: TextStyle(color: context.foregroundColor(_white)),
                                   decoration: _decoration(
                                     _step == 0 ? 'Building A, Building B' :
                                     _step == 1 ? 'Ground, First, Roof, Parking' :
@@ -580,12 +582,12 @@ class _AreaEditablePageState extends State<AreaEditablePage> {
                               padding: const EdgeInsets.only(bottom: 6),
                               child: Text(_error!, style: const TextStyle(color: Colors.redAccent, fontSize: 12)),
                             ),
-                          const Text('Separate names with commas or new lines.',
-                              style: TextStyle(color: _muted, fontSize: 12)),
+                          Text('Separate names with commas or new lines.',
+                              style: TextStyle(color: context.mutedColor(_muted), fontSize: 12)),
                           if (_notice != null)
                             Padding(
                               padding: const EdgeInsets.only(top: 7),
-                              child: Text(_notice!, style: const TextStyle(color: _muted, fontSize: 12)),
+                              child: Text(_notice!, style: TextStyle(color: context.mutedColor(_muted), fontSize: 12)),
                             ),
                           const SizedBox(height: 10),
                           _numberedSection(),
@@ -593,17 +595,17 @@ class _AreaEditablePageState extends State<AreaEditablePage> {
                           Row(
                             children: [
                               Expanded(
-                                child: Text(_listTitle, style: const TextStyle(
-                                    color: _white, fontSize: 15, fontWeight: FontWeight.w600)),
+                                child: Text(_listTitle, style: TextStyle(
+                                    color: context.foregroundColor(_white), fontSize: 15, fontWeight: FontWeight.w600)),
                               ),
                               Text('${_items(_step).length}',
-                                  style: const TextStyle(color: _muted, fontSize: 12)),
+                                  style: TextStyle(color: context.mutedColor(_muted), fontSize: 12)),
                             ],
                           ),
                           const SizedBox(height: 14),
                           if (_items(_step).isEmpty)
-                            const Text('No entries yet. Add names above, or tap Done to finish here.',
-                                style: TextStyle(color: _muted, fontSize: 13))
+                            Text('No entries yet. Add names above, or tap Done to finish here.',
+                                style: TextStyle(color: context.mutedColor(_muted), fontSize: 13))
                           else if (_step == 0)
                             ..._items(_step).map((e) => Padding(
                                   padding: const EdgeInsets.only(bottom: 8),
@@ -628,8 +630,8 @@ class _AreaEditablePageState extends State<AreaEditablePage> {
                               },
                             ),
                           const SizedBox(height: 24),
-                          const Text('Tap an entry to continue into it. Long-press to rename or delete.',
-                              style: TextStyle(color: _muted, fontSize: 12)),
+                          Text('Tap an entry to continue into it. Long-press to rename or delete.',
+                              style: TextStyle(color: context.mutedColor(_muted), fontSize: 12)),
                         ],
                       ),
                     ),

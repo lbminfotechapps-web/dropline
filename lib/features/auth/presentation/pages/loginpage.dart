@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/utility/showcase_once.dart';
 import 'package:dropline/core/di/global_di.dart';
 import 'package:dropline/core/utility/widgets/app_toast.dart';
@@ -74,7 +75,9 @@ class _LoginScreenState extends State<LoginScreen> {
             ? CupertinoColors.label.resolveFrom(dialogContext)
             : Theme.of(dialogContext).colorScheme.onSurface;
         final content = DefaultTextStyle(
-          style: AppTextStyles.bodyMedium.copyWith(color: textColour),
+          style: this.context
+              .themedText(AppTextStyles.bodyMedium)
+              .copyWith(color: textColour),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -82,16 +85,20 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 12),
               Text(
                 'DROPLINE • UNITED KINGDOM',
-                style: AppTextStyles.caption.copyWith(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.8,
-                  color: isApple
-                      ? CupertinoColors.secondaryLabel.resolveFrom(
-                          dialogContext,
-                        )
-                      : Theme.of(dialogContext).colorScheme.onSurfaceVariant,
-                ),
+                style: this.context
+                    .themedText(AppTextStyles.caption)
+                    .copyWith(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.8,
+                      color: isApple
+                          ? CupertinoColors.secondaryLabel.resolveFrom(
+                              dialogContext,
+                            )
+                          : Theme.of(
+                              dialogContext,
+                            ).colorScheme.onSurfaceVariant,
+                    ),
               ),
               const SizedBox(height: 12),
               const Text(
@@ -135,10 +142,9 @@ class _LoginScreenState extends State<LoginScreen> {
               ]) ...[
                 Text(
                   section.$1,
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: textColour,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: this.context
+                      .themedText(AppTextStyles.bodyMedium)
+                      .copyWith(color: textColour, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 6),
                 Text(section.$2),
@@ -248,19 +254,24 @@ class _LoginScreenState extends State<LoginScreen> {
       child: AbsorbPointer(
         absorbing: _isNavigating,
         child: AnnotatedRegion<SystemUiOverlayStyle>(
-          value: SystemUiOverlayStyle.light.copyWith(
-            statusBarColor: AppColors.transparent,
-            systemNavigationBarColor: AppColors.background,
-            statusBarIconBrightness: Brightness.light,
-          ),
+          value:
+              (WhiteAppTheme.isEnabled(context)
+                      ? SystemUiOverlayStyle.dark
+                      : SystemUiOverlayStyle.light)
+                  .copyWith(
+                    statusBarColor: AppColors.transparent,
+                    systemNavigationBarColor: context.backgroundColor(
+                      AppColors.background,
+                    ),
+                  ),
           child: Scaffold(
-            backgroundColor: AppColors.background,
+            backgroundColor: context.backgroundColor(AppColors.background),
             resizeToAvoidBottomInset: true,
             body: Container(
               width: double.infinity,
               height: double.infinity,
-              decoration: const BoxDecoration(
-                gradient: AppColors.backgroundGradient,
+              decoration: BoxDecoration(
+                gradient: context.themedGradient(AppColors.backgroundGradient),
               ),
               child: SafeArea(
                 child: LayoutBuilder(
@@ -283,10 +294,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
                             const SizedBox(height: 56),
 
-                            const Text(
+                            Text(
                               'Sign in',
                               style: TextStyle(
-                                color: AppColors.textPrimary,
+                                color: context.foregroundColor(
+                                  AppColors.textPrimary,
+                                ),
                                 fontSize: 30,
                                 fontWeight: FontWeight.w500,
                                 letterSpacing: -0.7,
@@ -295,10 +308,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
                             const SizedBox(height: 5),
 
-                            const Text(
+                            Text(
                               'Enter your details to continue.',
                               style: TextStyle(
-                                color: AppColors.textSecondary,
+                                color: context.mutedColor(
+                                  AppColors.textSecondary,
+                                ),
                                 fontSize: 14,
                               ),
                             ),
@@ -365,27 +380,27 @@ class _LoginScreenState extends State<LoginScreen> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Text(
+        Text(
           'Dropline',
           style: TextStyle(
-            color: AppColors.textPrimary,
+            color: context.foregroundColor(AppColors.textPrimary),
             fontSize: 21,
             fontWeight: FontWeight.w500,
             letterSpacing: -0.6,
           ),
         ),
-        const Text(
+        Text(
           '•',
           style: TextStyle(
-            color: AppColors.primary,
+            color: context.accentColor(AppColors.primary),
             fontSize: 21,
             fontWeight: FontWeight.w500,
           ),
         ),
-        const Text(
+        Text(
           'Site',
           style: TextStyle(
-            color: AppColors.textPrimary,
+            color: context.foregroundColor(AppColors.textPrimary),
             fontSize: 21,
             fontWeight: FontWeight.w500,
             letterSpacing: -0.6,
@@ -399,8 +414,8 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildLabel(String title) {
     return Text(
       title,
-      style: const TextStyle(
-        color: AppColors.textPrimary,
+      style: TextStyle(
+        color: context.foregroundColor(AppColors.textPrimary),
         fontSize: 13,
         fontWeight: FontWeight.w500,
       ),
@@ -418,12 +433,12 @@ class _LoginScreenState extends State<LoginScreen> {
     return Container(
       height: 60,
       decoration: BoxDecoration(
-        color: AppColors.inputBackground,
+        color: context.surfaceColor(AppColors.inputBackground),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: (isMobile ? _mobileInvalid : _nameInvalid)
               ? Colors.redAccent
-              : AppColors.border,
+              : context.borderColor(AppColors.border),
           width: 1.2,
         ),
       ),
@@ -431,10 +446,18 @@ class _LoginScreenState extends State<LoginScreen> {
         children: [
           SizedBox(
             width: 49,
-            child: Icon(icon, color: AppColors.textSecondary, size: 21),
+            child: Icon(
+              icon,
+              color: context.mutedColor(AppColors.textSecondary),
+              size: 21,
+            ),
           ),
 
-          Container(height: 25, width: 1, color: AppColors.border),
+          Container(
+            height: 25,
+            width: 1,
+            color: context.borderColor(AppColors.border),
+          ),
 
           Expanded(
             child: TextField(
@@ -466,16 +489,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       }
                     }
                   : (_) => setState(() {}),
-              style: const TextStyle(
-                color: AppColors.textPrimary,
+              style: TextStyle(
+                color: context.foregroundColor(AppColors.textPrimary),
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
               cursorColor: AppColors.primary,
               decoration: InputDecoration(
                 hintText: hint,
-                hintStyle: const TextStyle(
-                  color: AppColors.hintText,
+                hintStyle: TextStyle(
+                  color: context.mutedColor(AppColors.hintText),
                   fontSize: 13,
                 ),
                 border: InputBorder.none,
@@ -504,14 +527,14 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Container(
               height: 60,
               decoration: BoxDecoration(
-                color: AppColors.inputBackground,
+                color: context.surfaceColor(AppColors.inputBackground),
                 borderRadius: BorderRadius.circular(15),
                 border: Border.all(
                   color:
                       _validationAttempted &&
                           _codeControllers[index].text.isEmpty
                       ? Colors.redAccent
-                      : AppColors.border,
+                      : context.borderColor(AppColors.border),
                   width: 1.2,
                 ),
               ),
@@ -531,8 +554,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   FilteringTextInputFormatter.digitsOnly,
                   LengthLimitingTextInputFormatter(1),
                 ],
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
+                style: TextStyle(
+                  color: context.foregroundColor(AppColors.textPrimary),
                   fontSize: 22,
                   fontWeight: FontWeight.w500,
                 ),
@@ -577,7 +600,7 @@ class _LoginScreenState extends State<LoginScreen> {
         TooltipActionButton(
           type: TooltipDefaultActionType.skip,
           name: 'OK',
-          textStyle: const TextStyle(color: AppColors.white),
+          textStyle: TextStyle(color: context.foregroundColor(AppColors.white)),
           onTap: _showcaseView.dismiss,
         ),
       ],
@@ -616,9 +639,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
           const SizedBox(width: 10),
 
-          const Text(
+          Text(
             'I agree to the',
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+            style: TextStyle(
+              color: context.mutedColor(AppColors.textSecondary),
+              fontSize: 12,
+            ),
           ),
 
           const SizedBox(width: 4),
@@ -626,10 +652,10 @@ class _LoginScreenState extends State<LoginScreen> {
           Flexible(
             child: InkWell(
               onTap: _showTermsAndConditions,
-              child: const Text(
+              child: Text(
                 'Terms & Conditions',
                 style: TextStyle(
-                  color: AppColors.textPrimary,
+                  color: context.foregroundColor(AppColors.textPrimary),
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
@@ -651,8 +677,10 @@ class _LoginScreenState extends State<LoginScreen> {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.primaryText,
-          disabledBackgroundColor: AppColors.disabledButton,
-          disabledForegroundColor: AppColors.disabledText,
+          disabledBackgroundColor: context.borderColor(
+            AppColors.disabledButton,
+          ),
+          disabledForegroundColor: context.mutedColor(AppColors.disabledText),
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),

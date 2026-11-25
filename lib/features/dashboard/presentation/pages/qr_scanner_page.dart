@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
@@ -52,7 +53,9 @@ class _QrScannerPageState extends State<QrScannerPage> {
                       ? 'Camera access is required to scan QR codes. Enable camera permission in Settings, then reopen the scanner.'
                       : 'Unable to start the camera. Close the scanner and try again.',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(
+                    color: context.foregroundColor(Colors.white),
+                  ),
                 ),
               ),
             ),

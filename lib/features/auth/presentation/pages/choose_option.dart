@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/router/app_router.dart';
 import 'package:dropline/core/theme/app_text_styles.dart';
 import 'package:dropline/core/theme/appcolors.dart';
@@ -33,20 +34,24 @@ class ChooseOptionPage extends StatelessWidget {
                         Text(
                           'CHOOSE AN OPTION',
                           textAlign: TextAlign.center,
-                          style: AppTextStyles.titleLarge.copyWith(
-                            fontSize: 28 * scale,
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: 0.7,
-                          ),
+                          style: context
+                              .themedText(AppTextStyles.titleLarge)
+                              .copyWith(
+                                fontSize: 28 * scale,
+                                fontWeight: FontWeight.w500,
+                                letterSpacing: 0.7,
+                              ),
                         ),
                         SizedBox(height: 51 * scale),
                         _option(
+                          context,
                           label: 'PERSONAL',
                           onTap: () => context.go(AppRouter.dashboard),
                           scale: scale,
                         ),
                         SizedBox(height: 28 * scale),
                         _option(
+                          context,
                           label: 'BUSINESS',
                           onTap: () {
                             // ScaffoldMessenger.of(context)
@@ -72,7 +77,8 @@ class ChooseOptionPage extends StatelessWidget {
     );
   }
 
-  Widget _option({
+  Widget _option(
+    BuildContext context, {
     required String label,
     required VoidCallback onTap,
     required double scale,
@@ -81,12 +87,14 @@ class ChooseOptionPage extends StatelessWidget {
       child: SizedBox(
         // width: 240,
         child: Material(
-          color: AppColors.cardBackground,
+          color: context.surfaceColor(AppColors.cardBackground),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(28),
 
             side: BorderSide(
-              color: AppColors.cardBorder.withValues(alpha: 0.65),
+              color: context
+                  .borderColor(AppColors.cardBorder)
+                  .withValues(alpha: 0.65),
             ),
           ),
           clipBehavior: Clip.antiAlias,
@@ -103,11 +111,13 @@ class ChooseOptionPage extends StatelessWidget {
                       textAlign: TextAlign.center,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.titleLarge.copyWith(
-                        fontSize: 28 * scale,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 0.7,
-                      ),
+                      style: context
+                          .themedText(AppTextStyles.titleLarge)
+                          .copyWith(
+                            fontSize: 28 * scale,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 0.7,
+                          ),
                     ),
                   ),
                 ],

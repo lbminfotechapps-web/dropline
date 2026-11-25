@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/theme/app_text_styles.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:dropline/core/utility/widgets/appbar.dart';
@@ -45,11 +46,11 @@ class MyCheckSheetsPage extends StatelessWidget {
     ];
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.backgroundColor(AppColors.background),
       appBar: CustomAppBar(
         title: 'My check sheets',
         subtitle: '$projectName · $companyName',
-        backgroundColor: AppColors.background,
+        backgroundColor: context.backgroundColor(AppColors.background),
         onBackPressed: () => Navigator.pop(context),
       ),
       body: SafeArea(
@@ -124,10 +125,9 @@ class MyCheckSheetsPage extends StatelessWidget {
                 children: [
                   Text(
                     'Your flows assign these sheets to your company.',
-                    style: AppTextStyles.bodySmall.copyWith(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w400,
-                    ),
+                    style: context
+                        .themedText(AppTextStyles.bodySmall)
+                        .copyWith(fontSize: 11, fontWeight: FontWeight.w400),
                   ),
 
                   const SizedBox(height: 15),
@@ -177,9 +177,12 @@ class MyCheckSheetsPage extends StatelessWidget {
         // constraints: const BoxConstraints(minHeight: 60),
         padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 17),
         decoration: BoxDecoration(
-          color: AppColors.cardBackground,
+          color: context.surfaceColor(AppColors.cardBackground),
           borderRadius: BorderRadius.circular(11),
-          border: Border.all(color: AppColors.border, width: 1),
+          border: Border.all(
+            color: context.borderColor(AppColors.border),
+            width: 1,
+          ),
         ),
         child: Row(
           children: [
@@ -194,11 +197,13 @@ class MyCheckSheetsPage extends StatelessWidget {
               ),
               child: Text(
                 sheet.code,
-                style: AppTextStyles.labelSmall.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 11,
-                ),
+                style: context
+                    .themedText(AppTextStyles.labelSmall)
+                    .copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 11,
+                    ),
               ),
             ),
 
@@ -214,11 +219,13 @@ class MyCheckSheetsPage extends StatelessWidget {
                     sheet.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      height: 1.3,
-                    ),
+                    style: context
+                        .themedText(AppTextStyles.bodyMedium)
+                        .copyWith(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          height: 1.3,
+                        ),
                   ),
 
                   const SizedBox(height: 3),
@@ -227,12 +234,14 @@ class MyCheckSheetsPage extends StatelessWidget {
                     sheet.description,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.textSecondary,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w400,
-                      height: 1.3,
-                    ),
+                    style: context
+                        .themedText(AppTextStyles.caption)
+                        .copyWith(
+                          color: context.mutedColor(AppColors.textSecondary),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w400,
+                          height: 1.3,
+                        ),
                   ),
                 ],
               ),
@@ -255,11 +264,15 @@ class MyCheckSheetsPage extends StatelessWidget {
               ),
               child: Text(
                 sheet.isSaved ? 'Saved' : 'Set up',
-                style: AppTextStyles.labelSmall.copyWith(
-                  color: sheet.isSaved ? AppColors.success : AppColors.warning,
-                  fontSize: 9.5,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: context
+                    .themedText(AppTextStyles.labelSmall)
+                    .copyWith(
+                      color: sheet.isSaved
+                          ? AppColors.success
+                          : AppColors.warning,
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w500,
+                    ),
               ),
             ),
           ],

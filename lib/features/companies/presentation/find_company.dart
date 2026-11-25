@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dropline/core/di/global_di.dart';
@@ -78,7 +79,7 @@ class _FindCompanyScreenState extends State<FindCompanyScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.backgroundColor(AppColors.background),
       resizeToAvoidBottomInset: true,
       appBar: CustomAppBar(title: 'Find company', subtitle: widget.projectName),
       body: Padding(
@@ -90,8 +91,8 @@ class _FindCompanyScreenState extends State<FindCompanyScreen> {
               padding: const EdgeInsets.only(left: 2),
               child: Text(
                 'Already on Dropline? Use the existing company ID.',
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
+                style: TextStyle(
+                  color: context.mutedColor(AppColors.textSecondary),
                   fontSize: 11,
                 ),
               ),
@@ -116,8 +117,10 @@ class _FindCompanyScreenState extends State<FindCompanyScreen> {
                         children: [
                           Text(
                             state.error!,
-                            style: const TextStyle(
-                              color: AppColors.textSecondary,
+                            style: TextStyle(
+                              color: context.mutedColor(
+                                AppColors.textSecondary,
+                              ),
                             ),
                           ),
                           TextButton(
@@ -216,25 +219,31 @@ class _FindCompanyScreenState extends State<FindCompanyScreen> {
     return Container(
       height: 44,
       decoration: BoxDecoration(
-        color: AppColors.inputBackground,
+        color: context.surfaceColor(AppColors.inputBackground),
         borderRadius: BorderRadius.circular(9),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.borderColor(AppColors.border)),
       ),
       child: TextField(
         controller: _searchController,
         keyboardType: TextInputType.text,
         textInputAction: TextInputAction.search,
-        style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
+        style: TextStyle(
+          color: context.foregroundColor(AppColors.textPrimary),
+          fontSize: 13,
+        ),
         cursorColor: AppColors.primary,
         decoration: InputDecoration(
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
           hintText: 'Search company name',
-          hintStyle: const TextStyle(color: AppColors.hintText, fontSize: 12),
-          prefixIcon: const Icon(
+          hintStyle: TextStyle(
+            color: context.mutedColor(AppColors.hintText),
+            fontSize: 12,
+          ),
+          prefixIcon: Icon(
             Icons.search_rounded,
-            color: AppColors.iconColor,
+            color: context.linkColor(AppColors.iconColor),
             size: 23,
           ),
           suffixIcon: searchQuery.isNotEmpty
@@ -242,9 +251,9 @@ class _FindCompanyScreenState extends State<FindCompanyScreen> {
                   onPressed: () {
                     _searchController.clear();
                   },
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.cancel_rounded,
-                    color: AppColors.hintText,
+                    color: context.mutedColor(AppColors.hintText),
                     size: 17,
                   ),
                 )
@@ -263,9 +272,9 @@ class _FindCompanyScreenState extends State<FindCompanyScreen> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
+        color: context.surfaceColor(AppColors.cardBackground),
         borderRadius: BorderRadius.circular(9),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.borderColor(AppColors.border)),
       ),
       child: results.isEmpty
           ? _buildEmptyState()
@@ -291,32 +300,32 @@ class _FindCompanyScreenState extends State<FindCompanyScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.search_rounded,
-              color: AppColors.iconColor,
+              color: context.linkColor(AppColors.iconColor),
               size: 47,
             ),
 
             const SizedBox(height: 14),
 
-            const Text(
+            Text(
               'No matching company found',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
+                color: context.foregroundColor(AppColors.textPrimary),
               ),
             ),
 
             const SizedBox(height: 6),
 
-            const Text(
+            Text(
               'Check the spelling or create a new company.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 12,
-                color: AppColors.textSecondary,
+                color: context.mutedColor(AppColors.textSecondary),
                 height: 1.4,
               ),
             ),
@@ -356,9 +365,9 @@ class _FindCompanyScreenState extends State<FindCompanyScreen> {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.surfaceColor(AppColors.surface),
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: context.borderColor(AppColors.border)),
         ),
         child: Row(
           children: [
@@ -366,12 +375,12 @@ class _FindCompanyScreenState extends State<FindCompanyScreen> {
               height: 40,
               width: 40,
               decoration: BoxDecoration(
-                color: AppColors.inputBackground,
+                color: context.surfaceColor(AppColors.inputBackground),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.business_outlined,
-                color: AppColors.iconColor,
+                color: context.linkColor(AppColors.iconColor),
                 size: 22,
               ),
             ),
@@ -384,8 +393,8 @@ class _FindCompanyScreenState extends State<FindCompanyScreen> {
                 children: [
                   Text(
                     company.name,
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
+                    style: TextStyle(
+                      color: context.foregroundColor(AppColors.textPrimary),
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
@@ -395,8 +404,8 @@ class _FindCompanyScreenState extends State<FindCompanyScreen> {
 
                   Text(
                     'Company ID: ${company.id}',
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
+                    style: TextStyle(
+                      color: context.mutedColor(AppColors.textSecondary),
                       fontSize: 11,
                     ),
                   ),
@@ -404,7 +413,10 @@ class _FindCompanyScreenState extends State<FindCompanyScreen> {
               ),
             ),
 
-            const Icon(Icons.chevron_right_rounded, color: AppColors.iconColor),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: context.linkColor(AppColors.iconColor),
+            ),
           ],
         ),
       ),

@@ -1,3 +1,5 @@
+import 'package:dropline/core/theme/appcolors.dart';
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/router/app_router.dart';
 import 'package:flutter/material.dart';
 import 'package:dropline/features/project_setup/presentation/pages/project_setup_pages.dart';
@@ -26,12 +28,12 @@ class StartWorkPage extends StatelessWidget {
   static const _border = Color(0xFF31576B);
   static const _muted = Color(0xFF8EB5C9);
   static const _text = Color(0xFFF0F4FC);
-  static const _lime = Color(0xFFB5FF65);
+  static const _primaryAccent = AppColors.primary;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _background,
+      backgroundColor: context.backgroundColor(_background),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -39,12 +41,12 @@ class StartWorkPage extends StatelessWidget {
             Text label(
               String value, {
               double size = 7,
-              Color color = _text,
+              Color? color,
               bool bold = false,
             }) => Text(
               value,
               style: TextStyle(
-                color: color,
+                color: color ?? context.foregroundColor(_text),
                 fontSize: size * s,
                 fontWeight: bold ? FontWeight.w500 : FontWeight.w500,
                 letterSpacing: .15 * s,
@@ -58,10 +60,10 @@ class StartWorkPage extends StatelessWidget {
             }) => Padding(
               padding: EdgeInsets.only(bottom: 5 * s),
               child: Material(
-                color: _surface,
+                color: context.surfaceColor(_surface),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(7 * s),
-                  side: const BorderSide(color: _border),
+                  side: BorderSide(color: context.borderColor(_border)),
                 ),
                 clipBehavior: Clip.antiAlias,
                 child: InkWell(
@@ -74,7 +76,11 @@ class StartWorkPage extends StatelessWidget {
                     child: Row(
                       children: [
                         if (icon != null) ...[
-                          Icon(icon, color: _muted, size: 13 * s),
+                          Icon(
+                            icon,
+                            color: context.mutedColor(_muted),
+                            size: 13 * s,
+                          ),
                           SizedBox(width: 5 * s),
                         ],
                         Expanded(
@@ -83,12 +89,20 @@ class StartWorkPage extends StatelessWidget {
                             children: [
                               label(title, size: 8, bold: true),
                               SizedBox(height: 2 * s),
-                              label(subtitle, size: 6, color: _muted),
+                              label(
+                                subtitle,
+                                size: 6,
+                                color: context.mutedColor(_muted),
+                              ),
                             ],
                           ),
                         ),
                         SizedBox(width: 5 * s),
-                        Icon(Icons.chevron_right, color: _muted, size: 13 * s),
+                        Icon(
+                          Icons.chevron_right,
+                          color: context.mutedColor(_muted),
+                          size: 13 * s,
+                        ),
                       ],
                     ),
                   ),
@@ -117,15 +131,17 @@ class StartWorkPage extends StatelessWidget {
                               onPressed: () => Navigator.of(context).maybePop(),
                               style: OutlinedButton.styleFrom(
                                 padding: EdgeInsets.zero,
-                                backgroundColor: _surface,
-                                side: const BorderSide(color: _border),
+                                backgroundColor: context.surfaceColor(_surface),
+                                side: BorderSide(
+                                  color: context.borderColor(_border),
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(6 * s),
                                 ),
                               ),
                               child: Icon(
                                 Icons.chevron_left,
-                                color: _muted,
+                                color: context.mutedColor(_muted),
                                 size: 13 * s,
                               ),
                             ),
@@ -140,7 +156,7 @@ class StartWorkPage extends StatelessWidget {
                       label(
                         'Business · $companyName · Admin',
                         size: 6.5,
-                        color: _muted,
+                        color: context.mutedColor(_muted),
                       ),
                       SizedBox(height: 11 * s),
                       menuItem(
@@ -161,7 +177,6 @@ class StartWorkPage extends StatelessWidget {
                 ),
                       ),
 
-                
                       menuItem(
                         'Drawings',
                         'Open project drawings',
@@ -194,10 +209,12 @@ class StartWorkPage extends StatelessWidget {
                           onPressed: onStartWork,
                           style: FilledButton.styleFrom(
                             padding: EdgeInsets.zero,
-                            backgroundColor: _lime,
+                            backgroundColor: _primaryAccent,
                             foregroundColor: _background,
-                            disabledBackgroundColor: _lime,
-                            disabledForegroundColor: _background,
+                            disabledBackgroundColor: _primaryAccent,
+                            disabledForegroundColor: context.backgroundColor(
+                              _background,
+                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(7 * s),
                             ),

@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:dropline/core/utility/widgets/appbar.dart';
 import 'package:flutter/material.dart';
@@ -78,17 +79,19 @@ class DroplineCard extends StatelessWidget {
     return DefaultTabController(
       length: 3,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.backgroundColor(AppColors.background),
         appBar: const CustomAppBar(title: 'Dropline Cards'),
         body: SafeArea(
           top: false,
           child: Column(
             children: [
-              const TabBar(
+              TabBar(
                 labelColor: AppColors.primary,
-                unselectedLabelColor: AppColors.textSecondary,
+                unselectedLabelColor: context.mutedColor(
+                  AppColors.textSecondary,
+                ),
                 indicatorColor: AppColors.primary,
-                dividerColor: AppColors.border,
+                dividerColor: context.borderColor(AppColors.border),
                 labelStyle: TextStyle(fontWeight: FontWeight.w500),
                 tabs: [
                   Tab(text: 'My Cards'),
@@ -139,16 +142,18 @@ class _CardList extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
+              Icon(
                 Icons.badge_outlined,
                 size: 48,
-                color: AppColors.textSecondary,
+                color: context.mutedColor(AppColors.textSecondary),
               ),
               const SizedBox(height: 12),
               Text(
                 emptyMessage,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: AppColors.textSecondary),
+                style: TextStyle(
+                  color: context.mutedColor(AppColors.textSecondary),
+                ),
               ),
             ],
           ),
@@ -165,15 +170,15 @@ class _CardList extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: context.surfaceColor(AppColors.surface),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: context.borderColor(AppColors.border)),
           ),
           child: Row(
             children: [
-              const CircleAvatar(
-                backgroundColor: AppColors.background,
-                child: Icon(Icons.person_outline, color: AppColors.primary),
+              CircleAvatar(
+                backgroundColor: context.backgroundColor(AppColors.background),
+                child: Icon(Icons.person_outline, color: context.accentColor(AppColors.primary)),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -182,8 +187,8 @@ class _CardList extends StatelessWidget {
                   children: [
                     Text(
                       card.name,
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
+                      style: TextStyle(
+                        color: context.foregroundColor(AppColors.textPrimary),
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                       ),
@@ -192,14 +197,18 @@ class _CardList extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         card.designation,
-                        style: const TextStyle(color: AppColors.textSecondary),
+                        style: TextStyle(
+                          color: context.mutedColor(AppColors.textSecondary),
+                        ),
                       ),
                     ],
                     if (card.company.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Text(
                         card.company,
-                        style: const TextStyle(color: AppColors.textSecondary),
+                        style: TextStyle(
+                          color: context.mutedColor(AppColors.textSecondary),
+                        ),
                       ),
                     ],
                   ],
@@ -295,7 +304,7 @@ class _MyCardPreview extends StatelessWidget {
 
   Future<void> _share(BuildContext context) => showModalBottomSheet<void>(
     context: context,
-    backgroundColor: const Color(0xFF1C3A4D),
+    backgroundColor: context.backgroundColor(Color(0xFF1C3A4D)),
     showDragHandle: true,
     builder: (sheetContext) => SafeArea(
       child: Padding(
@@ -580,7 +589,7 @@ class _MyCardPreview extends StatelessWidget {
         child: FilledButton(
           onPressed: () => _share(context),
           style: FilledButton.styleFrom(
-            backgroundColor: const Color(0xFFB5FA75),
+            backgroundColor: AppColors.primary,
             foregroundColor: const Color(0xFF132B3A),
             minimumSize: const Size.fromHeight(46),
             shape: RoundedRectangleBorder(

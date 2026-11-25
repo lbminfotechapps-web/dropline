@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:dropline/core/utility/widgets/app_background.dart';
 import 'package:dropline/features/event/domain/entities/location_flow_args.dart';
@@ -177,9 +178,11 @@ class SpecificLocationPage extends StatelessWidget {
                                   children: [
                                     Text(
                                       'Specific Locations',
-                                      style: AppTextStyles.titleMedium.copyWith(
-                                        fontWeight: FontWeight.w500,
-                                      ),
+                                      style: context
+                                          .themedText(AppTextStyles.titleMedium)
+                                          .copyWith(
+                                            fontWeight: FontWeight.w500,
+                                          ),
                                     ),
 
                                     const SizedBox(height: 8),
@@ -187,9 +190,13 @@ class SpecificLocationPage extends StatelessWidget {
                                     Text(
                                       'Add specific locations inside '
                                       '${location.name}.',
-                                      style: AppTextStyles.bodyMedium.copyWith(
-                                        color: AppColors.textSecondary,
-                                      ),
+                                      style: context
+                                          .themedText(AppTextStyles.bodyMedium)
+                                          .copyWith(
+                                            color: context.mutedColor(
+                                              AppColors.textSecondary,
+                                            ),
+                                          ),
                                     ),
                                   ],
                                 ),
@@ -200,10 +207,10 @@ class SpecificLocationPage extends StatelessWidget {
                             // LOADING
                             // ==================================
                             if (state.isLoading)
-                              const SliverFillRemaining(
+                              SliverFillRemaining(
                                 child: Center(
                                   child: CircularProgressIndicator(
-                                    color: AppColors.white,
+                                    color: context.foregroundColor(AppColors.white),
                                   ),
                                 ),
                               )
@@ -221,7 +228,9 @@ class SpecificLocationPage extends StatelessWidget {
                                         .loadSpecificLocations(),
                                     child: Text(
                                       'Unable to load. Tap to retry',
-                                      style: AppTextStyles.bodyMedium,
+                                      style: context.themedText(
+                                        AppTextStyles.bodyMedium,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -314,9 +323,9 @@ class SpecificLocationPage extends StatelessWidget {
                   color: AppColors.white.withValues(alpha: 0.20),
                 ),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.arrow_back_rounded,
-                color: AppColors.white,
+                color: context.foregroundColor(AppColors.white),
                 size: 24,
               ),
             ),
@@ -330,10 +339,9 @@ class SpecificLocationPage extends StatelessWidget {
             'Specific Locations',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.headingMedium.copyWith(
-              fontSize: 26,
-              fontWeight: FontWeight.w500,
-            ),
+            style: context
+                .themedText(AppTextStyles.headingMedium)
+                .copyWith(fontSize: 26, fontWeight: FontWeight.w500),
           ),
         ),
       ],
@@ -388,8 +396,10 @@ class SpecificLocationPage extends StatelessWidget {
                   //     ? null
                   //     : () => _finishSetup(context),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.white,
-                    disabledForegroundColor: AppColors.textSecondary,
+                    foregroundColor: context.foregroundColor(AppColors.white),
+                    disabledForegroundColor: context.mutedColor(
+                      AppColors.textSecondary,
+                    ),
                     side: BorderSide(
                       color: AppColors.white.withValues(alpha: 0.28),
                     ),

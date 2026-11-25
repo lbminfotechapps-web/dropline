@@ -1,3 +1,5 @@
+import 'package:dropline/core/theme/appcolors.dart';
+import 'package:dropline/core/theme/app_theme.dart';
 import '../domain/entities/sub_company_entity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -30,7 +32,7 @@ class ShareInvitationPage extends StatelessWidget {
   static const _border = Color(0xFF16465D);
   static const _muted = Color(0xFF80B2CD);
   static const _text = Color(0xFFE9F2F8);
-  static const _lime = Color(0xFFB5FF65);
+  static const _primaryAccent = AppColors.primary;
 
   Future<void> _copyCompanyId(BuildContext context) async {
     await Clipboard.setData(ClipboardData(text: companyId));
@@ -43,7 +45,7 @@ class ShareInvitationPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _background,
+      backgroundColor: context.backgroundColor(_background),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -51,22 +53,22 @@ class ShareInvitationPage extends StatelessWidget {
             Text label(
               String value, {
               double size = 7,
-              Color color = _text,
+              Color? color,
               bool bold = false,
               TextAlign? align,
             }) => Text(
               value,
               textAlign: align,
               style: TextStyle(
-                color: color,
+                color: color ?? context.foregroundColor(_text),
                 fontSize: size * s,
                 fontWeight: bold ? FontWeight.w500 : FontWeight.w500,
                 height: 1.4,
               ),
             );
             BoxDecoration panel() => BoxDecoration(
-              color: _surface,
-              border: Border.all(color: _border),
+              color: context.surfaceColor(_surface),
+              border: Border.all(color: context.borderColor(_border)),
               borderRadius: BorderRadius.circular(5 * s),
             );
             Widget emptyState(String title, String subtitle, double height) =>
@@ -80,7 +82,11 @@ class ShareInvitationPage extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.people_outline, color: _muted, size: 15 * s),
+                      Icon(
+                        Icons.people_outline,
+                        color: context.mutedColor(_muted),
+                        size: 15 * s,
+                      ),
                       SizedBox(height: 3 * s),
                       label(
                         title,
@@ -92,7 +98,7 @@ class ShareInvitationPage extends StatelessWidget {
                       label(
                         subtitle,
                         size: 6.5,
-                        color: _muted,
+                        color: context.mutedColor(_muted),
                         align: TextAlign.center,
                       ),
                     ],
@@ -113,7 +119,9 @@ class ShareInvitationPage extends StatelessWidget {
                               Navigator.of(context).pop(companyName),
                           style: OutlinedButton.styleFrom(
                             padding: EdgeInsets.zero,
-                            side: const BorderSide(color: _border),
+                            side: BorderSide(
+                              color: context.borderColor(_border),
+                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(5 * s),
                             ),
@@ -121,7 +129,7 @@ class ShareInvitationPage extends StatelessWidget {
                           child: Icon(
                             Icons.chevron_left,
                             size: 12 * s,
-                            color: _muted,
+                            color: context.mutedColor(_muted),
                           ),
                         ),
                       ),
@@ -134,7 +142,7 @@ class ShareInvitationPage extends StatelessWidget {
                             label(
                               '$projectName · $trade',
                               size: 6.5,
-                              color: _muted,
+                              color: context.mutedColor(_muted),
                             ),
                           ],
                         ),
@@ -154,7 +162,7 @@ class ShareInvitationPage extends StatelessWidget {
                               label(
                                 'Dropline Company ID',
                                 size: 7,
-                                color: _muted,
+                                color: context.mutedColor(_muted),
                               ),
                               label(companyId, size: 13, bold: true),
                               SizedBox(height: 2 * s),
@@ -172,7 +180,7 @@ class ShareInvitationPage extends StatelessWidget {
                           icon: Icon(
                             Icons.copy_outlined,
                             size: 11 * s,
-                            color: _muted,
+                            color: context.mutedColor(_muted),
                           ),
                         ),
                       ],
@@ -208,7 +216,7 @@ class ShareInvitationPage extends StatelessWidget {
                           ),
                       style: OutlinedButton.styleFrom(
                         padding: EdgeInsets.zero,
-                        side: const BorderSide(color: Color(0xFF829B3F)),
+                        side: BorderSide(color: context.accentColor(AppColors.primaryBorder)),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(5 * s),
                         ),
@@ -216,7 +224,7 @@ class ShareInvitationPage extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.add, size: 12 * s, color: _lime),
+                          Icon(Icons.add, size: 12 * s, color: context.accentColor(_primaryAccent)),
                           SizedBox(width: 4 * s),
                           label('Invite company admin', size: 7),
                         ],

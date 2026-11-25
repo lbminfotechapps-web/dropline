@@ -1,4 +1,4 @@
-
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:flutter/material.dart';
 
@@ -30,6 +30,7 @@ class LocationBreadcrumb extends StatelessWidget {
         children: [
           for (int index = 0; index < items.length; index++) ...[
             _buildChip(
+              context,
               item: items[index],
               isActive: index == items.length - 1,
             ),
@@ -42,7 +43,7 @@ class LocationBreadcrumb extends StatelessWidget {
                 child: Icon(
                   Icons.chevron_right_rounded,
                   size: 20,
-                  color: AppColors.textSecondary,
+                  color: context.mutedColor(AppColors.textSecondary),
                 ),
               ),
           ],
@@ -51,17 +52,18 @@ class LocationBreadcrumb extends StatelessWidget {
     );
   }
 
-  Widget _buildChip({
+  Widget _buildChip(
+    BuildContext context, {
     required LocationBreadcrumbItem item,
     required bool isActive,
   }) {
     final borderColor = isActive
-        ? const Color(0xFFACEE70)
+        ? AppColors.primary
         : AppColors.white.withValues(alpha: 0.22);
 
     return Material(
       color: isActive
-          ? const Color(0xFFACEE70).withValues(alpha: 0.12)
+          ? AppColors.primary.withValues(alpha: 0.12)
           : AppColors.white.withValues(alpha: 0.06),
       borderRadius: BorderRadius.circular(30),
       child: InkWell(
@@ -82,12 +84,12 @@ class LocationBreadcrumb extends StatelessWidget {
           child: Text(
             item.title,
             maxLines: 1,
-            style: AppTextStyles.labelMedium.copyWith(
-              color: isActive
-                  ? const Color(0xFFB9F27D)
-                  : AppColors.white,
-              fontWeight: FontWeight.w500,
-            ),
+            style: context
+                .themedText(AppTextStyles.labelMedium)
+                .copyWith(
+                  color: isActive ? AppColors.primary : context.foregroundColor(AppColors.white),
+                  fontWeight: FontWeight.w500,
+                ),
           ),
         ),
       ),

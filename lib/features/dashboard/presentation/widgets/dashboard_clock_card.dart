@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:flutter/material.dart';
 
@@ -16,16 +17,19 @@ class DashboardClockCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
+        color: context.surfaceColor(AppColors.cardBackground),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border, width: 1.1),
+        border: Border.all(
+          color: context.borderColor(AppColors.border),
+          width: 1.1,
+        ),
       ),
       child: Column(
         children: [
-          const Text(
+          Text(
             'CLOCK-IN TIME',
             style: TextStyle(
-              color: AppColors.textSecondary,
+              color: context.mutedColor(AppColors.textSecondary),
               fontSize: 10,
               fontWeight: FontWeight.w500,
               letterSpacing: 1.2,
@@ -40,8 +44,8 @@ class DashboardClockCard extends StatelessWidget {
               Flexible(
                 child: Text(
                   '$hours:$minutes',
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
+                  style: TextStyle(
+                    color: context.foregroundColor(AppColors.textPrimary),
                     fontSize: 39,
                     fontWeight: FontWeight.w500,
                     height: 1,
@@ -58,8 +62,12 @@ class DashboardClockCard extends StatelessWidget {
                   icon: const Icon(Icons.edit_outlined, size: 14),
                   label: const Text('Edit'),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.textPrimary,
-                    side: const BorderSide(color: AppColors.border),
+                    foregroundColor: context.foregroundColor(
+                      AppColors.textPrimary,
+                    ),
+                    side: BorderSide(
+                      color: context.borderColor(AppColors.border),
+                    ),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 11,
                       vertical: 7,
@@ -82,8 +90,8 @@ class DashboardClockCard extends StatelessWidget {
             onEdit != null
                 ? 'You can edit your start time.'
                 : 'Your start time.',
-            style: const TextStyle(
-              color: AppColors.textSecondary,
+            style: TextStyle(
+              color: context.mutedColor(AppColors.textSecondary),
               fontSize: 11,
             ),
           ),
@@ -110,10 +118,10 @@ class DashboardWorkspaceCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Choose your workspace',
           style: TextStyle(
-            color: AppColors.textPrimary,
+            color: context.foregroundColor(AppColors.textPrimary),
             fontSize: 16,
             fontWeight: FontWeight.w500,
           ),
@@ -125,6 +133,7 @@ class DashboardWorkspaceCard extends StatelessWidget {
           children: [
             Expanded(
               child: _workspaceItem(
+                context,
                 title: 'Personal',
                 subtitle: 'Private',
                 type: WorkspaceType.personal,
@@ -135,6 +144,7 @@ class DashboardWorkspaceCard extends StatelessWidget {
 
             Expanded(
               child: _workspaceItem(
+                context,
                 title: 'Business',
                 subtitle: 'Shared projects',
                 type: WorkspaceType.business,
@@ -146,7 +156,8 @@ class DashboardWorkspaceCard extends StatelessWidget {
     );
   }
 
-  Widget _workspaceItem({
+  Widget _workspaceItem(
+    BuildContext context, {
     required String title,
     required String subtitle,
     required WorkspaceType type,
@@ -163,10 +174,14 @@ class DashboardWorkspaceCard extends StatelessWidget {
           height: 68,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.surface : AppColors.cardBackground,
+            color: isSelected
+                ? context.surfaceColor(AppColors.surface)
+                : context.surfaceColor(AppColors.cardBackground),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isSelected ? AppColors.primary : AppColors.border,
+              color: isSelected
+                  ? AppColors.primary
+                  : context.borderColor(AppColors.border),
               width: isSelected ? 1.3 : 1,
             ),
           ),
@@ -181,8 +196,8 @@ class DashboardWorkspaceCard extends StatelessWidget {
                       title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
+                      style: TextStyle(
+                        color: context.foregroundColor(AppColors.textPrimary),
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                       ),
@@ -192,8 +207,8 @@ class DashboardWorkspaceCard extends StatelessWidget {
                       subtitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
+                      style: TextStyle(
+                        color: context.mutedColor(AppColors.textSecondary),
                         fontSize: 10,
                       ),
                     ),
@@ -207,7 +222,9 @@ class DashboardWorkspaceCard extends StatelessWidget {
                 isSelected
                     ? Icons.radio_button_checked_rounded
                     : Icons.radio_button_unchecked_rounded,
-                color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                color: isSelected
+                    ? context.accentColor(AppColors.primary)
+                    : context.mutedColor(AppColors.textSecondary),
                 size: 19,
               ),
             ],
@@ -217,10 +234,6 @@ class DashboardWorkspaceCard extends StatelessWidget {
     );
   }
 }
-
-
-
-
 
 class DashboardTimeBottomSheet extends StatefulWidget {
   final DateTime initialTime;
@@ -241,7 +254,7 @@ class DashboardTimeBottomSheet extends StatefulWidget {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      backgroundColor: AppColors.sheetBackground,
+      backgroundColor: context.surfaceColor(AppColors.sheetBackground),
       barrierColor: AppColors.black.withValues(alpha: 0.65),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
@@ -296,17 +309,21 @@ class _DashboardTimeBottomSheetState
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.dark(
+            colorScheme: ColorScheme.dark(
               primary: AppColors.primary,
               onPrimary: AppColors.primaryText,
-              surface: AppColors.surface,
-              onSurface: AppColors.textPrimary,
+              surface: context.surfaceColor(AppColors.surface),
+              onSurface: context.foregroundColor(AppColors.textPrimary),
             ),
-            timePickerTheme: const TimePickerThemeData(
-              backgroundColor: AppColors.surface,
-              hourMinuteColor: AppColors.inputBackground,
-              hourMinuteTextColor: AppColors.textPrimary,
-              dialBackgroundColor: AppColors.cardBackground,
+            timePickerTheme: TimePickerThemeData(
+              backgroundColor: context.surfaceColor(AppColors.surface),
+              hourMinuteColor: context.surfaceColor(AppColors.inputBackground),
+              hourMinuteTextColor: context.foregroundColor(
+                AppColors.textPrimary,
+              ),
+              dialBackgroundColor: context.surfaceColor(
+                AppColors.cardBackground,
+              ),
               dialHandColor: AppColors.primary,
             ),
           ),
@@ -358,7 +375,7 @@ class _DashboardTimeBottomSheetState
               width: 54,
               height: 5,
               decoration: BoxDecoration(
-                color: AppColors.sheetHandle,
+                color: context.mutedColor(AppColors.sheetHandle),
                 borderRadius: BorderRadius.circular(20),
               ),
             ),
@@ -366,10 +383,10 @@ class _DashboardTimeBottomSheetState
 
           const SizedBox(height: 20),
 
-          const Text(
+          Text(
             'Edit clock-in time',
             style: TextStyle(
-              color: AppColors.textPrimary,
+              color: context.foregroundColor(AppColors.textPrimary),
               fontSize: 22,
               fontWeight: FontWeight.w500,
             ),
@@ -379,18 +396,18 @@ class _DashboardTimeBottomSheetState
 
           Text(
             widget.workspaceLabel,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
+            style: TextStyle(
+              color: context.mutedColor(AppColors.textSecondary),
               fontSize: 13,
             ),
           ),
 
           const SizedBox(height: 20),
 
-          const Text(
+          Text(
             'START TIME',
             style: TextStyle(
-              color: AppColors.textSecondary,
+              color: context.mutedColor(AppColors.textSecondary),
               fontSize: 10,
               fontWeight: FontWeight.w500,
               letterSpacing: 1.2,
@@ -410,17 +427,17 @@ class _DashboardTimeBottomSheetState
                   horizontal: 14,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.inputBackground,
+                  color: context.surfaceColor(AppColors.inputBackground),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: AppColors.border,
+                    color: context.borderColor(AppColors.border),
                   ),
                 ),
                 child: Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.access_time_rounded,
-                      color: AppColors.iconColor,
+                      color: context.linkColor(AppColors.iconColor),
                       size: 20,
                     ),
 
@@ -428,8 +445,8 @@ class _DashboardTimeBottomSheetState
 
                     Text(
                       _timeController.text,
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
+                      style: TextStyle(
+                        color: context.foregroundColor(AppColors.textPrimary),
                         fontSize: 17,
                         fontWeight: FontWeight.w500,
                       ),
@@ -437,9 +454,9 @@ class _DashboardTimeBottomSheetState
 
                     const Spacer(),
 
-                    const Icon(
+                    Icon(
                       Icons.keyboard_arrow_down_rounded,
-                      color: AppColors.textSecondary,
+                      color: context.mutedColor(AppColors.textSecondary),
                       size: 20,
                     ),
                   ],
@@ -459,9 +476,11 @@ class _DashboardTimeBottomSheetState
                     onPressed: () =>
                         Navigator.of(context).pop(),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.textPrimary,
-                      side: const BorderSide(
-                        color: AppColors.border,
+                      foregroundColor: context.foregroundColor(
+                        AppColors.textPrimary,
+                      ),
+                      side: BorderSide(
+                        color: context.borderColor(AppColors.border),
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(11),

@@ -1,3 +1,5 @@
+import 'package:dropline/core/theme/appcolors.dart';
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'invite_people.dart';
@@ -39,7 +41,7 @@ class CompanyTeamInvitationPage extends StatelessWidget {
   static const _border = Color(0xFF31576B);
   static const _muted = Color(0xFF8EB5C9);
   static const _text = Color(0xFFF0F4FC);
-  static const _lime = Color(0xFFB5FF65);
+  static const _primaryAccent = AppColors.primary;
 
   Future<void> _share(BuildContext context, CompanyTeamMember member) async {
     await Clipboard.setData(
@@ -58,7 +60,7 @@ class CompanyTeamInvitationPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final invited = members.where((member) => !member.joined).toList();
     return Scaffold(
-      backgroundColor: _background,
+      backgroundColor: context.backgroundColor(_background),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -66,12 +68,12 @@ class CompanyTeamInvitationPage extends StatelessWidget {
             Text label(
               String value, {
               double size = 7,
-              Color color = _text,
+              Color? color,
               bool bold = false,
             }) => Text(
               value,
               style: TextStyle(
-                color: color,
+                color: color ?? context.foregroundColor(_text),
                 fontSize: size * s,
                 fontWeight: bold ? FontWeight.w500 : FontWeight.w500,
                 letterSpacing: .15 * s,
@@ -79,8 +81,8 @@ class CompanyTeamInvitationPage extends StatelessWidget {
             );
             ButtonStyle outline() => OutlinedButton.styleFrom(
               padding: EdgeInsets.zero,
-              backgroundColor: _surface,
-              side: const BorderSide(color: _border),
+              backgroundColor: context.surfaceColor(_surface),
+              side: BorderSide(color: context.borderColor(_border)),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(7 * s),
               ),
@@ -108,7 +110,7 @@ class CompanyTeamInvitationPage extends StatelessWidget {
                               style: outline(),
                               child: Icon(
                                 Icons.chevron_left,
-                                color: _muted,
+                                color: context.mutedColor(_muted),
                                 size: 13 * s,
                               ),
                             ),
@@ -123,7 +125,7 @@ class CompanyTeamInvitationPage extends StatelessWidget {
                       label(
                         '$projectName · $companyName',
                         size: 6.5,
-                        color: _muted,
+                        color: context.mutedColor(_muted),
                       ),
                       SizedBox(height: 11 * s),
                       for (final member in members)
@@ -134,8 +136,10 @@ class CompanyTeamInvitationPage extends StatelessWidget {
                             vertical: 6 * s,
                           ),
                           decoration: BoxDecoration(
-                            color: _surface,
-                            border: Border.all(color: _border),
+                            color: context.surfaceColor(_surface),
+                            border: Border.all(
+                              color: context.borderColor(_border),
+                            ),
                             borderRadius: BorderRadius.circular(7 * s),
                           ),
                           child: Column(
@@ -146,7 +150,7 @@ class CompanyTeamInvitationPage extends StatelessWidget {
                               label(
                                 '${member.role} · ${member.joined ? 'Joined' : 'Invited'}',
                                 size: 6,
-                                color: _muted,
+                                color: context.mutedColor(_muted),
                               ),
                             ],
                           ),
@@ -200,7 +204,7 @@ class CompanyTeamInvitationPage extends StatelessWidget {
                               ),
                           style: FilledButton.styleFrom(
                             padding: EdgeInsets.zero,
-                            backgroundColor: _lime,
+                            backgroundColor: _primaryAccent,
                             foregroundColor: _background,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(7 * s),

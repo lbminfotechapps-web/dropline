@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 import 'package:flutter/material.dart';
 
@@ -50,10 +51,12 @@ class DashboardDateCard extends StatelessWidget {
         vertical: 30 * scale,
       ),
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
+        color: context.surfaceColor(AppColors.cardBackground),
         borderRadius: BorderRadius.circular(40 * scale),
         border: Border.all(
-          color: AppColors.cardBorder.withValues(alpha: 0.7),
+          color: context
+              .borderColor(AppColors.cardBorder)
+              .withValues(alpha: 0.7),
           width: 1,
         ),
       ),
@@ -64,10 +67,9 @@ class DashboardDateCard extends StatelessWidget {
             fit: BoxFit.scaleDown,
             child: Text(
               dateText,
-              style: AppTextStyles.headingLarge.copyWith(
-                fontSize: 40 * scale,
-                fontWeight: FontWeight.w500,
-              ),
+              style: context
+                  .themedText(AppTextStyles.headingLarge)
+                  .copyWith(fontSize: 40 * scale, fontWeight: FontWeight.w500),
             ),
           ),
 
@@ -75,12 +77,14 @@ class DashboardDateCard extends StatelessWidget {
 
           Text(
             dayText,
-            style: AppTextStyles.titleMedium.copyWith(
-              color: AppColors.textSecondary,
-              fontSize: 28 * scale,
-              letterSpacing: 4 * scale,
-              fontWeight: FontWeight.w500,
-            ),
+            style: context
+                .themedText(AppTextStyles.titleMedium)
+                .copyWith(
+                  color: context.mutedColor(AppColors.textSecondary),
+                  fontSize: 28 * scale,
+                  letterSpacing: 4 * scale,
+                  fontWeight: FontWeight.w500,
+                ),
           ),
         ],
       ),

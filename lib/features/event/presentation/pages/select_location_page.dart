@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'dart:convert';
 
 import 'package:dropline/core/di/global_di.dart';
@@ -277,19 +278,23 @@ class _SelectLocationPageState extends State<SelectLocationPage> {
                           Text(
                             'Select where you are working '
                             'from your saved setup.',
-                            style: AppTextStyles.bodyLarge.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
+                            style: context
+                                .themedText(AppTextStyles.bodyLarge)
+                                .copyWith(
+                                  color: context.mutedColor(
+                                    AppColors.textSecondary,
+                                  ),
+                                ),
                           ),
 
                           const SizedBox(height: 32),
 
                           if (state.isLoading)
-                            const Padding(
+                            Padding(
                               padding: EdgeInsets.all(40),
                               child: Center(
                                 child: CircularProgressIndicator(
-                                  color: AppColors.white,
+                                  color: context.foregroundColor(AppColors.white),
                                 ),
                               ),
                             )
@@ -381,9 +386,9 @@ class _SelectLocationPageState extends State<SelectLocationPage> {
 
                             if (state.isLoadingChildren) ...[
                               const SizedBox(height: 20),
-                              const Center(
+                              Center(
                                 child: CircularProgressIndicator(
-                                  color: AppColors.white,
+                                  color: context.foregroundColor(AppColors.white),
                                 ),
                               ),
                             ],
@@ -392,9 +397,9 @@ class _SelectLocationPageState extends State<SelectLocationPage> {
                               const SizedBox(height: 18),
                               Text(
                                 state.error!,
-                                style: AppTextStyles.bodySmall.copyWith(
-                                  color: AppColors.error,
-                                ),
+                                style: context
+                                    .themedText(AppTextStyles.bodySmall)
+                                    .copyWith(color: AppColors.error),
                               ),
                               TextButton(
                                 onPressed: () => context
@@ -410,9 +415,13 @@ class _SelectLocationPageState extends State<SelectLocationPage> {
                                 child: Text(
                                   'No Main Areas found. '
                                   'Tap Edit Areas to create one.',
-                                  style: AppTextStyles.bodyMedium.copyWith(
-                                    color: AppColors.textSecondary,
-                                  ),
+                                  style: context
+                                      .themedText(AppTextStyles.bodyMedium)
+                                      .copyWith(
+                                        color: context.mutedColor(
+                                          AppColors.textSecondary,
+                                        ),
+                                      ),
                                   textAlign: TextAlign.center,
                                 ),
                               ),
@@ -439,10 +448,9 @@ class _SelectLocationPageState extends State<SelectLocationPage> {
         Expanded(
           child: Text(
             'Select Location',
-            style: AppTextStyles.headingLarge.copyWith(
-              fontSize: 28,
-              fontWeight: FontWeight.w500,
-            ),
+            style: context
+                .themedText(AppTextStyles.headingLarge)
+                .copyWith(fontSize: 28, fontWeight: FontWeight.w500),
           ),
         ),
 
@@ -453,7 +461,7 @@ class _SelectLocationPageState extends State<SelectLocationPage> {
           icon: const Icon(Icons.edit_outlined, size: 17),
           label: const Text('Edit Areas'),
           style: OutlinedButton.styleFrom(
-            foregroundColor: AppColors.white,
+            foregroundColor: context.foregroundColor(AppColors.white),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
             side: BorderSide(color: AppColors.white.withValues(alpha: 0.35)),
             shape: RoundedRectangleBorder(

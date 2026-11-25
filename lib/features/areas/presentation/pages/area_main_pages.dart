@@ -1,3 +1,5 @@
+import 'package:dropline/core/theme/appcolors.dart';
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/router/app_router.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
@@ -27,7 +29,7 @@ class _AreaMainPageState extends State<AreaMainPage> {
   static const _border = Color(0xFF31576B);
   static const _muted = Color(0xFF8EB5C9);
   static const _foreground = Color(0xFFF0F4FC);
-  static const _lime = Color(0xFFB5FF65);
+  static const _primaryAccent = AppColors.primary;
   final _formKey = GlobalKey<FormState>();
   late final List<TextEditingController> _controllers;
   late final TextEditingController _aboutController;
@@ -86,22 +88,21 @@ class _AreaMainPageState extends State<AreaMainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _background,
+      backgroundColor: context.backgroundColor(_background),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
             final s = (constraints.maxWidth / 262).clamp(1.0, 1.6);
-            TextStyle style(
-              double size, {
-              bool bold = false,
-              Color color = _muted,
-            }) => AppTextStyles.bodySmall.copyWith(
-              fontSize: size * s,
-              color: color,
-              height: 1.25,
-              fontWeight: bold ? FontWeight.w500 : FontWeight.w500,
-              letterSpacing: 0.1 * s,
-            );
+            TextStyle style(double size, {bool bold = false, Color? color}) =>
+                context
+                    .themedText(AppTextStyles.bodySmall)
+                    .copyWith(
+                      fontSize: size * s,
+                      color: color ?? context.mutedColor(_muted),
+                      height: 1.25,
+                      fontWeight: bold ? FontWeight.w500 : FontWeight.w500,
+                      letterSpacing: 0.1 * s,
+                    );
             Widget field(int index, String title, String example) => Padding(
               padding: EdgeInsets.only(bottom: 9 * s),
               child: Column(
@@ -111,8 +112,11 @@ class _AreaMainPageState extends State<AreaMainPage> {
                   SizedBox(height: 4 * s),
                   Container(
                     decoration: BoxDecoration(
-                      color: _surface,
-                      border: Border.all(color: _border, width: 0.7),
+                      color: context.surfaceColor(_surface),
+                      border: Border.all(
+                        color: context.borderColor(_border),
+                        width: 0.7,
+                      ),
                       borderRadius: BorderRadius.circular(9 * s),
                     ),
                     padding: EdgeInsets.fromLTRB(8 * s, 3 * s, 8 * s, 5 * s),
@@ -121,8 +125,11 @@ class _AreaMainPageState extends State<AreaMainPage> {
                       children: [
                         TextFormField(
                           controller: _controllers[index],
-                          style: style(10, color: _foreground),
-                          cursorColor: _lime,
+                          style: style(
+                            10,
+                            color: context.foregroundColor(_foreground),
+                          ),
+                          cursorColor: _primaryAccent,
                           textCapitalization: TextCapitalization.words,
                           textInputAction: index == 3
                               ? TextInputAction.done
@@ -167,9 +174,12 @@ class _AreaMainPageState extends State<AreaMainPage> {
                           },
                           style: OutlinedButton.styleFrom(
                             padding: EdgeInsets.zero,
-                            foregroundColor: _muted,
-                            backgroundColor: _surface,
-                            side: const BorderSide(color: _border, width: 0.7),
+                            foregroundColor: context.mutedColor(_muted),
+                            backgroundColor: context.surfaceColor(_surface),
+                            side: BorderSide(
+                              color: context.borderColor(_border),
+                              width: 0.7,
+                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8 * s),
                             ),
@@ -184,7 +194,11 @@ class _AreaMainPageState extends State<AreaMainPage> {
                       Expanded(
                         child: Text(
                           'Area labels',
-                          style: style(15, bold: true, color: _foreground),
+                          style: style(
+                            15,
+                            bold: true,
+                            color: context.foregroundColor(_foreground),
+                          ),
                         ),
                       ),
                     ],
@@ -230,8 +244,11 @@ class _AreaMainPageState extends State<AreaMainPage> {
                             Container(
                               padding: EdgeInsets.all(9 * s),
                               decoration: BoxDecoration(
-                                color: _surface,
-                                border: Border.all(color: _border, width: 0.7),
+                                color: context.surfaceColor(_surface),
+                                border: Border.all(
+                                  color: context.borderColor(_border),
+                                  width: 0.7,
+                                ),
                                 borderRadius: BorderRadius.circular(9 * s),
                               ),
                               child: Column(
@@ -242,7 +259,9 @@ class _AreaMainPageState extends State<AreaMainPage> {
                                     style: style(
                                       9,
                                       bold: true,
-                                      color: _foreground,
+                                      color: context.foregroundColor(
+                                        _foreground,
+                                      ),
                                     ),
                                   ),
                                   SizedBox(height: 6 * s),
@@ -254,7 +273,7 @@ class _AreaMainPageState extends State<AreaMainPage> {
                                     textCapitalization:
                                         TextCapitalization.sentences,
                                     style: style(8),
-                                    cursorColor: _lime,
+                                    cursorColor: _primaryAccent,
                                     decoration: const InputDecoration(
                                       isDense: true,
                                       contentPadding: EdgeInsets.zero,
@@ -279,11 +298,15 @@ class _AreaMainPageState extends State<AreaMainPage> {
                   FilledButton(
                     onPressed: _save,
                     style: FilledButton.styleFrom(
-                      backgroundColor: _lime,
+                      backgroundColor: _primaryAccent,
                       foregroundColor: _background,
                       minimumSize: Size.fromHeight(34 * s),
                       padding: EdgeInsets.symmetric(vertical: 10 * s),
-                      textStyle: style(10, bold: true, color: _background),
+                      textStyle: style(
+                        10,
+                        bold: true,
+                        color: context.backgroundColor(_background),
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(9 * s),
                       ),

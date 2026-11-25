@@ -1,3 +1,5 @@
+import 'package:dropline/core/theme/appcolors.dart';
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:dropline/core/utility/widgets/appbar.dart';
 
@@ -15,7 +17,7 @@ class _NewProjectPageState extends State<NewProjectPage> {
   static const _surface = Color(0xFF0D3042);
   static const _border = Color(0xFF31576B);
   static const _muted = Color(0xFF8EB5C9);
-  static const _lime = Color(0xFFB5FF65);
+  static const _primaryAccent = AppColors.primary;
   final _formKey = GlobalKey<FormState>();
   final _project = TextEditingController(text: 'Laxmi Gauri');
   final _company = TextEditingController(text: 'Apex Build');
@@ -33,7 +35,7 @@ class _NewProjectPageState extends State<NewProjectPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _background,
+      backgroundColor: context.backgroundColor(_background),
       appBar: const CustomAppBar(title: 'New project'),
       body: SafeArea(
         top: false,
@@ -43,13 +45,13 @@ class _NewProjectPageState extends State<NewProjectPage> {
             Text label(
               String value, {
               double size = 6.5,
-              Color color = _muted,
+              Color? color,
               bool bold = false,
             }) => Text(
               value,
               style: TextStyle(
                 fontSize: size * s,
-                color: color,
+                color: color ?? context.mutedColor(_muted),
                 fontWeight: bold ? FontWeight.w500 : FontWeight.w500,
                 letterSpacing: .15 * s,
               ),
@@ -64,7 +66,7 @@ class _NewProjectPageState extends State<NewProjectPage> {
             }) => TextFormField(
               controller: controller,
               focusNode: focus,
-              style: TextStyle(color: const Color(0xFFE4EFF5), fontSize: 7 * s),
+              style: TextStyle(color: context.foregroundColor(const Color(0xFFE4EFF5)), fontSize: 7 * s),
               validator: (value) =>
                   value == null || value.trim().isEmpty ? 'Required' : null,
               decoration: InputDecoration(
@@ -74,9 +76,9 @@ class _NewProjectPageState extends State<NewProjectPage> {
                   vertical: 8 * s,
                 ),
                 filled: true,
-                fillColor: _surface,
-                enabledBorder: border(_border),
-                focusedBorder: border(_muted),
+                fillColor: context.surfaceColor(_surface),
+                enabledBorder: border(context.borderColor(_border)),
+                focusedBorder: border(context.mutedColor(_muted)),
                 errorBorder: border(Colors.redAccent),
                 focusedErrorBorder: border(Colors.redAccent),
               ),
@@ -114,12 +116,16 @@ class _NewProjectPageState extends State<NewProjectPage> {
                                             padding: EdgeInsets.zero,
                                             backgroundColor:
                                                 _business == business
-                                                ? _lime
-                                                : _surface,
+                                                ? _primaryAccent
+                                                : context.surfaceColor(
+                                                    _surface,
+                                                  ),
                                             side: BorderSide(
                                               color: _business == business
-                                                  ? _lime
-                                                  : _border,
+                                                  ? context.accentColor(_primaryAccent)
+                                                  : context.borderColor(
+                                                      _border,
+                                                    ),
                                             ),
                                             shape: RoundedRectangleBorder(
                                               borderRadius:
@@ -132,8 +138,10 @@ class _NewProjectPageState extends State<NewProjectPage> {
                                           child: label(
                                             business ? 'Business' : 'Personal',
                                             color: _business == business
-                                                ? _background
-                                                : _muted,
+                                                ? context.backgroundColor(
+                                                    _background,
+                                                  )
+                                                : context.mutedColor(_muted),
                                             bold: true,
                                           ),
                                         ),
@@ -162,13 +170,15 @@ class _NewProjectPageState extends State<NewProjectPage> {
                                     horizontal: 6 * s,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: _surface,
-                                    border: Border.all(color: _border),
+                                    color: context.surfaceColor(_surface),
+                                    border: Border.all(
+                                      color: context.borderColor(_border),
+                                    ),
                                     borderRadius: BorderRadius.circular(5 * s),
                                   ),
                                   child: label(
                                     'Create a new company',
-                                    color: const Color(0xFFE4EFF5),
+                                    color: context.foregroundColor(const Color(0xFFE4EFF5)),
                                     size: 7,
                                   ),
                                 ),
@@ -180,7 +190,7 @@ class _NewProjectPageState extends State<NewProjectPage> {
                                 child: OutlinedButton(
                                   style: OutlinedButton.styleFrom(
                                     padding: EdgeInsets.zero,
-                                    side: const BorderSide(color: _lime),
+                                    side: BorderSide(color: context.accentColor(_primaryAccent)),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(
                                         6 * s,
@@ -190,7 +200,7 @@ class _NewProjectPageState extends State<NewProjectPage> {
                                   onPressed: _companyFocus.requestFocus,
                                   child: label(
                                     '+ New',
-                                    color: _lime,
+                                    color: _primaryAccent,
                                     bold: true,
                                   ),
                                 ),
@@ -208,7 +218,9 @@ class _NewProjectPageState extends State<NewProjectPage> {
                               vertical: 6 * s,
                             ),
                             decoration: BoxDecoration(
-                              color: _surface.withValues(alpha: .6),
+                              color: context
+                                  .surfaceColor(_surface)
+                                  .withValues(alpha: .6),
                               borderRadius: BorderRadius.circular(5 * s),
                             ),
                             child: label(
@@ -226,7 +238,7 @@ class _NewProjectPageState extends State<NewProjectPage> {
                           height: 27 * s,
                           child: FilledButton(
                             style: FilledButton.styleFrom(
-                              backgroundColor: _lime,
+                              backgroundColor: _primaryAccent,
                               foregroundColor: _background,
                               padding: EdgeInsets.zero,
                               shape: RoundedRectangleBorder(

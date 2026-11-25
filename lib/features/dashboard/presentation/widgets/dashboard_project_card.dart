@@ -1,3 +1,4 @@
+import 'package:dropline/core/theme/app_theme.dart';
 import 'package:dropline/core/theme/appcolors.dart';
 
 import 'package:dropline/features/dashboard/domain/entity/project_entity.dart';
@@ -51,7 +52,7 @@ class _DashboardProjectCardState extends State<DashboardProjectCard> {
         context: context,
         isScrollControlled: true,
         useSafeArea: true,
-        backgroundColor: AppColors.sheetBackground,
+        backgroundColor: context.surfaceColor(AppColors.sheetBackground),
         barrierColor: AppColors.black.withValues(alpha: 0.65),
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
@@ -85,9 +86,9 @@ class _DashboardProjectCardState extends State<DashboardProjectCard> {
       children: [
         Text(
           'Project',
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: const Color(0xFFADC6D9),
-          ),
+          style: context
+              .themedText(AppTextStyles.bodyMedium)
+              .copyWith(color: context.mutedColor(const Color(0xFFADC6D9))),
         ),
 
         const SizedBox(height: 10),
@@ -101,14 +102,19 @@ class _DashboardProjectCardState extends State<DashboardProjectCard> {
               constraints: const BoxConstraints(minHeight: 76),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFF304F64), Color(0xFF203B4F)],
+                gradient: context.themedGradient(
+                  const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0xFF304F64), Color(0xFF203B4F)],
+                  ),
+                  white: WhiteAppTheme.surface,
                 ),
                 borderRadius: BorderRadius.circular(26),
                 border: Border.all(
-                  color: widget.showError ? Colors.redAccent : AppColors.border,
+                  color: widget.showError
+                      ? Colors.redAccent
+                      : context.borderColor(AppColors.border),
                 ),
               ),
               child: Row(
@@ -122,28 +128,38 @@ class _DashboardProjectCardState extends State<DashboardProjectCard> {
                           project?.projectName ?? 'Select project',
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.bodyLarge.copyWith(
-                            color: project == null
-                                ? AppColors.textSecondary
-                                : AppColors.textPrimary,
-                          ),
+                          style: context
+                              .themedText(AppTextStyles.bodyLarge)
+                              .copyWith(
+                                color: project == null
+                                    ? context.mutedColor(
+                                        AppColors.textSecondary,
+                                      )
+                                    : context.foregroundColor(
+                                        AppColors.textPrimary,
+                                      ),
+                              ),
                         ),
                         if (project != null) ...[
                           const SizedBox(height: 8),
                           Text(
                             'Workspace: ${project.typeLabel}',
-                            style: AppTextStyles.bodyMedium.copyWith(
-                              color: const Color(0xFFADC6D9),
-                            ),
+                            style: context
+                                .themedText(AppTextStyles.bodyMedium)
+                                .copyWith(
+                                  color: context.mutedColor(
+                                    const Color(0xFFADC6D9),
+                                  ),
+                                ),
                           ),
                         ],
                       ],
                     ),
                   ),
 
-                  const Icon(
+                  Icon(
                     Icons.keyboard_arrow_down_rounded,
-                    color: AppColors.textSecondary,
+                    color: context.mutedColor(AppColors.textSecondary),
                     size: 22,
                   ),
                 ],
@@ -293,7 +309,7 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
                   width: 54,
                   height: 5,
                   decoration: BoxDecoration(
-                    color: AppColors.sheetHandle,
+                    color: context.mutedColor(AppColors.sheetHandle),
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
@@ -308,10 +324,12 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Select project',
                           style: TextStyle(
-                            color: AppColors.textPrimary,
+                            color: context.foregroundColor(
+                              AppColors.textPrimary,
+                            ),
                             fontSize: 25,
                             fontWeight: FontWeight.w500,
                           ),
@@ -319,8 +337,8 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
                         const SizedBox(height: 5),
                         Text(
                           'Personal and Business projects',
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
+                          style: TextStyle(
+                            color: context.mutedColor(AppColors.textSecondary),
                             fontSize: 14,
                           ),
                         ),
@@ -359,9 +377,11 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
                 Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: AppColors.inputBackground,
+                    color: context.surfaceColor(AppColors.inputBackground),
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.border),
+                    border: Border.all(
+                      color: context.borderColor(AppColors.border),
+                    ),
                   ),
                   child: Row(
                     children: [
@@ -393,8 +413,12 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
                 child: OutlinedButton(
                   onPressed: () => Navigator.of(context).pop(),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.textPrimary,
-                    side: const BorderSide(color: AppColors.border),
+                    foregroundColor: context.foregroundColor(
+                      AppColors.textPrimary,
+                    ),
+                    side: BorderSide(
+                      color: context.borderColor(AppColors.border),
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
@@ -420,7 +444,10 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
     return SizedBox(
       height: 47,
       child: TextField(
-        style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
+        style: TextStyle(
+          color: context.foregroundColor(AppColors.textPrimary),
+          fontSize: 13,
+        ),
         cursorColor: AppColors.primary,
         onChanged: (value) {
           setState(() {
@@ -429,22 +456,24 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
         },
         decoration: InputDecoration(
           hintText: 'Search project',
-          hintStyle: const TextStyle(color: AppColors.hintText),
-          prefixIcon: const Icon(
+          hintStyle: TextStyle(color: context.mutedColor(AppColors.hintText)),
+          prefixIcon: Icon(
             Icons.search_rounded,
-            color: AppColors.iconColor,
+            color: context.linkColor(AppColors.iconColor),
             size: 20,
           ),
           filled: true,
-          fillColor: AppColors.inputBackground,
+          fillColor: context.surfaceColor(AppColors.inputBackground),
           contentPadding: const EdgeInsets.symmetric(vertical: 12),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(13),
-            borderSide: const BorderSide(color: AppColors.border),
+            borderSide: BorderSide(
+              color: context.borderColor(AppColors.border),
+            ),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(13),
-            borderSide: const BorderSide(color: AppColors.primary),
+            borderSide: BorderSide(color: context.accentColor(AppColors.primary)),
           ),
         ),
       ),
@@ -512,8 +541,8 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
                 type,
                 style: TextStyle(
                   color: isSelected
-                      ? AppColors.primary
-                      : AppColors.textSecondary,
+                      ? context.accentColor(AppColors.primary)
+                      : context.mutedColor(AppColors.textSecondary),
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
@@ -537,16 +566,18 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
               textInputAction: TextInputAction.done,
               onSubmitted: (_) => _addManualProject(),
               onChanged: (_) => setState(() {}),
-              style: const TextStyle(
-                color: AppColors.textPrimary,
+              style: TextStyle(
+                color: context.foregroundColor(AppColors.textPrimary),
                 fontSize: 14,
               ),
               cursorColor: AppColors.primary,
               decoration: InputDecoration(
                 hintText: 'Enter Personal Project name',
-                hintStyle: const TextStyle(color: AppColors.hintText),
+                hintStyle: TextStyle(
+                  color: context.mutedColor(AppColors.hintText),
+                ),
                 filled: true,
-                fillColor: AppColors.inputBackground,
+                fillColor: context.surfaceColor(AppColors.inputBackground),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 14,
                   vertical: 12,
@@ -556,7 +587,7 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
                   borderSide: BorderSide(
                     color: _projectInvalid
                         ? Colors.redAccent
-                        : AppColors.border,
+                        : context.borderColor(AppColors.border),
                   ),
                 ),
                 focusedBorder: OutlineInputBorder(
@@ -564,7 +595,7 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
                   borderSide: BorderSide(
                     color: _projectInvalid
                         ? Colors.redAccent
-                        : AppColors.primary,
+                        : context.accentColor(AppColors.primary),
                   ),
                 ),
               ),
@@ -604,8 +635,8 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
     return BlocBuilder<DashboardBloc, DashboardState>(
       builder: (context, state) {
         if (state.dashboardStatus == DashboardStatus.loading) {
-          return const Center(
-            child: CircularProgressIndicator(color: AppColors.primary),
+          return Center(
+            child: CircularProgressIndicator(color: context.accentColor(AppColors.primary)),
           );
         }
 
@@ -614,10 +645,12 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
         }
 
         if (state.dashboardStatus == DashboardStatus.initial) {
-          return const Center(
+          return Center(
             child: Text(
               'Loading projects...',
-              style: TextStyle(color: AppColors.textSecondary),
+              style: TextStyle(
+                color: context.mutedColor(AppColors.textSecondary),
+              ),
             ),
           );
         }
@@ -635,8 +668,8 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
                 _searchQuery.isNotEmpty
                     ? 'No matching projects found'
                     : 'No projects available',
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
+                style: TextStyle(
+                  color: context.mutedColor(AppColors.textSecondary),
                   fontSize: 13,
                 ),
               ),
@@ -673,9 +706,9 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
           constraints: const BoxConstraints(minHeight: 65),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
           decoration: BoxDecoration(
-            color: AppColors.cardBackground,
+            color: context.surfaceColor(AppColors.cardBackground),
             borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: context.borderColor(AppColors.border)),
           ),
           child: Row(
             children: [
@@ -684,8 +717,8 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
                   project.projectName,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
+                  style: TextStyle(
+                    color: context.foregroundColor(AppColors.textPrimary),
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
                   ),
@@ -697,10 +730,10 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
               _ProjectTypeBadge(label: project.typeLabel),
               const SizedBox(width: 12),
 
-              const Text(
+              Text(
                 'Select',
                 style: TextStyle(
-                  color: AppColors.primary,
+                  color: context.accentColor(AppColors.primary),
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
                 ),
@@ -730,8 +763,8 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
           Text(
             message.isNotEmpty ? message : 'Unable to load projects',
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
+            style: TextStyle(
+              color: context.mutedColor(AppColors.textSecondary),
               fontSize: 13,
             ),
           ),
@@ -742,7 +775,7 @@ class _ProjectBottomSheetState extends State<_ProjectBottomSheet> {
             },
             icon: const Icon(Icons.refresh_rounded),
             label: const Text('Retry'),
-            style: TextButton.styleFrom(foregroundColor: AppColors.primary),
+            style: TextButton.styleFrom(foregroundColor: context.accentColor(AppColors.primary)),
           ),
         ],
       ),
