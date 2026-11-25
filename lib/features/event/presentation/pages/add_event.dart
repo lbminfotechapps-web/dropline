@@ -897,9 +897,7 @@ class _AddEventPageState extends State<AddEventPage> {
                       TextButton.icon(
                         onPressed: _pickAudio,
                         style: TextButton.styleFrom(
-                          foregroundColor: context.mutedColor(
-                            AppColors.textSecondary,
-                          ),
+                          foregroundColor: AppColors.textSecondary,
                         ),
                         icon: const Icon(Icons.attach_file),
                         label: const Text('Choose audio file'),
@@ -1177,7 +1175,8 @@ class _AddEventPageState extends State<AddEventPage> {
                         _noteVoiceOpen = true;
                       });
                       WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (mounted && _noteVoiceOpen) _noteFocus.requestFocus();
+                        if (mounted && _noteVoiceOpen)
+                          _noteFocus.requestFocus();
                       });
                     }
                   : null,

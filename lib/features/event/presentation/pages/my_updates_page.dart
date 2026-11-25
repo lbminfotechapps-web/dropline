@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dropline/core/router/app_router.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import 'package:dropline/features/pdf_editor_page.dart';
 import 'photo_editor_page.dart';
 
@@ -41,6 +43,19 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
   String? _selectedCategory;
   String? _selectedEvent;
   bool _oldestFirst = false;
+  int _tab = 0;
+  bool _selecting = false;
+  final Set<EventDraftRecord> _selectedRecords = {};
+  static const _people = [
+    'Rahul Patil',
+    'Amit Sharma',
+    'Priya Deshmukh',
+    'Vishal Jadhav',
+    'Sneha Kadam',
+  ];
+  Map<String, List<String>> _sent = {};
+  String _peopleSearch = '';
+  String? _sharingKey;
 
   int get _filterCount => [
     _selectedProject != null,
@@ -64,9 +79,23 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
         records = await widget.recordsLoader!();
       } else {
         final login = await sl<SecureStorage>().readLoginResponse();
+        _sharingKey = login == null || login.result.isEmpty
+            ? null
+            : 'record_shares_${login.result.first.userId}';
         records = login == null || login.result.isEmpty
             ? []
             : await _store.records(userId: login.result.first.userId);
+      }
+      if (_sharingKey != null) {
+        final raw = (await SharedPreferences.getInstance()).getString(
+          _sharingKey!,
+        );
+        if (raw != null) {
+          final data = jsonDecode(raw) as Map<String, dynamic>;
+          _sent = data.map(
+            (key, value) => MapEntry(key, (value as List).cast<String>()),
+          );
+        }
       }
       if (!mounted) return;
       setState(() {
@@ -106,20 +135,16 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
     bool oldestFirst = false,
   }) {
     final today = _day(DateTime.now());
-    final types = [
-      null,
-      EventItemType.photo,
-      EventItemType.note,
-      EventItemType.audio,
-    ];
     return _records.where((record) {
       if (project != null && record.projectName != project) {
         return false;
       }
-      if (types[_selectedType] != null &&
-          record.item.type != types[_selectedType]) {
+      if (_selectedType == 1 && record.item.type != EventItemType.photo)
         return false;
-      }
+      if (_selectedType == 2 &&
+          record.item.type != EventItemType.note &&
+          record.item.type != EventItemType.audio)
+        return false;
       if (area != null && record.item.area != area) return false;
       if (category != null && record.item.category != category) return false;
       if (event != null && record.item.event != event) return false;
@@ -987,7 +1012,21 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
         if (!didPop) context.go(AppRouter.dashboard);
       },
       child: Scaffold(
-        backgroundColor: context.backgroundColor(_background),
+        backgroundColor: _background,
+        bottomNavigationBar: _selecting && _tab == 0
+            ? SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: FilledButton.icon(
+                    onPressed: _selectedRecords.isEmpty
+                        ? null
+                        : _showSharePeople,
+                    icon: const Icon(Icons.share_outlined),
+                    label: Text('${_selectedRecords.length} selected · Share'),
+                  ),
+                ),
+              )
+            : null,
         body: SafeArea(
           child: RefreshIndicator(
             onRefresh: _load,
@@ -1015,188 +1054,238 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
                                 ),
                               ),
                             ),
-                            OutlinedButton.icon(
-                              onPressed: _showFilters,
-                              icon: const Icon(Icons.tune_rounded, size: 18),
-                              label: Text(
-                                _filterCount == 0
-                                    ? 'Filters'
-                                    : 'Filters · $_filterCount',
-                              ),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: _filterCount == 0
-                                    ? context.foregroundColor(Colors.white)
-                                    : context.accentColor(_accent),
-                                backgroundColor: context.surfaceColor(_surface),
-                                side: BorderSide(
-                                  color: context.borderColor(_border),
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 14,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                            if (_tab != 0)
+                              IconButton(
+                                onPressed: () => setState(() {
+                                  _tab = 0;
+                                  _peopleSearch = '';
+                                }),
+                                icon: const Icon(
+                                  Icons.arrow_back,
+                                  color: Colors.white,
                                 ),
                               ),
-                            ),
+                            if (_tab == 0)
+                              OutlinedButton.icon(
+                                onPressed: _showFilters,
+                                icon: const Icon(Icons.tune_rounded, size: 18),
+                                label: Text(
+                                  _filterCount == 0
+                                      ? 'Filters'
+                                      : 'Filters ($_filterCount)',
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: _filterCount == 0
+                                      ? Colors.white
+                                      : _accent,
+                                  backgroundColor: _surface,
+                                  side: const BorderSide(color: _border),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 14,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              ),
+                            if (_tab == 0) ...[
+                              const SizedBox(width: 8),
+                              OutlinedButton.icon(
+                                onPressed: () => setState(() {
+                                  _selecting = !_selecting;
+                                  _selectedRecords.clear();
+                                }),
+                                icon: Icon(
+                                  _selecting ? Icons.close : Icons.checklist,
+                                  size: 18,
+                                ),
+                                label: Text(_selecting ? 'Cancel' : 'Select'),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: Colors.white,
+                                  side: const BorderSide(color: _border),
+                                ),
+                              ),
+                            ],
                           ],
                         ),
-                        const SizedBox(height: 8),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              value: _selectedProject ?? '',
-                              dropdownColor: context.surfaceColor(_surface),
-                              icon: Icon(
-                                Icons.keyboard_arrow_down_rounded,
-                                color: context.mutedColor(_muted),
-                                size: 20,
-                              ),
-                              style: TextStyle(
-                                color: context.foregroundColor(Colors.white),
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              selectedItemBuilder: (context) =>
-                                  ['', ...projects]
-                                      .map(
-                                        (name) => Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              Icons.work_outline_rounded,
-                                              size: 16,
-                                              color: context.mutedColor(_muted),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            ConstrainedBox(
-                                              constraints: BoxConstraints(
-                                                maxWidth:
-                                                    MediaQuery.sizeOf(
-                                                      context,
-                                                    ).width -
-                                                    100,
+                        const SizedBox(height: 12),
+                        if (_tab == 0) ...[
+                          const SizedBox(height: 8),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: _selectedProject ?? '',
+                                dropdownColor: _surface,
+                                icon: const Icon(
+                                  Icons.keyboard_arrow_down_rounded,
+                                  color: _muted,
+                                  size: 20,
+                                ),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                selectedItemBuilder: (context) =>
+                                    ['', ...projects]
+                                        .map(
+                                          (name) => Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Icon(
+                                                Icons.work_outline_rounded,
+                                                size: 16,
+                                                color: _muted,
                                               ),
-                                              child: Text(
-                                                name.isEmpty
-                                                    ? 'All projects'
-                                                    : name,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: TextStyle(
-                                                  color: context
-                                                      .foregroundColor(
-                                                        Colors.white,
-                                                      ),
+                                              const SizedBox(width: 8),
+                                              ConstrainedBox(
+                                                constraints: BoxConstraints(
+                                                  maxWidth:
+                                                      MediaQuery.sizeOf(
+                                                        context,
+                                                      ).width -
+                                                      100,
+                                                ),
+                                                child: Text(
+                                                  name.isEmpty
+                                                      ? 'All projects'
+                                                      : name,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                  ),
                                                 ),
                                               ),
-                                            ),
-                                            const SizedBox(width: 8),
-                                          ],
-                                        ),
-                                      )
-                                      .toList(),
-                              items: [
-                                DropdownMenuItem(
-                                  value: '',
-                                  child: Text(
-                                    'All projects',
-                                    style: TextStyle(
-                                      color: context.foregroundColor(
-                                        Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                for (final project in projects)
-                                  DropdownMenuItem(
-                                    value: project,
+                                              const SizedBox(width: 8),
+                                            ],
+                                          ),
+                                        )
+                                        .toList(),
+                                items: [
+                                  const DropdownMenuItem(
+                                    value: '',
                                     child: Text(
-                                      project,
-                                      style: TextStyle(
-                                        color: context.foregroundColor(
-                                          Colors.white,
+                                      'All projects',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+                                  for (final project in projects)
+                                    DropdownMenuItem(
+                                      value: project,
+                                      child: Text(
+                                        project,
+                                        style: const TextStyle(
+                                          color: Colors.white,
                                         ),
                                       ),
                                     ),
-                                  ),
-                              ],
-                              onChanged: (value) => setState(() {
-                                _selectedProject = value == '' ? null : value;
-                                _selectedArea = null;
-                                _selectedCategory = null;
-                                _selectedEvent = null;
-                              }),
+                                ],
+                                onChanged: (value) => setState(() {
+                                  _selectedProject = value == '' ? null : value;
+                                  _selectedArea = null;
+                                  _selectedCategory = null;
+                                  _selectedEvent = null;
+                                }),
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: context.surfaceColor(
-                              const Color(0xFF092330),
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF092330),
+                              borderRadius: BorderRadius.circular(13),
+                              border: Border.all(color: _border),
                             ),
-                            borderRadius: BorderRadius.circular(13),
-                            border: Border.all(
-                              color: context.borderColor(_border),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              for (final entry in [
-                                'All',
-                                'Photos',
-                                'Notes',
-                                'Voice notes',
-                              ].indexed)
-                                Expanded(
-                                  flex: entry.$1 == 3 ? 3 : 2,
-                                  child: Semantics(
-                                    selected: _selectedType == entry.$1,
-                                    child: TextButton(
-                                      onPressed: () => setState(
-                                        () => _selectedType = entry.$1,
-                                      ),
-                                      style: TextButton.styleFrom(
-                                        backgroundColor:
-                                            _selectedType == entry.$1
-                                            ? _accent
-                                            : Colors.transparent,
-                                        foregroundColor:
-                                            _selectedType == entry.$1
-                                            ? AppColors.primaryText
-                                            : context.mutedColor(_muted),
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 12,
-                                          horizontal: 2,
+                            child: Row(
+                              children: [
+                                for (final entry in [
+                                  'All',
+                                  'Photos',
+                                  'Notes/Voice',
+                                ].indexed)
+                                  Expanded(
+                                    flex: 1,
+                                    child: Semantics(
+                                      selected: _selectedType == entry.$1,
+                                      child: TextButton(
+                                        onPressed: () => setState(
+                                          () => _selectedType = entry.$1,
                                         ),
-                                        minimumSize: const Size(0, 44),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            9,
+                                        style: TextButton.styleFrom(
+                                          backgroundColor:
+                                              _selectedType == entry.$1
+                                              ? _accent
+                                              : Colors.transparent,
+                                          foregroundColor:
+                                              _selectedType == entry.$1
+                                              ? _background
+                                              : _muted,
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 12,
+                                            horizontal: 2,
+                                          ),
+                                          minimumSize: const Size(0, 44),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              9,
+                                            ),
+                                          ),
+                                          textStyle: const TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
                                           ),
                                         ),
-                                        textStyle: const TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                                        child: Text(entry.$2, maxLines: 1),
                                       ),
-                                      child: Text(entry.$2, maxLines: 1),
                                     ),
                                   ),
+                                PopupMenuButton<int>(
+                                  tooltip: 'Shared records',
+                                  color: _surface,
+                                  icon: const Icon(
+                                    Icons.more_horiz,
+                                    color: _muted,
+                                  ),
+                                  onSelected: (value) => setState(() {
+                                    _tab = value;
+                                    _peopleSearch = '';
+                                    _selecting = false;
+                                    _selectedRecords.clear();
+                                  }),
+                                  itemBuilder: (_) => const [
+                                    PopupMenuItem(
+                                      value: 1,
+                                      child: Text(
+                                        'Sent',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    ),
+                                    PopupMenuItem(
+                                      value: 2,
+                                      child: Text(
+                                        'Received',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 20),
+                          const SizedBox(height: 20),
+                        ],
                       ],
                     ),
                   ),
                 ),
-                if (_loading)
-                  SliverFillRemaining(
+                if (_tab != 0)
+                  SliverFillRemaining(child: _sharedPeople())
+                else if (_loading)
+                  const SliverFillRemaining(
                     hasScrollBody: false,
                     child: Center(
                       child: CircularProgressIndicator(
@@ -1272,6 +1361,366 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
     );
   }
 
+  String _recordKey(EventDraftRecord record) =>
+      jsonEncode([record.scope, record.item.id]);
+
+  String _initials(String name) => name
+      .split(' ')
+      .where((part) => part.isNotEmpty)
+      .map((part) => part[0])
+      .take(2)
+      .join()
+      .toUpperCase();
+
+  Widget _personTile(
+    String name,
+    String subtitle, {
+    VoidCallback? onTap,
+    bool selected = false,
+    bool choosing = false,
+  }) => Card(
+    color: _surface,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
+      side: BorderSide(
+        color: selected ? _accent : _border,
+        width: selected ? 2 : 1,
+      ),
+    ),
+    child: ListTile(
+      onTap: onTap,
+      leading: CircleAvatar(
+        backgroundColor: const Color(0xFF285364),
+        child: Text(
+          _initials(name),
+          style: const TextStyle(color: _accent, fontWeight: FontWeight.bold),
+        ),
+      ),
+      title: Text(
+        name,
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      subtitle: Text(subtitle, style: const TextStyle(color: _muted)),
+      trailing: Icon(
+        choosing
+            ? (selected
+                  ? Icons.radio_button_checked
+                  : Icons.radio_button_unchecked)
+            : Icons.chevron_right,
+        color: selected ? _accent : _muted,
+      ),
+    ),
+  );
+
+  Widget _peopleSearchField(ValueChanged<String> onChanged) => TextField(
+    onChanged: onChanged,
+    style: const TextStyle(color: Colors.white),
+    decoration: InputDecoration(
+      prefixIcon: const Icon(Icons.search, color: _muted),
+      hintText: 'Search people',
+      hintStyle: const TextStyle(color: _muted),
+      filled: true,
+      fillColor: _surface,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+    ),
+  );
+
+  Future<void> _showSharePeople() async {
+    String? selectedPerson;
+    var search = '';
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (pageContext) => StatefulBuilder(
+          builder: (context, update) {
+            final people = _people
+                .where(
+                  (name) => name.toLowerCase().contains(search.toLowerCase()),
+                )
+                .toList();
+            return Scaffold(
+              backgroundColor: _background,
+              appBar: AppBar(
+                backgroundColor: _background,
+                foregroundColor: Colors.white,
+                title: const Text('Share Files'),
+              ),
+              body: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        '${_selectedRecords.length} files selected · Choose a person',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      const SizedBox(height: 20),
+                      _peopleSearchField(
+                        (value) => update(() => search = value),
+                      ),
+                      const SizedBox(height: 16),
+                      Expanded(
+                        child: people.isEmpty
+                            ? const Center(
+                                child: Text(
+                                  'No matching people',
+                                  style: TextStyle(color: _muted),
+                                ),
+                              )
+                            : ListView(
+                                children: [
+                                  for (final name in people)
+                                    _personTile(
+                                      name,
+                                      'Team member',
+                                      choosing: true,
+                                      selected: selectedPerson == name,
+                                      onTap: () =>
+                                          update(() => selectedPerson = name),
+                                    ),
+                                ],
+                              ),
+                      ),
+                      FilledButton.icon(
+                        onPressed: selectedPerson == null
+                            ? null
+                            : () async {
+                                final name = selectedPerson!;
+                                final keys = {
+                                  ...?_sent[name],
+                                  ..._selectedRecords.map(_recordKey),
+                                }.toList();
+                                final updated = {..._sent, name: keys};
+                                try {
+                                  if (_sharingKey != null) {
+                                    final saved =
+                                        await (await SharedPreferences.getInstance())
+                                            .setString(
+                                              _sharingKey!,
+                                              jsonEncode(updated),
+                                            );
+                                    if (!saved)
+                                      throw StateError('Unable to save shares');
+                                  }
+                                  if (!mounted || !pageContext.mounted) return;
+                                  setState(() {
+                                    _sent = updated;
+                                    _selectedRecords.clear();
+                                    _selecting = false;
+                                    _tab = 1;
+                                    _peopleSearch = '';
+                                  });
+                                  Navigator.pop(pageContext);
+                                  ScaffoldMessenger.of(
+                                    this.context,
+                                  ).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'Records saved locally for $name',
+                                      ),
+                                    ),
+                                  );
+                                } catch (_) {
+                                  if (pageContext.mounted)
+                                    ScaffoldMessenger.of(
+                                      pageContext,
+                                    ).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Could not save the share. Please try again.',
+                                        ),
+                                      ),
+                                    );
+                                }
+                              },
+                        icon: const Icon(Icons.send_outlined),
+                        label: Text('Share ${_selectedRecords.length} Files'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: _accent,
+                          foregroundColor: _background,
+                          minimumSize: const Size.fromHeight(50),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  List<EventDraftRecord> _receivedRecords(String name) => [
+    EventDraftRecord(
+      date: DateTime.now(),
+      projectName: 'Sample',
+      item: EventDraftItem(
+        id: 'sample-$name-1',
+        type: EventItemType.note,
+        name: 'Site observation',
+        text: 'Sample record shared by $name.',
+      ),
+    ),
+    EventDraftRecord(
+      date: DateTime.now(),
+      projectName: 'Sample',
+      item: EventDraftItem(
+        id: 'sample-$name-2',
+        type: EventItemType.note,
+        name: 'Progress update',
+        text: 'Sample progress update from $name.',
+      ),
+    ),
+  ];
+
+  void _openSharedPerson(String name, bool received) {
+    final keys = _sent[name] ?? [];
+    final records = received
+        ? _receivedRecords(name)
+        : _records
+              .where((record) => keys.contains(_recordKey(record)))
+              .toList();
+    var filter = 0;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => StatefulBuilder(
+          builder: (context, update) {
+            final visible = records
+                .where(
+                  (record) =>
+                      filter == 0 ||
+                      (filter == 1 &&
+                          record.item.type == EventItemType.photo) ||
+                      (filter == 2 &&
+                          (record.item.type == EventItemType.note ||
+                              record.item.type == EventItemType.pdf)),
+                )
+                .toList();
+            return Scaffold(
+              backgroundColor: _background,
+              appBar: AppBar(
+                backgroundColor: _background,
+                foregroundColor: Colors.white,
+                title: Text(name),
+              ),
+              body: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        for (final entry in [
+                          'All',
+                          'Photos',
+                          'Notes/PDF',
+                        ].indexed)
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 2,
+                              ),
+                              child: TextButton(
+                                onPressed: () =>
+                                    update(() => filter = entry.$1),
+                                style: TextButton.styleFrom(
+                                  backgroundColor: filter == entry.$1
+                                      ? _accent
+                                      : _surface,
+                                  foregroundColor: filter == entry.$1
+                                      ? _background
+                                      : Colors.white,
+                                ),
+                                child: Text(entry.$2),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: visible.isEmpty
+                        ? const Center(
+                            child: Text(
+                              'No matching records.',
+                              style: TextStyle(color: _muted),
+                            ),
+                          )
+                        : GridView.builder(
+                            padding: const EdgeInsets.all(16),
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 3,
+                                  crossAxisSpacing: 8,
+                                  mainAxisSpacing: 8,
+                                ),
+                            itemCount: visible.length,
+                            itemBuilder: (context, index) =>
+                                _recordCard(visible[index]),
+                          ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _sharedPeople() {
+    final received = _tab == 2;
+    final names = (received ? _people.take(3).toList() : _sent.keys.toList())
+        .where(
+          (name) => name.toLowerCase().contains(_peopleSearch.toLowerCase()),
+        )
+        .toList();
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            received ? 'Shared by' : 'Shared with',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 16),
+          _peopleSearchField((value) => setState(() => _peopleSearch = value)),
+          const SizedBox(height: 12),
+          Expanded(
+            child: names.isEmpty
+                ? Center(
+                    child: Text(
+                      _peopleSearch.isNotEmpty
+                          ? 'No matching people'
+                          : 'No shared records yet',
+                      style: const TextStyle(color: _muted),
+                    ),
+                  )
+                : ListView(
+                    children: [
+                      for (final name in names)
+                        _personTile(
+                          name,
+                          '${received ? _receivedRecords(name).length : (_sent[name]?.length ?? 0)} files shared',
+                          onTap: () => _openSharedPerson(name, received),
+                        ),
+                    ],
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _emptyState() => Padding(
     padding: const EdgeInsets.all(24),
     child: Column(
@@ -1329,7 +1778,7 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
   );
 
   Widget _recordCard(EventDraftRecord record) {
-    final whiteTheme = WhiteAppTheme.isEnabled(context);
+    final selected = _selectedRecords.contains(record);
     final photo = record.item.type == EventItemType.photo;
     final voice = record.item.type == EventItemType.audio;
     final cardColor = whiteTheme
@@ -1346,12 +1795,27 @@ class _MyUpdatesPageState extends State<MyUpdatesPage> {
       child: Material(
         color: cardColor,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(whiteTheme ? 16 : 10),
-          side: BorderSide(color: context.borderColor(_border)),
+          borderRadius: BorderRadius.circular(10),
+          side: BorderSide(
+            color: selected ? _accent : _border,
+            width: selected ? 2 : 1,
+          ),
         ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
-          onTap: () => _open(record),
+          onTap: () {
+            if (!_selecting) {
+              _open(record);
+              return;
+            }
+            setState(() {
+              if (selected) {
+                _selectedRecords.remove(record);
+              } else {
+                _selectedRecords.add(record);
+              }
+            });
+          },
           child: photo
               ? Stack(
                   fit: StackFit.expand,
